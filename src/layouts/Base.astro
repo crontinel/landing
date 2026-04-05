@@ -1,6 +1,8 @@
 ---
 import '../styles/global.css';
 
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? '';
+
 interface Props {
   title: string;
   description?: string;
@@ -44,14 +46,6 @@ const canonicalURL = canonical ?? new URL(Astro.url.pathname, Astro.site).toStri
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={new URL(ogImage, Astro.site).toString()} />
 
-    <!-- Cookie consent + Google Analytics (loaded only after consent) -->
-    <script is:inline>
-      (function() {
-        if (localStorage.getItem('cookie_consent') === 'accepted') {
-          window.__ga_allowed = true;
-        }
-      })();
-    </script>
   </head>
   <body class="min-h-screen flex flex-col antialiased">
     <slot />
@@ -70,7 +64,7 @@ const canonicalURL = canonical ?? new URL(Astro.url.pathname, Astro.site).toStri
       </div>
     </div>
 
-    <script is:inline>
+    <script is:inline define:vars={{ gaId }}>
       (function() {
         var consent = localStorage.getItem('cookie_consent');
         if (!consent) {
@@ -78,20 +72,19 @@ const canonicalURL = canonical ?? new URL(Astro.url.pathname, Astro.site).toStri
         }
 
         function loadGA() {
-          if (!document.getElementById('ga-script')) {
-            var s = document.createElement('script');
-            s.id = 'ga-script';
-            s.async = true;
-            s.src = 'https://www.googletagmanager.com/gtag/js?id=REPLACE_GA_ID';
-            document.head.appendChild(s);
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'REPLACE_GA_ID');
-          }
+          if (!gaId || document.getElementById('ga-script')) return;
+          var s = document.createElement('script');
+          s.id = 'ga-script';
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', gaId);
         }
 
-        if (window.__ga_allowed) loadGA();
+        if (localStorage.getItem('cookie_consent') === 'accepted') loadGA();
 
         document.getElementById('cookie-accept')?.addEventListener('click', function() {
           localStorage.setItem('cookie_consent', 'accepted');
