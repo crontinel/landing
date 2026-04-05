@@ -1,0 +1,98 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const updated = '2026-04-05';
+---
+
+<Base
+  title="Privacy Policy — Crontinel"
+  description="Crontinel privacy policy. What we collect, how we use it, your rights."
+>
+  <Nav />
+
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16 prose prose-invert prose-gray max-w-none">
+    <h1 class="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
+    <p class="text-sm text-gray-500 mb-10">Last updated: {updated}</p>
+
+    <div class="space-y-8 text-gray-400 text-sm leading-relaxed">
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Who we are</h2>
+        <p>Crontinel is operated by Harun Ray. The service is available at crontinel.com and app.crontinel.com. Contact: <a href="mailto:support@crontinel.com" class="text-gray-300 hover:text-white">support@crontinel.com</a></p>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">What we collect</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong class="text-gray-300">Account data:</strong> email address, name, password hash (bcrypt)</li>
+          <li><strong class="text-gray-300">Monitoring data:</strong> cron run history, queue depth snapshots, Horizon status — sent from your app via the Crontinel package</li>
+          <li><strong class="text-gray-300">Billing data:</strong> subscription status. Payment details are handled directly by Stripe — we never see your card number</li>
+          <li><strong class="text-gray-300">Server logs:</strong> IP addresses and request logs (standard nginx/server logging, not stored in our database)</li>
+          <li><strong class="text-gray-300">Analytics:</strong> page views and clicks on crontinel.com via Google Analytics 4, only if you consent via the cookie banner</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">What we do not collect</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>We do not use advertising or tracking cookies on app.crontinel.com</li>
+          <li>We do not sell your data to any third party</li>
+          <li>We do not access the content of your queued jobs or cron command output unless you explicitly send it to us</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Cookies</h2>
+        <p>We use two categories of cookies:</p>
+        <ul class="list-disc pl-5 space-y-1 mt-2">
+          <li><strong class="text-gray-300">Strictly necessary:</strong> session cookie, CSRF token. No consent required.</li>
+          <li><strong class="text-gray-300">Analytics:</strong> Google Analytics 4 on crontinel.com only. Only set after you click "Accept" on the cookie banner.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Data retention</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          <li>Monitoring events are retained per your plan (7 days / 90 days / 1 year)</li>
+          <li>Account data is retained until you delete your account</li>
+          <li>On account deletion, all personal data is purged within 30 days</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Your rights (GDPR)</h2>
+        <p>If you are in the EU/EEA, you have the right to:</p>
+        <ul class="list-disc pl-5 space-y-1 mt-2">
+          <li><strong class="text-gray-300">Access</strong> the data we hold about you</li>
+          <li><strong class="text-gray-300">Export</strong> your data as JSON from your profile settings</li>
+          <li><strong class="text-gray-300">Delete</strong> your account and all associated data</li>
+          <li><strong class="text-gray-300">Object</strong> to processing — contact us at support@crontinel.com</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Data location</h2>
+        <p>Data is stored in the EU (Hetzner or AWS eu-central-1). We do not transfer data outside the EU/EEA.</p>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Third-party services</h2>
+        <ul class="list-disc pl-5 space-y-1">
+          <li><strong class="text-gray-300">Stripe</strong> — payment processing. Subject to Stripe's privacy policy.</li>
+          <li><strong class="text-gray-300">Resend</strong> — transactional email delivery.</li>
+          <li><strong class="text-gray-300">Google Analytics</strong> — landing page analytics, consent-gated.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Contact</h2>
+        <p>Questions? <a href="mailto:support@crontinel.com" class="text-gray-300 hover:text-white">support@crontinel.com</a></p>
+      </section>
+
+    </div>
+  </main>
+
+  <Footer />
+</Base>

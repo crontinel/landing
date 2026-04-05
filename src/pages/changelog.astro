@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base
+  title="Changelog — Crontinel"
+  description="What's new in Crontinel. Product updates, fixes, and improvements."
+>
+  <Nav />
+
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+    <h1 class="text-3xl font-bold text-white mb-2">Changelog</h1>
+    <p class="text-gray-400 mb-12">What's new in Crontinel.</p>
+
+    <div class="space-y-12">
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-sm font-mono text-gray-500">2026-04-05</span>
+          <span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full">launch</span>
+        </div>
+        <h2 class="text-lg font-semibold text-white mb-2">Crontinel is live</h2>
+        <p class="text-gray-400 text-sm">
+          Landing page is up. OSS package development in progress. Follow along on
+          <a href="https://github.com/HarunRRayhan/crontinel" class="text-gray-300 underline hover:text-white" target="_blank" rel="noopener">GitHub</a>.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>

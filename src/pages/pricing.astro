@@ -1,0 +1,144 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+
+<Base
+  title="Pricing — Crontinel"
+  description="Start free. No credit card required. Upgrade to Pro or Team for alerts, more apps, and longer history."
+>
+  <Nav />
+
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+    <div class="text-center mb-12">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple, transparent pricing</h1>
+      <p class="text-gray-400">14-day Pro trial on every signup. No credit card required.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-6 mb-12">
+      <!-- Free -->
+      <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
+        <div class="mb-6">
+          <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Free</div>
+          <div class="text-4xl font-bold text-white">$0</div>
+          <div class="text-sm text-gray-500 mt-1">forever</div>
+        </div>
+        <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 app</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 5 monitors per app</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 7-day history retention</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 team member (owner)</li>
+          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">Slack / email alerts</span></li>
+          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">REST API access</span></li>
+          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">Status page</span></li>
+        </ul>
+        <a href="https://app.crontinel.com/register" class="block text-center border border-gray-700 hover:border-gray-500 text-gray-300 font-medium py-2.5 rounded-lg transition-colors">
+          Get started free
+        </a>
+      </div>
+
+      <!-- Pro -->
+      <div class="bg-gray-900 rounded-xl p-6 border border-green-500/40 flex flex-col relative">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-black text-xs font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
+          Most popular
+        </div>
+        <div class="mb-6">
+          <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Pro</div>
+          <div class="flex items-end gap-2">
+            <div class="text-4xl font-bold text-white">$19</div>
+            <div class="text-gray-500 mb-1">/mo</div>
+          </div>
+          <div class="text-sm text-green-400 mt-1">or $182/yr — save 20%</div>
+        </div>
+        <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 5 apps</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited monitors</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 90-day history retention</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 3 team members</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Slack, email, PagerDuty, webhook alerts</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> REST API access</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 status page per app</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 14-day free trial</li>
+        </ul>
+        <a href="https://app.crontinel.com/register" class="block text-center bg-green-500 hover:bg-green-400 text-black font-semibold py-2.5 rounded-lg transition-colors">
+          Start 14-day trial
+        </a>
+      </div>
+
+      <!-- Team -->
+      <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
+        <div class="mb-6">
+          <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Team</div>
+          <div class="flex items-end gap-2">
+            <div class="text-4xl font-bold text-white">$49</div>
+            <div class="text-gray-500 mb-1">/mo</div>
+          </div>
+          <div class="text-sm text-green-400 mt-1">or $470/yr — save 20%</div>
+        </div>
+        <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited apps</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited monitors</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1-year history retention</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited team members</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> All alert channels</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited status pages</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Custom alert rules</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Priority support (24h email)</li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 14-day free trial</li>
+        </ul>
+        <a href="https://app.crontinel.com/register" class="block text-center border border-gray-700 hover:border-gray-500 text-gray-300 font-medium py-2.5 rounded-lg transition-colors">
+          Start 14-day trial
+        </a>
+      </div>
+    </div>
+
+    <!-- Self-host note -->
+    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center max-w-2xl mx-auto">
+      <h2 class="font-semibold text-white mb-2">Want full control? Self-host for free.</h2>
+      <p class="text-sm text-gray-400 mb-4">
+        The MIT package includes the Blade dashboard, CLI health check, Horizon monitoring, and Slack alerts —
+        with no SaaS required.
+      </p>
+      <code class="block bg-gray-950 text-green-400 text-sm rounded px-4 py-2.5">
+        composer require harunrrayhan/crontinel
+      </code>
+    </div>
+
+    <!-- FAQ -->
+    <div class="mt-16 max-w-2xl mx-auto">
+      <h2 class="text-xl font-bold text-white mb-8 text-center">Common questions</h2>
+      <div class="space-y-6">
+        {[
+          {
+            q: 'Do I need a credit card to start?',
+            a: 'No. The free tier and the 14-day Pro trial both require zero payment information.',
+          },
+          {
+            q: 'What happens when my trial ends?',
+            a: 'Your account drops to the free tier automatically. No charge, no cancellation needed.',
+          },
+          {
+            q: 'Can I upgrade or downgrade at any time?',
+            a: 'Yes. Upgrades take effect immediately. Downgrades take effect at the end of the current billing period.',
+          },
+          {
+            q: 'What\'s the difference between the OSS package and SaaS?',
+            a: 'The OSS package is a Laravel package you install in your app — it has a Blade dashboard, CLI check, and local alerts. The SaaS adds a hosted multi-app dashboard, longer history, team access, and cross-app monitoring from one place.',
+          },
+          {
+            q: 'Is there an annual discount?',
+            a: 'Yes — 20% off when you pay annually. Pro goes from $19/mo to $182/yr. Team goes from $49/mo to $470/yr.',
+          },
+        ].map((item) => (
+          <div class="border-b border-gray-800 pb-6">
+            <h3 class="font-medium text-white mb-2">{item.q}</h3>
+            <p class="text-sm text-gray-400">{item.a}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
