@@ -1,0 +1,80 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const useCases = [
+  {
+    title: 'SaaS apps with billing jobs',
+    description: 'Invoice generation, subscription renewals, dunning emails. These jobs are revenue-critical. Know the moment one fails or backs up.',
+    signals: ['Invoice queue depth > 10 = alert', 'Failed SendInvoice jobs surfaced immediately', 'Billing cron run history with exit codes'],
+  },
+  {
+    title: 'Apps running Laravel Horizon',
+    description: 'Horizon\'s dashboard shows current state. Crontinel tells you when something goes wrong — supervisor down, queue overwhelmed, jobs piling up.',
+    signals: ['Per-supervisor pause detection', 'Failed jobs per minute threshold', 'Queue depth alert per queue name'],
+  },
+  {
+    title: 'Scheduled report generation',
+    description: 'Daily exports, weekly digests, monthly statements. If a scheduled command exits non-zero or stops running, you\'ll know before your users do.',
+    signals: ['Run recorded on every schedule:run', 'Exit code and duration tracked', 'Late detection: command didn\'t run on expected schedule'],
+  },
+  {
+    title: 'Multi-tenant platforms',
+    description: 'A single Horizon crash affects all tenants. Connect multiple apps to Crontinel\'s SaaS dashboard to monitor everything in one place.',
+    signals: ['One dashboard for all your apps', 'Per-app API keys', 'Team access for your engineering org'],
+  },
+];
+---
+
+<Base
+  title="Use Cases — Crontinel"
+  description="Crontinel for SaaS billing jobs, Horizon-heavy apps, scheduled reports, and multi-tenant Laravel platforms."
+>
+  <Nav />
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-16">
+
+    <div class="text-center mb-14">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Built for production Laravel apps</h1>
+      <p class="text-gray-400 max-w-xl mx-auto">
+        Crontinel is most valuable when your background jobs are load-bearing — billing, data sync, reporting, communication. Here's how teams use it.
+      </p>
+    </div>
+
+    <div class="space-y-6 mb-16">
+      {useCases.map((uc) => (
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h2 class="text-lg font-semibold text-white mb-2">{uc.title}</h2>
+          <p class="text-gray-400 text-sm mb-4">{uc.description}</p>
+          <ul class="space-y-1">
+            {uc.signals.map((s) => (
+              <li class="text-sm text-gray-500 flex gap-2">
+                <span class="text-green-400">→</span>
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+
+    <div class="bg-gray-900 border border-green-500/20 rounded-xl p-8 text-center">
+      <h2 class="text-xl font-bold text-white mb-2">Start in two commands</h2>
+      <p class="text-gray-400 mb-6">No account needed. Crontinel works locally and in production from day one.</p>
+      <div class="bg-gray-950 rounded-lg p-4 font-mono text-sm text-green-400 text-left max-w-sm mx-auto mb-6">
+        <div>composer require harunrrayhan/crontinel</div>
+        <div>php artisan crontinel:install</div>
+      </div>
+      <a
+        href="https://app.crontinel.com/register"
+        class="inline-block bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-2.5 rounded transition-colors"
+      >
+        Get early access
+      </a>
+    </div>
+
+  </main>
+
+  <Footer />
+</Base>
