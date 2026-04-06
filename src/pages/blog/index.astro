@@ -7,40 +7,160 @@ import { getCollection } from 'astro:content';
 const posts = (await getCollection('blog'))
   .filter((p) => !p.data.draft)
   .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+const topics = [
+  { label: 'Horizon deep dives', icon: '⚡', desc: 'What Horizon actually stores in Redis and how to read it.' },
+  { label: 'Silent failure patterns', icon: '🔕', desc: 'The job that "ran" but did nothing. How it happens and how to catch it.' },
+  { label: 'Queue architecture', icon: '📬', desc: 'Sizing queues, setting thresholds, avoiding alert fatigue.' },
+  { label: 'Monitoring best practices', icon: '✅', desc: 'What to monitor, what to ignore, and when to page someone.' },
+];
 ---
 
 <Base
   title="Blog — Crontinel"
-  description="Laravel monitoring tips, Horizon deep dives, and cron job best practices."
+  description="Horizon deep dives, queue architecture, and monitoring best practices for background job reliability."
 >
   <Nav />
 
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-    <h1 class="text-3xl font-bold text-white mb-2">Blog</h1>
-    <p class="text-gray-400 mb-12">Laravel monitoring, Horizon deep dives, and cron best practices.</p>
+  <main>
 
-    {posts.length === 0 ? (
-      <p class="text-gray-500">Posts coming soon.</p>
-    ) : (
-      <div class="space-y-8">
-        {posts.map((post) => (
-          <article class="border-b border-gray-800 pb-8">
-            <time class="text-xs text-gray-500 font-mono">{post.data.date.toISOString().slice(0, 10)}</time>
-            <h2 class="text-xl font-semibold text-white mt-1 mb-2">
-              <a href={`/blog/${post.id}`} class="hover:text-green-400 transition-colors">
-                {post.data.title}
-              </a>
-            </h2>
-            {post.data.description && (
-              <p class="text-gray-400 text-sm mb-3">{post.data.description}</p>
-            )}
-            <a href={`/blog/${post.id}`} class="text-sm text-green-400 hover:text-green-300">
-              Read more →
-            </a>
-          </article>
-        ))}
+    <!-- Header -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-12">
+      <div class="inline-flex items-center gap-2 bg-green-500/10 text-green-400 text-xs font-medium px-3 py-1 rounded-full border border-green-500/20 mb-6">
+        Writing
       </div>
+      <div class="max-w-2xl">
+        <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">
+          Background jobs are hard.<br />
+          <span class="text-gray-400">We write about why.</span>
+        </h1>
+        <p class="text-gray-400 text-lg">
+          Horizon internals, queue failure patterns, and monitoring that actually wakes you up
+          for the right reasons.
+        </p>
+      </div>
+    </section>
+
+    {posts.length > 0 ? (
+
+      <!-- Post grid -->
+      <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-24">
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {posts.map((post) => (
+            <a
+              href={`/blog/${post.id}`}
+              class="group bg-gray-900 rounded-xl border border-gray-800 hover:border-gray-600 p-6 flex flex-col transition-colors"
+            >
+              {post.data.tags?.[0] && (
+                <span class="inline-block text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 rounded-full mb-4 self-start">
+                  {post.data.tags[0]}
+                </span>
+              )}
+              <h2 class="text-white font-semibold text-lg leading-snug mb-3 group-hover:text-green-400 transition-colors flex-1">
+                {post.data.title}
+              </h2>
+              {post.data.description && (
+                <p class="text-gray-400 text-sm mb-4 line-clamp-2">{post.data.description}</p>
+              )}
+              <div class="flex items-center justify-between mt-auto pt-4 border-t border-gray-800">
+                <time class="text-xs text-gray-500 font-mono">
+                  {post.data.date.toISOString().slice(0, 10)}
+                </time>
+                <span class="text-xs text-green-400 group-hover:text-green-300">Read →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+    ) : (
+
+      <!-- Empty state: coming soon -->
+      <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-24">
+
+        <div class="grid sm:grid-cols-2 gap-4 mb-16">
+          {topics.map((t) => (
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 flex gap-4">
+              <span class="text-2xl">{t.icon}</span>
+              <div>
+                <div class="text-white font-medium mb-1">{t.label}</div>
+                <div class="text-gray-400 text-sm">{t.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-8 text-center max-w-xl mx-auto">
+          <div class="inline-flex items-center gap-2 bg-green-500/10 text-green-400 text-xs font-medium px-3 py-1 rounded-full border border-green-500/20 mb-4">
+            Coming soon
+          </div>
+          <h2 class="text-white font-bold text-xl mb-2">First posts dropping at launch</h2>
+          <p class="text-gray-400 text-sm mb-6">
+            Get notified when Crontinel launches and the first posts go live.
+          </p>
+          <form
+            id="blog-waitlist-form"
+            class="flex flex-col sm:flex-row gap-3 max-w-sm mx-auto"
+          >
+            <input
+              type="email"
+              id="blog-waitlist-email"
+              placeholder="you@yourapp.com"
+              required
+              class="flex-1 bg-gray-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-green-500 transition-colors"
+            />
+            <button
+              type="submit"
+              id="blog-waitlist-btn"
+              class="bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-semibold px-4 py-2.5 rounded-lg transition-colors text-sm whitespace-nowrap"
+            >
+              Notify me
+            </button>
+          </form>
+          <p id="blog-waitlist-msg" class="mt-3 text-sm hidden"></p>
+        </div>
+
+        <script>
+          const form = document.getElementById('blog-waitlist-form') as HTMLFormElement;
+          const emailInput = document.getElementById('blog-waitlist-email') as HTMLInputElement;
+          const btn = document.getElementById('blog-waitlist-btn') as HTMLButtonElement;
+          const msg = document.getElementById('blog-waitlist-msg') as HTMLParagraphElement;
+
+          form?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            btn.disabled = true;
+            btn.textContent = 'Joining...';
+
+            try {
+              const res = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: emailInput.value }),
+              });
+              const data = await res.json();
+              if (res.ok && data.ok) {
+                msg.textContent = "You're on the list. We'll email you at launch.";
+                msg.className = 'mt-3 text-sm text-green-400';
+                form.reset();
+              } else {
+                msg.textContent = data.error ?? 'Something went wrong. Try again.';
+                msg.className = 'mt-3 text-sm text-red-400';
+                btn.disabled = false;
+                btn.textContent = 'Notify me';
+              }
+            } catch {
+              msg.textContent = 'Something went wrong. Try again.';
+              msg.className = 'mt-3 text-sm text-red-400';
+              btn.disabled = false;
+              btn.textContent = 'Notify me';
+            }
+          });
+        </script>
+
+      </section>
+
     )}
+
   </main>
 
   <Footer />
