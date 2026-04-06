@@ -34,6 +34,20 @@ import Footer from '../components/Footer.astro';
         with its exit code and duration, so you can see exactly what ran, when, and whether it succeeded.
       </p>
 
+      <h2 class="text-white font-semibold text-base pt-4">Why not use existing tools?</h2>
+
+      <p>
+        Cronitor, Healthchecks.io, and similar services check whether something pinged them on time. That model works if your only concern is "did the scheduler run?" It does not tell you whether the jobs the scheduler dispatched were actually processed, whether Horizon is paused, or whether a specific queue has 2,000 jobs sitting unprocessed. They see what your app reports; Crontinel reads what your app is actually doing.
+      </p>
+
+      <p>
+        Datadog and other APM tools can instrument queue workers with enough configuration, but they are general-purpose platforms built around traces and metrics. Setting up queue depth alerts in Datadog means writing custom metrics pipelines, managing agents, and paying for ingestion at a scale that rarely makes sense for a single Laravel app. Crontinel is purpose-built: install one package, get a working dashboard.
+      </p>
+
+      <p>
+        The gap these tools leave is not a monitoring gap, it is a Laravel internals gap. None of them understand what <code class="text-gray-300 bg-gray-900 px-1.5 py-0.5 rounded text-xs">horizon:supervisor</code> keys in Redis mean, or that a scheduler firing does not guarantee a job was processed. Crontinel was built specifically to close that gap.
+      </p>
+
       <h2 class="text-white font-semibold text-base pt-4">Open source first</h2>
 
       <p>

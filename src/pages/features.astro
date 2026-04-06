@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 
 <Base
   title="Features — Crontinel"
-  description="Horizon internals, queue depth monitoring, cron run history, multi-app dashboard, and alerts. Everything Laravel monitoring should have been."
+  description="Horizon internals, queue depth monitoring, cron run history, multi-app dashboard, and alerts. Everything background job and cron monitoring should have been."
 >
   <Nav />
 
@@ -123,6 +123,44 @@ import Footer from '../components/Footer.astro';
         </div>
       </div>
 
+    </div>
+
+    <!-- FAQ -->
+    <div class="mt-20">
+      <h2 class="text-2xl font-bold text-white mb-8 text-center">Frequently asked questions</h2>
+      <div class="space-y-4">
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 class="text-white font-semibold mb-2">Does Crontinel work without Laravel Horizon?</h3>
+          <p class="text-gray-400 text-sm">Yes. Queue monitoring and cron tracking are fully independent of Horizon. If you use the database queue driver, Crontinel monitors queue depths and failed jobs from your database tables. Cron tracking works via Laravel's scheduler events regardless of which queue driver you use. Horizon monitoring is an additional layer for apps that run it.</p>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 class="text-white font-semibold mb-2">How does Crontinel monitor Horizon internals?</h3>
+          <p class="text-gray-400 text-sm">Crontinel reads Horizon's Redis keys directly, the same data source the Horizon dashboard uses. This means it sees actual supervisor states, actual pause status, and actual failed-jobs-per-minute rates, not just whether an HTTP health endpoint returned 200. This approach catches scenarios where Horizon reports "running" at the top level while an individual supervisor handling a critical queue has silently crashed.</p>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 class="text-white font-semibold mb-2">What queue drivers does Crontinel support?</h3>
+          <p class="text-gray-400 text-sm">Crontinel supports the Redis and database queue drivers. Redis is the recommended driver for production Horizon setups, and Crontinel reads queue depths and failed counts directly from Redis. For apps using the database driver, Crontinel queries the <code class="text-gray-300 bg-gray-800 px-1 py-0.5 rounded text-xs">jobs</code> and <code class="text-gray-300 bg-gray-800 px-1 py-0.5 rounded text-xs">failed_jobs</code> tables. SQS and other drivers are not currently supported.</p>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 class="text-white font-semibold mb-2">Does cron tracking require code changes to my scheduled commands?</h3>
+          <p class="text-gray-400 text-sm">No. Crontinel hooks into Laravel's built-in scheduler events (<code class="text-gray-300 bg-gray-800 px-1 py-0.5 rounded text-xs">ScheduledTaskStarting</code>, <code class="text-gray-300 bg-gray-800 px-1 py-0.5 rounded text-xs">ScheduledTaskFinished</code>, <code class="text-gray-300 bg-gray-800 px-1 py-0.5 rounded text-xs">ScheduledTaskFailed</code>) automatically after installation. Every command defined in your <code class="text-gray-300 bg-gray-800 px-1 py-0.5 rounded text-xs">schedule()</code> method is tracked with its exit code and duration. No wrapping, no per-command changes needed.</p>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 class="text-white font-semibold mb-2">How are alerts deduplicated?</h3>
+          <p class="text-gray-400 text-sm">Crontinel applies a 5-minute cooldown per alert condition. If a queue depth stays above its threshold, you receive one alert, not one per polling cycle. The alert resolves automatically when the condition clears, at which point you receive a recovery notification. This prevents alert fatigue during extended incidents while still giving you clear start and end signals.</p>
+        </div>
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <h3 class="text-white font-semibold mb-2">Is the OSS package free forever?</h3>
+          <p class="text-gray-400 text-sm">Yes. The core Crontinel package is MIT licensed and will remain free forever. You can self-host the full monitoring dashboard, configure Slack or email alerts, and track unlimited cron runs and queue depths with no subscription required. The paid SaaS tier adds multi-app dashboards, longer history retention, and team access for engineering organizations that want managed infrastructure.</p>
+        </div>
+
+      </div>
     </div>
 
     <!-- CTA -->

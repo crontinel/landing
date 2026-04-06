@@ -24,6 +24,16 @@ const useCases = [
     description: 'A single Horizon crash affects all tenants. Connect multiple apps to Crontinel\'s SaaS dashboard to monitor everything in one place.',
     signals: ['One dashboard for all your apps', 'Per-app API keys', 'Team access for your engineering org'],
   },
+  {
+    title: 'Teams managing multiple apps',
+    description: 'When you run five or ten Laravel apps, context-switching between separate monitoring setups adds up. Crontinel\'s multi-app dashboard gives your team a single place to check queue health, cron status, and Horizon state across every app at once. No more logging into each app separately to verify overnight jobs ran.',
+    signals: ['All apps visible in one dashboard', 'Per-app alert thresholds and channels', 'Team members see all apps with a single login'],
+  },
+  {
+    title: 'Agencies and consultancies',
+    description: 'Managing background jobs for client applications means you need visibility without access to their production logs. Crontinel\'s OSS package installs in the client app and reports to your shared dashboard. Set per-app alert thresholds to match each client\'s SLA requirements, and grant the client read-only access so they can verify their own jobs.',
+    signals: ['Client apps report to your central dashboard', 'Configurable thresholds per app, not global', 'Granular team access: full admin or read-only per app'],
+  },
 ];
 ---
 
