@@ -5,8 +5,8 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Base
-  title="Crontinel: Laravel Horizon & Cron Monitoring"
-  description="Crontinel monitors Laravel Horizon internals, queue depth, and cron health. Things generic monitors can't see."
+  title="Crontinel: Background Job & Cron Monitoring"
+  description="Crontinel monitors your background jobs, queue depth, and cron health. Deep framework integrations — not just HTTP pings."
 >
   <Nav />
 
@@ -22,12 +22,12 @@ import Footer from '../components/Footer.astro';
       </div>
 
       <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight tracking-tight mb-6">
-        Your Laravel Horizon has been<br class="hidden sm:block" />
+        Your background jobs have been<br class="hidden sm:block" />
         <span class="text-red-400">silently broken for 3 days.</span>
       </h1>
 
       <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-        Crontinel monitors Horizon internals, queue depth, and cron health.
+        Crontinel monitors queue internals, job depth, and cron health.
         The things generic monitors can't see.
       </p>
 
@@ -217,7 +217,7 @@ import Footer from '../components/Footer.astro';
           Generic monitors only check if a job pinged back.
         </h2>
         <p class="text-gray-400 text-center max-w-xl mx-auto mb-12">
-          Forge Heartbeats tell you a job ran. They don't tell you your Horizon supervisor is paused.
+          Ping-based monitors tell you a job ran. They don't tell you why your queue stopped processing.
         </p>
 
         <div class="grid sm:grid-cols-3 gap-6">
@@ -234,8 +234,8 @@ import Footer from '../components/Footer.astro';
             },
             {
               icon: '💀',
-              title: 'Horizon supervisor crashes',
-              desc: 'A supervisor process died. Horizon shows "running" because one supervisor is still up. Your email queue is dead.',
+              title: 'Worker process crashes',
+              desc: 'A worker process died. Your queue manager shows "running" because one worker is still up. Your email queue is dead.',
             },
           ].map((card) => (
             <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
@@ -260,8 +260,8 @@ import Footer from '../components/Footer.astro';
       <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[
           {
-            title: 'Horizon internals',
-            desc: 'Reads Redis directly. Knows which supervisor is down, the failed job rate per minute, and whether Horizon is paused.',
+            title: 'Deep queue internals',
+            desc: 'Goes beyond pings. Reads worker state directly — which supervisor is down, failed job rate, whether your queue manager is paused.',
             badge: 'Unique',
           },
           {
@@ -294,6 +294,28 @@ import Footer from '../components/Footer.astro';
             )}
             <h3 class="font-semibold text-white mb-2">{f.title}</h3>
             <p class="text-sm text-gray-400 leading-relaxed">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Integrations -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16 text-center">
+      <h2 class="text-xl font-semibold text-white mb-2">Works with your stack</h2>
+      <p class="text-gray-500 text-sm mb-8">Native integrations ship deep telemetry. Any stack can use the REST API for basic heartbeat monitoring.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        {[
+          { name: 'Laravel + Horizon', status: 'native', color: 'text-green-400 border-green-500/30 bg-green-500/5' },
+          { name: 'Sidekiq', status: 'soon', color: 'text-gray-500 border-gray-700 bg-gray-900' },
+          { name: 'Celery', status: 'soon', color: 'text-gray-500 border-gray-700 bg-gray-900' },
+          { name: 'BullMQ', status: 'soon', color: 'text-gray-500 border-gray-700 bg-gray-900' },
+          { name: 'Resque', status: 'soon', color: 'text-gray-500 border-gray-700 bg-gray-900' },
+          { name: 'Any (REST API)', status: 'now', color: 'text-gray-400 border-gray-600 bg-gray-900' },
+        ].map((i) => (
+          <div class={`flex items-center gap-2 border rounded-full px-4 py-1.5 text-sm font-medium ${i.color}`}>
+            {i.name}
+            {i.status === 'native' && <span class="text-xs text-green-500">native</span>}
+            {i.status === 'soon' && <span class="text-xs text-gray-600">soon</span>}
           </div>
         ))}
       </div>
@@ -376,9 +398,9 @@ import Footer from '../components/Footer.astro';
     <!-- OSS callout -->
     <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 text-center">
       <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 max-w-2xl mx-auto">
-        <h2 class="text-xl font-bold text-white mb-3">Also free, forever, as an OSS package</h2>
+        <h2 class="text-xl font-bold text-white mb-3">Also free, forever, as a Laravel OSS package</h2>
         <p class="text-gray-400 text-sm mb-6">
-          The MIT package works standalone: Blade dashboard, CLI check, Slack alerts, full Horizon monitoring.
+          The MIT package works standalone: Blade dashboard, CLI health check, Slack alerts, full Horizon monitoring.
           No SaaS required. Self-host and own your data.
         </p>
         <code class="block bg-gray-950 text-green-400 text-sm rounded-lg px-4 py-3 mb-6">
