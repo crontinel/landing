@@ -325,7 +325,25 @@ import Footer from '../components/Footer.astro';
     <section id="pricing" class="bg-gray-900/40 border-y border-gray-800">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
         <h2 class="text-2xl sm:text-3xl font-bold text-white text-center mb-4">Simple pricing</h2>
-        <p class="text-gray-400 text-center mb-12">14-day Pro trial included. No credit card required.</p>
+        <p class="text-gray-400 text-center mb-6">14-day Pro trial included. No credit card required.</p>
+
+        <!-- Billing toggle -->
+        <div class="flex justify-center mb-10">
+          <div class="inline-flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-full p-1">
+            <button
+              id="hp-toggle-monthly"
+              class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-white text-black"
+            >
+              Monthly
+            </button>
+            <button
+              id="hp-toggle-yearly"
+              class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors text-gray-400 hover:text-white"
+            >
+              Yearly <span class="text-green-400 ml-1">−20%</span>
+            </button>
+          </div>
+        </div>
 
         <div class="grid sm:grid-cols-3 gap-6">
           <!-- Free -->
@@ -354,8 +372,10 @@ import Footer from '../components/Footer.astro';
             </div>
             <div class="mb-4">
               <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Pro</div>
-              <div class="text-3xl font-bold text-white">$19<span class="text-lg font-normal text-gray-500">/mo</span></div>
-              <div class="text-sm text-green-400 mt-1">$182/yr (save 20%)</div>
+              <div class="text-3xl font-bold text-white">
+                <span id="hp-pro-price">$19</span><span class="text-lg font-normal text-gray-500">/mo</span>
+              </div>
+              <div class="text-sm mt-1 h-5"><span id="hp-pro-note" class="text-green-400"></span></div>
             </div>
             <ul class="space-y-2 text-sm text-gray-400 flex-1 mb-6">
               <li class="flex gap-2"><span class="text-green-400">✓</span> 5 apps</li>
@@ -375,8 +395,10 @@ import Footer from '../components/Footer.astro';
           <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
             <div class="mb-4">
               <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Team</div>
-              <div class="text-3xl font-bold text-white">$49<span class="text-lg font-normal text-gray-500">/mo</span></div>
-              <div class="text-sm text-green-400 mt-1">$470/yr (save 20%)</div>
+              <div class="text-3xl font-bold text-white">
+                <span id="hp-team-price">$49</span><span class="text-lg font-normal text-gray-500">/mo</span>
+              </div>
+              <div class="text-sm mt-1 h-5"><span id="hp-team-note" class="text-green-400"></span></div>
             </div>
             <ul class="space-y-2 text-sm text-gray-400 flex-1 mb-6">
               <li class="flex gap-2"><span class="text-green-400">✓</span> Unlimited apps</li>
@@ -423,3 +445,31 @@ import Footer from '../components/Footer.astro';
 
   <Footer />
 </Base>
+
+<script>
+  const monthly = { pro: '$19', team: '$49', proNote: '', teamNote: '' };
+  const yearly  = { pro: '$15', team: '$39', proNote: '$182 billed yearly', teamNote: '$470 billed yearly' };
+
+  const btnM = document.getElementById('hp-toggle-monthly')!;
+  const btnY = document.getElementById('hp-toggle-yearly')!;
+  const proP = document.getElementById('hp-pro-price')!;
+  const teamP = document.getElementById('hp-team-price')!;
+  const proN = document.getElementById('hp-pro-note')!;
+  const teamN = document.getElementById('hp-team-note')!;
+
+  function setM() {
+    proP.textContent = monthly.pro; teamP.textContent = monthly.team;
+    proN.textContent = monthly.proNote; teamN.textContent = monthly.teamNote;
+    btnM.classList.add('bg-white','text-black'); btnM.classList.remove('text-gray-400','hover:text-white');
+    btnY.classList.remove('bg-white','text-black'); btnY.classList.add('text-gray-400','hover:text-white');
+  }
+  function setY() {
+    proP.textContent = yearly.pro; teamP.textContent = yearly.team;
+    proN.textContent = yearly.proNote; teamN.textContent = yearly.teamNote;
+    btnY.classList.add('bg-white','text-black'); btnY.classList.remove('text-gray-400','hover:text-white');
+    btnM.classList.remove('bg-white','text-black'); btnM.classList.add('text-gray-400','hover:text-white');
+  }
+
+  btnM.addEventListener('click', setM);
+  btnY.addEventListener('click', setY);
+</script>

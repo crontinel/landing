@@ -13,7 +13,23 @@ import Footer from '../components/Footer.astro';
   <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
     <div class="text-center mb-12">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple, transparent pricing</h1>
-      <p class="text-gray-400">14-day Pro trial on every signup. No credit card required.</p>
+      <p class="text-gray-400 mb-8">14-day Pro trial on every signup. No credit card required.</p>
+
+      <!-- Billing toggle -->
+      <div class="inline-flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-full p-1">
+        <button
+          id="toggle-monthly"
+          class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-white text-black"
+        >
+          Monthly
+        </button>
+        <button
+          id="toggle-yearly"
+          class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors text-gray-400 hover:text-white"
+        >
+          Yearly <span class="text-green-400 ml-1">−20%</span>
+        </button>
+      </div>
     </div>
 
     <div class="grid sm:grid-cols-3 gap-6 mb-12">
@@ -46,10 +62,14 @@ import Footer from '../components/Footer.astro';
         <div class="mb-6">
           <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Pro</div>
           <div class="flex items-end gap-2">
-            <div class="text-4xl font-bold text-white">$19</div>
-            <div class="text-gray-500 mb-1">/mo</div>
+            <div class="text-4xl font-bold text-white">
+              <span id="pro-price">$19</span>
+            </div>
+            <div class="text-gray-500 mb-1" id="pro-period">/mo</div>
           </div>
-          <div class="text-sm text-green-400 mt-1">or $182/yr (save 20%)</div>
+          <div class="text-sm mt-1 h-5">
+            <span id="pro-note" class="text-green-400"></span>
+          </div>
         </div>
         <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 5 apps</li>
@@ -71,10 +91,14 @@ import Footer from '../components/Footer.astro';
         <div class="mb-6">
           <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Team</div>
           <div class="flex items-end gap-2">
-            <div class="text-4xl font-bold text-white">$49</div>
-            <div class="text-gray-500 mb-1">/mo</div>
+            <div class="text-4xl font-bold text-white">
+              <span id="team-price">$49</span>
+            </div>
+            <div class="text-gray-500 mb-1" id="team-period">/mo</div>
           </div>
-          <div class="text-sm text-green-400 mt-1">or $470/yr (save 20%)</div>
+          <div class="text-sm mt-1 h-5">
+            <span id="team-note" class="text-green-400"></span>
+          </div>
         </div>
         <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited apps</li>
@@ -128,7 +152,7 @@ import Footer from '../components/Footer.astro';
           },
           {
             q: 'Is there an annual discount?',
-            a: 'Yes, 20% off when you pay annually. Pro goes from $19/mo to $182/yr. Team goes from $49/mo to $470/yr.',
+            a: 'Yes, 20% off when you pay annually. Pro goes from $19/mo to $182/yr ($15.17/mo). Team goes from $49/mo to $470/yr ($39.17/mo).',
           },
         ].map((item) => (
           <div class="border-b border-gray-800 pb-6">
@@ -142,3 +166,46 @@ import Footer from '../components/Footer.astro';
 
   <Footer />
 </Base>
+
+<script>
+  const monthly = { pro: '$19', team: '$49', period: '/mo', proNote: '', teamNote: '' };
+  const yearly  = { pro: '$15', team: '$39', period: '/mo', proNote: '$182 billed yearly', teamNote: '$470 billed yearly' };
+
+  const btnMonthly = document.getElementById('toggle-monthly')!;
+  const btnYearly  = document.getElementById('toggle-yearly')!;
+  const proPrice   = document.getElementById('pro-price')!;
+  const teamPrice  = document.getElementById('team-price')!;
+  const proPeriod  = document.getElementById('pro-period')!;
+  const teamPeriod = document.getElementById('team-period')!;
+  const proNote    = document.getElementById('pro-note')!;
+  const teamNote   = document.getElementById('team-note')!;
+
+  function setMonthly() {
+    proPrice.textContent   = monthly.pro;
+    teamPrice.textContent  = monthly.team;
+    proPeriod.textContent  = monthly.period;
+    teamPeriod.textContent = monthly.period;
+    proNote.textContent    = monthly.proNote;
+    teamNote.textContent   = monthly.teamNote;
+    btnMonthly.classList.add('bg-white', 'text-black');
+    btnMonthly.classList.remove('text-gray-400', 'hover:text-white');
+    btnYearly.classList.remove('bg-white', 'text-black');
+    btnYearly.classList.add('text-gray-400', 'hover:text-white');
+  }
+
+  function setYearly() {
+    proPrice.textContent   = yearly.pro;
+    teamPrice.textContent  = yearly.team;
+    proPeriod.textContent  = yearly.period;
+    teamPeriod.textContent = yearly.period;
+    proNote.textContent    = yearly.proNote;
+    teamNote.textContent   = yearly.teamNote;
+    btnYearly.classList.add('bg-white', 'text-black');
+    btnYearly.classList.remove('text-gray-400', 'hover:text-white');
+    btnMonthly.classList.remove('bg-white', 'text-black');
+    btnMonthly.classList.add('text-gray-400', 'hover:text-white');
+  }
+
+  btnMonthly.addEventListener('click', setMonthly);
+  btnYearly.addEventListener('click', setYearly);
+</script>
