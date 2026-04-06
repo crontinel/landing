@@ -209,3 +209,52 @@ import Footer from '../components/Footer.astro';
   btnMonthly.addEventListener('click', setMonthly);
   btnYearly.addEventListener('click', setYearly);
 </script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Do I need a credit card to start?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The free tier and the 14-day Pro trial both require zero payment information."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What happens when my trial ends?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Your account drops to the free tier automatically. No charge, no cancellation needed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I upgrade or downgrade at any time?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Upgrades take effect immediately. Downgrades take effect at the end of the current billing period."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between the OSS package and the SaaS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The OSS package is a Laravel package you install in your app. It has a Blade dashboard, CLI check, and local alerts. The SaaS adds a hosted multi-app dashboard, longer history, team access, and cross-app monitoring from one place."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is there an annual discount?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, 20% off when you pay annually. Pro goes from $19/mo to $182/yr ($15.17/mo). Team goes from $49/mo to $470/yr ($39.17/mo)."
+      }
+    }
+  ]
+}
+</script>

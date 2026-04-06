@@ -173,3 +173,60 @@ import Footer from '../components/Footer.astro';
 
   <Footer />
 </Base>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does Crontinel work without Laravel Horizon?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Queue monitoring and cron tracking are fully independent of Horizon. If you use the database queue driver, Crontinel monitors queue depths and failed jobs from your database tables. Cron tracking works via Laravel's scheduler events regardless of which queue driver you use. Horizon monitoring is an additional layer for apps that run it."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does Crontinel monitor Horizon internals?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Crontinel reads Horizon's Redis keys directly, the same data source the Horizon dashboard uses. This means it sees actual supervisor states, actual pause status, and actual failed-jobs-per-minute rates, not just whether an HTTP health endpoint returned 200."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What queue drivers does Crontinel support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Crontinel supports the Redis and database queue drivers. Redis is the recommended driver for production Horizon setups. For apps using the database driver, Crontinel queries the jobs and failed_jobs tables."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does cron tracking require code changes to my scheduled commands?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Crontinel hooks into Laravel's built-in scheduler events (ScheduledTaskStarting, ScheduledTaskFinished, ScheduledTaskFailed) automatically after installation. Every command defined in your schedule() method is tracked with its exit code and duration. No wrapping or per-command changes needed."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How are alerts deduplicated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Crontinel applies a 5-minute cooldown per alert condition. If a queue depth stays above its threshold, you receive one alert, not one per polling cycle. The alert resolves automatically when the condition clears."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is the OSS package free forever?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The core Crontinel package is MIT licensed and will remain free forever. You can self-host the full monitoring dashboard, configure Slack or email alerts, and track unlimited cron runs and queue depths with no subscription required."
+      }
+    }
+  ]
+}
+</script>
