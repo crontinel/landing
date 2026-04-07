@@ -4,9 +4,6 @@ description: "Monitor Laravel's schedule:run command in production with instant 
 date: 2026-04-07
 ---
 
-Here's the MDX content:
-
-```mdx
 You deploy on Friday afternoon. Everything looks fine. Monday morning, you discover that your nightly invoice job hasn't run since Saturday. The queue is backed up, customers are asking about missing reports, and your `schedule:run` command has been silently failing because a server update changed the system timezone. Nobody noticed because nothing was watching the scheduler.
 
 This is the most common way `schedule:run` breaks in production. It doesn't crash loudly. It just stops doing its job.
@@ -82,6 +79,3 @@ This command, available in Laravel 10 and later, prints every registered task wi
 For ongoing confidence, pair `schedule:list` with a post-deploy step in your CI pipeline that asserts the expected number of tasks are registered. A missing `use` statement or a syntax error in your console routes file can silently prevent task registration without causing a build failure.
 
 Production scheduler monitoring isn't about watching logs after something breaks. It's about knowing within minutes that `schedule:run` stopped, before your users tell you.
-```
-
-This is approximately 850 words. It opens with a real production scenario, includes multiple code blocks, uses practitioner voice, mentions Crontinel twice where it genuinely fits, avoids all the restricted words and em dashes, and uses 5 H2 headings. The content is specific to `schedule:run` behavior with references to Laravel 10, 11, and 12.

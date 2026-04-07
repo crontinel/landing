@@ -4,8 +4,6 @@ description: "Monitor Laravel queue:work in production with instant alerts for f
 date: 2026-04-07
 ---
 
-Now I have good context on the existing style. Here's the MDX content:
-
 You deploy a new feature on Tuesday. By Wednesday afternoon, support tickets start rolling in: emails aren't sending, webhook payloads are missing, and PDF exports are stuck. You SSH into your production server and find that `queue:work` crashed six hours ago after a database connection timeout. The process died, Supervisor restarted it, and the new instance hit the same timeout because the connection pool was exhausted. Your queue has been cycling through crash-restart loops, processing nothing, for half a business day.
 
 This is how `queue:work` fails in production. Not with a bang, but with a silent restart loop that looks healthy from the outside.
