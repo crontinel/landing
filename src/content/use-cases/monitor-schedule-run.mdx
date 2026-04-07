@@ -1,0 +1,87 @@
+---
+title: "Monitoring schedule:run in Laravel Production"
+description: "Monitor Laravel's schedule:run command in production with instant alerts for missed executions, slow runs, and silent failures."
+date: 2026-04-07
+---
+
+Here's the MDX content:
+
+```mdx
+You deploy on Friday afternoon. Everything looks fine. Monday morning, you discover that your nightly invoice job hasn't run since Saturday. The queue is backed up, customers are asking about missing reports, and your `schedule:run` command has been silently failing because a server update changed the system timezone. Nobody noticed because nothing was watching the scheduler.
+
+This is the most common way `schedule:run` breaks in production. It doesn't crash loudly. It just stops doing its job.
+
+## How schedule:run Actually Works
+
+The Laravel scheduler depends on a single system-level cron entry that fires every minute:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This cron entry is the single point of failure for your entire scheduled task system. If it stops running, every scheduled job stops with it. Laravel 10 through 12 all use this same mechanism. The `schedule:run` command evaluates each task registered in your `routes/console.php` (or `app/Console/Kernel.php` in Laravel 10), checks if it's due based on the current time, and executes it.
+
+The problem is that `>> /dev/null 2>&1` at the end. You're explicitly throwing away all output and errors. If PHP runs out of memory mid-execution, if the artisan binary can't bootstrap because of a missing `.env` file after a deploy, if the database connection times out, you'll never know.
+
+## Common Failure Modes
+
+The scheduler fails in predictable ways that are easy to miss:
+
+**The cron entry disappears.** Server provisioning tools, OS upgrades, or container rebuilds can wipe the crontab. On Ubuntu, `apt upgrade` occasionally resets crontabs during package updates. If you're running in Docker, the cron entry needs to be part of your image build or entrypoint, not something you set up manually.
+
+**Timezone drift.** Laravel uses the timezone set in `config/app.php`, but `schedule:run` executes in whatever timezone the server's system clock reports. If your server is UTC but your app config says `America/New_York`, tasks scheduled for "daily at 9am" run at 9am UTC, not Eastern. Laravel 11 added the `Schedule::timezone()` method to make this more explicit, but the mismatch still catches people.
+
+**Overlapping runs.** A task that takes longer than one minute to complete will spawn a second instance on the next `schedule:run` cycle. Laravel provides `withoutOverlapping()`, but it relies on the cache driver. If you're using the `file` cache driver and your deployment clears the cache directory, the lock files vanish and overlapping resumes.
+
+**Memory and timeout limits.** Each `schedule:run` invocation inherits the memory limit and max execution time from your CLI PHP configuration, not your web `php.ini`. A task that works fine in testing can OOM in production when processing larger datasets.
+
+## Building Visibility Into the Scheduler
+
+Start by capturing output instead of discarding it:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1
+```
+
+Then add health checks to your individual tasks. Laravel 11 and 12 support `pingBefore()` and `thenPing()` on scheduled tasks, which hit a URL before and after execution:
+
+```php
+Schedule::command('invoices:generate')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->thenPing('https://your-monitoring-endpoint/ping/invoices');
+```
+
+This tells you when a task finishes, but it doesn't tell you when a task *doesn't* run. For that, you need deadline monitoring: something that expects a ping by a certain time and alerts you when it's missing. This is where a tool like Crontinel fits, since it watches for the absence of a signal rather than the presence of one.
+
+## Detecting When schedule:run Itself Stops
+
+Individual task pings are useful, but they share a blind spot. If `schedule:run` itself stops executing, none of your `thenPing()` callbacks will fire, and you won't get an alert until you notice the consequences.
+
+The most reliable approach is a dedicated heartbeat task that runs every minute:
+
+```php
+Schedule::call(function () {
+    Http::get('https://your-monitoring-endpoint/heartbeat/scheduler');
+})->everyMinute();
+```
+
+If the monitoring endpoint doesn't receive this heartbeat within a defined window, it fires an alert. This catches every upstream failure: missing cron entries, PHP crashes, server outages, permission errors. Crontinel provides this exact pattern out of the box, with configurable grace periods so you're not paged for a single missed beat during a deploy.
+
+## Verifying Your Setup
+
+After configuring monitoring, verify that your cron entry is actually registered and your tasks are recognized:
+
+```bash
+php artisan schedule:list
+```
+
+This command, available in Laravel 10 and later, prints every registered task with its cron expression and next due time. Run it after every deploy as a sanity check. If the output is empty, your task registration isn't loading correctly.
+
+For ongoing confidence, pair `schedule:list` with a post-deploy step in your CI pipeline that asserts the expected number of tasks are registered. A missing `use` statement or a syntax error in your console routes file can silently prevent task registration without causing a build failure.
+
+Production scheduler monitoring isn't about watching logs after something breaks. It's about knowing within minutes that `schedule:run` stopped, before your users tell you.
+```
+
+This is approximately 850 words. It opens with a real production scenario, includes multiple code blocks, uses practitioner voice, mentions Crontinel twice where it genuinely fits, avoids all the restricted words and em dashes, and uses 5 H2 headings. The content is specific to `schedule:run` behavior with references to Laravel 10, 11, and 12.

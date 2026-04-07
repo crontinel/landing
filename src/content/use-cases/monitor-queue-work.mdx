@@ -1,0 +1,81 @@
+---
+title: "Monitoring queue:work in Laravel Production"
+description: "Monitor Laravel queue:work in production with instant alerts for failed jobs, stuck workers, and memory leaks before they impact your users."
+date: 2026-04-07
+---
+
+Now I have good context on the existing style. Here's the MDX content:
+
+You deploy a new feature on Tuesday. By Wednesday afternoon, support tickets start rolling in: emails aren't sending, webhook payloads are missing, and PDF exports are stuck. You SSH into your production server and find that `queue:work` crashed six hours ago after a database connection timeout. The process died, Supervisor restarted it, and the new instance hit the same timeout because the connection pool was exhausted. Your queue has been cycling through crash-restart loops, processing nothing, for half a business day.
+
+This is how `queue:work` fails in production. Not with a bang, but with a silent restart loop that looks healthy from the outside.
+
+## How queue:work Behaves in Production
+
+`queue:work` is a long-running daemon. Unlike `queue:listen`, which boots the framework on every job, `queue:work` boots once and stays resident in memory. This makes it faster but also means it holds onto database connections, cached config, and resolved singletons for its entire lifetime.
+
+In Laravel 10, 11, and 12, the typical production setup uses Supervisor to keep the worker alive:
+
+```ini
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/app/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+numprocs=4
+redirect_stderr=true
+stdout_logfile=/var/log/worker.log
+```
+
+The `--max-time=3600` flag tells the worker to gracefully exit after one hour, which forces a fresh framework boot and releases stale connections. This was added in Laravel 9 and is one of the most important flags for production stability. Without it, workers can accumulate memory leaks and hold dead database connections indefinitely.
+
+## Failure Modes Specific to queue:work
+
+The daemon nature of `queue:work` creates failure patterns you won't see with HTTP requests.
+
+**Stale state after deploys.** Because the worker boots the framework once, deploying new code doesn't affect running workers. They continue using the old code until restarted. Laravel provides `php artisan queue:restart`, which signals workers to exit after finishing their current job. If you forget this in your deploy script, workers run old code against new database schemas. This is a common source of failed jobs after migrations.
+
+**Connection drops.** A worker holding a MySQL connection for hours will eventually hit a `wait_timeout` disconnect. Laravel 11 added the `DB_SOCKET_TIMEOUT` configuration, but the default behavior still catches people. When the connection drops mid-job, the job fails, the worker may or may not recover depending on your queue driver's reconnection logic, and Redis-based queues handle this differently than database queues.
+
+**Memory creep.** Jobs that process images, parse large CSVs, or interact with heavy service classes can leak memory over thousands of iterations. The `--memory=128` flag sets a soft limit that triggers a graceful exit, but it only checks between jobs. A single job that allocates 512MB will blow past it.
+
+## Monitoring the Worker Process Itself
+
+Supervisor will restart a crashed worker, but it won't tell you about the pattern. A worker that crashes and restarts 50 times per hour is technically "running" from Supervisor's perspective.
+
+The most reliable signal is a heartbeat. Configure your workers to ping an endpoint at regular intervals, confirming they are not just alive but actively processing:
+
+```php
+// In a custom WorkerStarted listener or via queue events
+Queue::looping(function () {
+    cache()->put('worker:heartbeat:' . getmypid(), now(), 120);
+});
+```
+
+Then monitor for staleness externally. If no heartbeat arrives within your expected window, the worker is stuck or dead. Crontinel handles this pattern by watching for missed heartbeats from your worker processes and alerting before the queue backs up.
+
+## Watching Queue Health Alongside the Worker
+
+Knowing the worker is running isn't enough. You also need to know if it's keeping up. Track these metrics:
+
+**Jobs processed per minute.** A sudden drop means workers are either stuck on slow jobs or have stopped processing. Compare against your baseline to catch regressions introduced by new job classes.
+
+**Failed job rate.** Laravel stores failed jobs in the `failed_jobs` table (or DynamoDB in Laravel 11+). A spike in failures after a deploy almost always means a serialization mismatch or missing dependency. Run `php artisan queue:failed` to inspect, and `queue:retry all` once you've fixed the root cause.
+
+**Time from dispatch to processing.** This is the metric your users actually feel. An email job that sits in the queue for 10 minutes before a worker picks it up means your user waited 10 minutes for a password reset link.
+
+## Restarting Workers Safely
+
+After deploys, run the restart command as part of your deployment pipeline:
+
+```bash
+php artisan queue:restart
+```
+
+This sets a cache flag that workers check between jobs. Workers finish their current job, then exit. Supervisor restarts them with fresh code. In Laravel 12, this works identically to previous versions, but if you're using Horizon, prefer `php artisan horizon:terminate` instead, which orchestrates the restart across all worker pools.
+
+Pair this with monitoring that confirms workers actually came back up after the restart. A restart command that fires but gets ignored (because the cache driver is misconfigured, for example) leaves you running stale code with no indication anything went wrong. Crontinel can verify that worker heartbeats resume within a configurable grace period after each deploy.
+
+Production `queue:work` monitoring comes down to three questions: Is the process running? Is it processing jobs? Is it keeping up? Answer all three continuously, and queue failures become five-minute fixes instead of six-hour mysteries.
