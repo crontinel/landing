@@ -5,8 +5,8 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Base
-  title="Crontinel: Background Job & Cron Monitoring"
-  description="Crontinel monitors your background jobs, queue depth, and cron health. Deep framework integrations — not just HTTP pings."
+  title="Crontinel — Laravel Cron & Background Job Monitoring"
+  description="Know when your Laravel background jobs stop working — before your customers do. Deep queue and cron monitoring, not just HTTP pings."
 >
   <Nav />
 
@@ -27,8 +27,8 @@ import Footer from '../components/Footer.astro';
       </h1>
 
       <p class="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto mb-10">
-        Crontinel monitors queue internals, job depth, and cron health.
-        The things generic monitors can't see.
+        Queue depth. Worker state. Silent cron failures.<br class="hidden sm:block" />
+        The things your uptime monitor can't see.
       </p>
 
       <!-- Email capture -->
@@ -214,10 +214,10 @@ import Footer from '../components/Footer.astro';
     <section class="bg-gray-900/40 border-y border-gray-800">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
         <h2 class="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-          Generic monitors only check if a job pinged back.
+          Your uptime monitor says green. Your queue has been dead for hours.
         </h2>
         <p class="text-gray-400 text-center max-w-xl mx-auto mb-12">
-          Ping-based monitors tell you a job ran. They don't tell you why your queue stopped processing.
+          Ping-based monitors confirm a job started. Not that it worked — or that workers are still processing.
         </p>
 
         <div class="grid sm:grid-cols-3 gap-6">
@@ -251,7 +251,7 @@ import Footer from '../components/Footer.astro';
     <!-- Features grid -->
     <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
       <h2 class="text-2xl sm:text-3xl font-bold text-white text-center mb-4">
-        Everything you need to sleep at night
+        See what's actually happening inside your queues
       </h2>
       <p class="text-gray-400 text-center max-w-xl mx-auto mb-12">
         Crontinel hooks into app internals, not just HTTP pings.
@@ -301,7 +301,7 @@ import Footer from '../components/Footer.astro';
 
     <!-- Integrations -->
     <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16 text-center">
-      <h2 class="text-xl font-semibold text-white mb-2">Works with your stack</h2>
+      <h2 class="text-xl font-semibold text-white mb-2">Native Laravel integration. REST API for everything else.</h2>
       <p class="text-gray-500 text-sm mb-8">Native integrations ship deep telemetry. Any stack can use the REST API for basic heartbeat monitoring.</p>
       <div class="flex flex-wrap justify-center gap-3">
         {[
@@ -324,8 +324,8 @@ import Footer from '../components/Footer.astro';
     <!-- Pricing section -->
     <section id="pricing" class="bg-gray-900/40 border-y border-gray-800">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
-        <h2 class="text-2xl sm:text-3xl font-bold text-white text-center mb-4">Simple pricing</h2>
-        <p class="text-gray-400 text-center mb-6">14-day Pro trial included. No credit card required.</p>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white text-center mb-4">Pricing</h2>
+        <p class="text-gray-400 text-center mb-6">Free to start. 14-day Pro trial included. No credit card required.</p>
 
         <!-- Billing toggle -->
         <div class="flex justify-center mb-10">
@@ -420,10 +420,10 @@ import Footer from '../components/Footer.astro';
     <!-- OSS callout -->
     <section class="max-w-5xl mx-auto px-4 sm:px-6 py-16 text-center">
       <div class="bg-gray-900 border border-gray-800 rounded-xl p-8 max-w-2xl mx-auto">
-        <h2 class="text-xl font-bold text-white mb-3">Also free, forever, as a Laravel OSS package</h2>
+        <h2 class="text-xl font-bold text-white mb-3">Prefer to self-host? The package is free forever.</h2>
         <p class="text-gray-400 text-sm mb-6">
           The MIT package works standalone: Blade dashboard, CLI health check, Slack alerts, full Horizon monitoring.
-          No SaaS required. Self-host and own your data.
+          No SaaS required. Own your data.
         </p>
         <code class="block bg-gray-950 text-green-400 text-sm rounded-lg px-4 py-3 mb-6">
           composer require crontinel/laravel
