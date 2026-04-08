@@ -1,43 +1,25 @@
-# Astro Starter Kit: Minimal
+# Crontinel Landing
 
-```sh
-npm create astro@latest -- --template minimal
+Marketing site for [Crontinel](https://crontinel.com) — background job and cron monitoring for Laravel. Built with Astro and deployed to Cloudflare Pages at [crontinel.com](https://crontinel.com).
+
+## Local development
+
+```bash
+npm install
+npm run dev      # starts dev server at localhost:4321
+npm run build    # production build → dist/
+npm run preview  # preview the production build locally
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Deploy
 
-## 🚀 Project Structure
+Deployed automatically via Cloudflare Pages on push to `main`.
 
-Inside of your Astro project, you'll see the following folders and files:
+## Ecosystem
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+| Repo | Description |
+|---|---|
+| [crontinel/landing](https://github.com/HarunRRayhan/crontinel-landing) (this repo) | Marketing site at crontinel.com |
+| [crontinel/app](https://github.com/HarunRRayhan/crontinel-app) | SaaS dashboard — sign up at [app.crontinel.com](https://app.crontinel.com) |
+| [crontinel/docs](https://github.com/HarunRRayhan/crontinel-docs) | Product documentation at [docs.crontinel.com](https://docs.crontinel.com) |
+| [crontinel/laravel](https://github.com/crontinel/crontinel) | OSS Laravel package on GitHub |
