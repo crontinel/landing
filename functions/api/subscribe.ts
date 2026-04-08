@@ -22,9 +22,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     }
 
     if (!env.RESEND_API_KEY || !env.RESEND_AUDIENCE_ID) {
-      // Graceful degradation: log but don't fail visibly
       console.error('Resend env vars not configured.');
-      return Response.json({ ok: true }, { headers: corsHeaders });
+      return Response.json(
+        { error: 'unavailable', message: 'Waitlist temporarily unavailable.' },
+        { status: 503, headers: corsHeaders }
+      );
     }
 
     const resendRes = await fetch(

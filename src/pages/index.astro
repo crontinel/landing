@@ -92,6 +92,11 @@ import Footer from '../components/Footer.astro';
               msg.textContent = "You're on the list! We'll email you when Crontinel launches.";
               msg.className = 'mt-3 text-sm text-green-400';
               form.reset();
+            } else if (data.error === 'unavailable') {
+              msg.innerHTML = "Waitlist is temporarily unavailable. Follow us on <a href='https://x.com/crontinel' class='underline' target='_blank' rel='noopener'>X @crontinel</a> for launch updates.";
+              msg.className = 'mt-3 text-sm text-yellow-400';
+              btn.disabled = false;
+              btn.textContent = 'Get early access';
             } else {
               msg.textContent = data.error ?? 'Something went wrong. Please try again.';
               msg.className = 'mt-3 text-sm text-red-400';
