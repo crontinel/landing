@@ -124,9 +124,12 @@ import Footer from '../components/Footer.astro';
         The MIT package includes the Blade dashboard, CLI health check, Horizon monitoring, and Slack alerts,
         with no SaaS required.
       </p>
-      <code class="block bg-gray-950 text-green-400 text-sm rounded px-4 py-2.5">
-        composer require crontinel/laravel
-      </code>
+      <div class="relative">
+        <code class="block bg-gray-950 text-green-400 text-sm rounded px-4 py-2.5 pr-16">
+          composer require crontinel/laravel
+        </code>
+        <button onclick="navigator.clipboard.writeText('composer require crontinel/laravel'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-1.5 right-2 text-xs text-gray-500 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
+      </div>
     </div>
 
     <!-- FAQ -->

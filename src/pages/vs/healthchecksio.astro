@@ -85,9 +85,12 @@ import Footer from '../../components/Footer.astro';
       <p class="text-gray-400 mb-6">
         Two commands and Crontinel starts tracking every scheduled job automatically.
       </p>
-      <div class="bg-gray-950 rounded-lg p-4 font-mono text-sm text-green-400 text-left max-w-sm mx-auto mb-6">
-        <div>composer require crontinel/laravel</div>
-        <div>php artisan crontinel:install</div>
+      <div class="relative max-w-sm mx-auto mb-6">
+        <div class="bg-gray-950 rounded-lg p-4 pr-14 font-mono text-sm text-green-400 text-left">
+          <div>composer require crontinel/laravel</div>
+          <div>php artisan crontinel:install</div>
+        </div>
+        <button onclick="navigator.clipboard.writeText('composer require crontinel/laravel\nphp artisan crontinel:install'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-2 right-2 text-xs text-gray-500 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
       </div>
       <a
         href="/#waitlist"
