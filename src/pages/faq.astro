@@ -1,0 +1,112 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+const faqs = [
+  {
+    q: 'Which versions of Laravel are supported?',
+    a: `Crontinel supports Laravel 11, 12, and 13. We track Laravel's active support window and drop EOL versions when they exit security support. If you're on Laravel 10 or older, upgrading is worth it for other reasons too — but Crontinel won't be one of them until you do.`,
+  },
+  {
+    q: 'Which PHP versions are supported?',
+    a: `PHP 8.2, 8.3, and 8.4 are supported. We run CI against all three on every release. PHP 8.1 reached EOL in December 2024, so it's not tested or supported. In practice, if you're running a modern Laravel version you're already in the right PHP range.`,
+  },
+  {
+    q: 'Can I use Crontinel without the SaaS?',
+    a: `Yes. The OSS package (<code class="text-green-400 bg-gray-800 px-1 rounded text-xs">crontinel/laravel</code>) is MIT licensed and works completely standalone. You get a local Blade dashboard at <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">/crontinel</code>, local alert channels (Slack, email, webhook, PagerDuty), and the CLI health check — all without ever touching app.crontinel.com. The SaaS is optional and adds cross-app visibility, longer history, and team access.`,
+  },
+  {
+    q: 'Do I need Horizon?',
+    a: `No. Horizon monitoring is optional. If Crontinel detects Horizon isn't installed, it skips that section entirely — no errors, no config needed. You still get scheduled task monitoring and the local dashboard. If you do run Horizon, Crontinel reads its Redis keys directly to report supervisor state and queue depths without any changes to your Horizon config.`,
+  },
+  {
+    q: 'Which queue drivers are supported for queue depth monitoring?',
+    a: `Redis and database queue drivers are supported. If you're using Redis (the most common setup with Horizon), Crontinel reads queue depths directly from Redis. The database driver is also supported via SQL queries against the <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">jobs</code> table. SQS and other drivers aren't currently supported for depth monitoring, though scheduled task monitoring works regardless of your queue driver.`,
+  },
+  {
+    q: 'What data does the package send to app.crontinel.com?',
+    a: `When you configure an API key, the package syncs run records (task name, started at, duration, exit code), Horizon supervisor states, and queue depth snapshots. That's it. No source code, no environment variables, no user data, no request payloads. The sync is one-way: your app pushes data to the SaaS; nothing is pulled back to your server beyond a confirmation response.`,
+  },
+  {
+    q: 'Is my cron output or job logs sent to the SaaS?',
+    a: `No. Crontinel captures exit codes and durations — not stdout, stderr, or any job payload content. If a scheduled command writes to a log file, that file stays on your server. The SaaS has no access to your application logs. This is intentional: monitoring metadata is useful; shipping raw logs raises privacy concerns that we don't want to be in the business of managing.`,
+  },
+  {
+    q: 'How often does the package ping the SaaS?',
+    a: `Scheduled task data is sent after each <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">php artisan schedule:run</code> invocation — typically once per minute if you've set up the standard cron entry. Horizon and queue depth data syncs on the polling interval, which defaults to every 30 seconds (<code class="text-green-400 bg-gray-800 px-1 rounded text-xs">CRONTINEL_HORIZON_POLL_INTERVAL=30</code>). All syncs are lightweight JSON payloads with no file uploads.`,
+  },
+  {
+    q: 'Will I get spammed with repeated alerts for the same issue?',
+    a: `No. Crontinel has a 5-minute cooldown window on alerts. If the same condition triggers again within 5 minutes, the alert is deduplicated and suppressed. You get one alert when something goes wrong, then silence until the issue is resolved or the cooldown expires. This applies to all alert channels: Slack, email, PagerDuty, and webhook.`,
+  },
+  {
+    q: 'What happens to alerts if app.crontinel.com goes down?',
+    a: `Alerts still fire. The alert channels (Slack, email, webhook, PagerDuty) are configured in your local <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">config/crontinel.php</code> and sent directly from your server — not routed through the SaaS. If app.crontinel.com is unreachable, the only thing affected is the cloud sync: run history won't appear in the dashboard until the connection is restored. Your alerts keep working.`,
+  },
+  {
+    q: 'Does Crontinel work with Laravel Octane?',
+    a: `Scheduled task monitoring works with Octane. Crontinel hooks into Laravel's scheduler event lifecycle, which Octane doesn't change. Horizon monitoring also works as long as your Redis connection is accessible from the Octane worker process, which it normally is. If you run into issues, check that the Crontinel config is loaded correctly in your Octane bootstrap — the package registers a service provider, which Octane handles like any other provider.`,
+  },
+  {
+    q: 'What does the free plan include?',
+    a: `One connected app, 7 days of run history in the cloud dashboard, and all four alert channels (Slack, email, webhook, PagerDuty). No credit card required. The OSS package itself is MIT and always free — the free cloud plan just limits how many apps you can connect and how far back you can look. If you're running a single app and don't need long history, the free tier might be all you need.`,
+  },
+  {
+    q: 'What does Pro add?',
+    a: `Pro ($19/month, or $182/year) gives you more connected apps and 90 days of run history. It's aimed at indie developers or small teams running a handful of Laravel apps who want longer trend data. If you pay annually, you save 20%. Team ($49/month) adds unlimited apps and team member access — useful for agencies or teams where multiple people need to see the dashboard.`,
+  },
+  {
+    q: 'Is the package or dashboard open source?',
+    a: `The OSS package (<code class="text-green-400 bg-gray-800 px-1 rounded text-xs">crontinel/laravel</code> on Packagist) is MIT licensed and the source is on GitHub. The local Blade dashboard bundled with the package is also open source. The SaaS application at app.crontinel.com is proprietary — it's not open source, but you're never required to use it.`,
+  },
+  {
+    q: 'How do I remove Crontinel from my app?',
+    a: `Run the migrations rollback, remove the package, and clean up your env vars:
+<pre class="mt-2 bg-gray-900 rounded p-3 text-xs text-gray-300 overflow-x-auto"><code>php artisan migrate:rollback --path=vendor/crontinel/laravel/database/migrations
+composer remove crontinel/laravel</code></pre>
+Then remove any <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">CRONTINEL_*</code> entries from your <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">.env</code> and delete <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">config/crontinel.php</code> if you published it. That's it — no residue.`,
+  },
+  {
+    q: 'What is the MCP server?',
+    a: `The MCP server (<code class="text-green-400 bg-gray-800 px-1 rounded text-xs">@crontinel/mcp-server</code> on npm) lets AI tools like Claude Desktop or Cursor query your Crontinel monitoring data. It proxies requests to app.crontinel.com's API using your API key, so you can ask an AI assistant things like "what's the current state of my Horizon supervisors" or "did any cron jobs fail in the last hour." It requires a cloud account and API key — it doesn't work with the standalone OSS package alone.`,
+  },
+];
+---
+
+<Base
+  title="FAQ — Crontinel"
+  description="Common questions about Crontinel: installation, plans, data privacy, supported versions, and more."
+>
+  <Nav />
+
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+    <div class="mb-12">
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">FAQ</h1>
+      <p class="text-gray-400">
+        Common questions about installation, plans, data privacy, and how Crontinel works.
+      </p>
+    </div>
+
+    <div class="space-y-10">
+      {faqs.map((item) => (
+        <div class="border-b border-gray-800 pb-10">
+          <h2 class="text-lg font-semibold text-white mb-3">{item.q}</h2>
+          <div class="text-sm text-gray-400 leading-relaxed" set:html={item.a} />
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-16 border border-gray-800 rounded-lg p-6 text-center">
+      <p class="text-sm text-gray-400 mb-4">Something not covered here?</p>
+      <a
+        href="https://discord.com/invite/clawd"
+        class="inline-block text-sm text-green-400 hover:text-green-300 transition-colors"
+      >
+        Ask in the Discord community →
+      </a>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
