@@ -201,7 +201,7 @@ Spotting a memory leak from log entries requires someone to actually read the lo
 The difference matters. A worker that jumps to 300MB because it processed a legitimately large batch is not a leak. A worker that climbs 5MB every minute for an hour is. Crontinel's trend detection distinguishes between the two and alerts on the pattern, not just the number.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

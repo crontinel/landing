@@ -217,7 +217,7 @@ Crontinel hooks into the scheduler's `ScheduledTaskFinished` and `ScheduledTaskF
 For long-running commands, Crontinel's heartbeat tracking works without modifying the command itself. Register the command's expected runtime and Crontinel alerts if the task doesn't complete within that window.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

@@ -142,7 +142,7 @@ The previous four methods each solve part of the problem. [Crontinel](https://cr
 It hooks into Laravel's scheduler events (`ScheduledTaskStarting`, `ScheduledTaskFinished`, `ScheduledTaskFailed`) to record every run with exit codes, durations, and output. It also tracks expected schedules, so if a task doesn't start when it should, you get a missed-run alert.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

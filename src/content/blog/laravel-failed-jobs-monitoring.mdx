@@ -203,7 +203,7 @@ Building failure rate tracking, exception grouping, and baseline comparison from
 It also tracks retry behavior: how many jobs succeed on retry versus failing permanently, and whether the retry success rate is changing over time. A sudden drop in retry success rate often indicates a systemic issue (database connection problems, external API changes) rather than a code bug.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

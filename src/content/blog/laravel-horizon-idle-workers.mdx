@@ -173,7 +173,7 @@ The core problem here is that Horizon's dashboard shows worker count and queue d
 Crontinel correlates these metrics automatically. If queue depth is growing while worker throughput is flat, it fires an alert. That catches queue name mismatches, connection mismatches, stuck workers, and balancer issues, all from the same signal.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

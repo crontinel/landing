@@ -202,7 +202,7 @@ The three metrics that matter for backpressure detection (oldest job age, throug
 Crontinel correlates these metrics across all your queues and alerts when the combination indicates backpressure is building. It also tracks whether the queue is recovering (depth decreasing, throughput rising) or deteriorating (depth increasing, throughput flat or falling), so you know whether to intervene or wait.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

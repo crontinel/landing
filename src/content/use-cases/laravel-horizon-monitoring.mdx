@@ -50,7 +50,7 @@ Horizon tracks failed jobs in a sorted set. Crontinel computes a rolling failure
 Crontinel's Horizon monitoring activates automatically when Horizon is detected. The package checks for Horizon's presence in `vendor/` and starts reading Redis state on the same polling cycle as cron recording.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 

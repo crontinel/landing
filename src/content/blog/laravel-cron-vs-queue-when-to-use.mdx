@@ -213,7 +213,7 @@ If you use the cron-dispatches-to-queue pattern, you need both types of monitori
 Crontinel monitors scheduled tasks and queue health in one tool. For cron, it tracks execution history per command and alerts on missed runs. For queues, it tracks depth, oldest job age, failure rate, and throughput. For the combined pattern, it connects the cron execution to the resulting queue activity, so you can see whether the cron task ran, how many jobs it dispatched, and whether those jobs completed.
 
 ```bash
-composer require harunrrayhan/crontinel
+composer require crontinel/laravel
 php artisan crontinel:install
 ```
 
