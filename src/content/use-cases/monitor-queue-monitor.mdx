@@ -1,0 +1,85 @@
+---
+title: "Monitoring queue:monitor in Laravel Production"
+description: "Monitor Laravel's queue:monitor command in production with real-time alerts, failure tracking, and uptime checks to keep your job queues running smoothly."
+date: 2026-04-09
+---
+
+Your queue workers are running, Horizon looks healthy, and then a developer messages at 2 AM: "Why are there 40,000 jobs sitting in the `notifications` queue?" You check `queue:monitor` and realize it's been throwing a size threshold warning to stderr for six hours straight, but nobody saw it because the output was going to a systemd journal that nobody watches. This is the most common failure mode with `queue:monitor` in production: the command works exactly as designed, but its output has no audience.
+
+## What queue:monitor actually does
+
+Laravel's `queue:monitor` command, available since Laravel 9 and still present in Laravel 10, 11, and 12, checks the size of one or more queues and reports when they exceed a threshold. The basic invocation:
+
+```bash
+php artisan queue:monitor redis:default,redis:notifications --max=100
+```
+
+This polls the specified queues and fires a `QueueBusy` event whenever any queue's size exceeds the `--max` value. It also writes to stdout/stderr. That's it. The command does not loop on its own, it runs once and exits. If you want continuous monitoring, you need to call it repeatedly via the scheduler:
+
+```php
+// app/Console/Kernel.php (Laravel 10) or routes/console.php (Laravel 11+)
+Schedule::command('queue:monitor', [
+    'redis:default,redis:notifications,redis:emails',
+    '--max=100',
+])->everyMinute();
+```
+
+This gives you a check every 60 seconds. If a queue crosses the threshold, the `QueueBusy` event fires. If you haven't registered a listener for that event, nothing visible happens. The warning prints to the console, which in a scheduled context means it goes to whatever your cron daemon captures, usually `/dev/null` or a log file nobody reads.
+
+## Listening for QueueBusy
+
+The event itself is `Illuminate\Queue\Events\QueueBusy`. It carries three properties: `$connection`, `$queue`, and `$size`. You need to wire up a listener that actually does something with it:
+
+```php
+use Illuminate\Queue\Events\QueueBusy;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
+
+class QueueBusyListener
+{
+    public function handle(QueueBusy $event): void
+    {
+        Log::warning("Queue {$event->queue} on {$event->connection} has {$event->size} pending jobs");
+
+        Notification::route('slack', config('monitoring.slack_webhook'))
+            ->notify(new QueueOverloadedNotification(
+                $event->queue,
+                $event->size,
+            ));
+    }
+}
+```
+
+Register the listener in your `EventServiceProvider` or, in Laravel 11+, rely on automatic event discovery. Without this listener, `queue:monitor` is a command that checks queues and then does nothing actionable with the result.
+
+## The blind spots
+
+Even with the listener wired up, `queue:monitor` has specific limitations that matter in production.
+
+**It only checks queue size.** A queue with 50 jobs is reported as fine if your threshold is 100, even if those 50 jobs have been sitting there for 45 minutes because your workers died. Size is a lagging indicator. What you actually want to know is whether jobs are being processed, not just how many are waiting.
+
+**It doesn't detect zero workers.** If every worker process crashes and no jobs are being consumed, `queue:monitor` keeps reporting the queue size. It cannot tell you that processing has stopped, only that the queue is growing. By the time the size crosses your threshold, you may already have a significant backlog.
+
+**It runs on the scheduler.** This means it depends on `schedule:run` executing reliably. If your cron daemon stops, the scheduler stops, and `queue:monitor` stops with it. You've lost monitoring at exactly the moment you're most likely to need it.
+
+**The threshold is global.** You set one `--max` value for all queues in that command invocation. If your `default` queue normally sits at 200 jobs but your `payments` queue should never exceed 10, you need separate command invocations with different thresholds.
+
+## Filling the gaps
+
+For the "jobs stuck but queue size is low" scenario, you need to track the age of the oldest pending job, not just the count. Neither `queue:monitor` nor Horizon gives you this out of the box for the Redis driver. You can approximate it by recording dispatch timestamps and checking them in a custom command.
+
+For worker health, `queue:monitor` is the wrong tool entirely. You need process-level supervision: systemd watchdogs, container health checks, or Horizon's own supervisor heartbeats.
+
+For scheduler reliability, the standard approach is an external heartbeat monitor. Run `schedule:run`, have it ping an external endpoint on success, and alert when the ping stops arriving. This is where tools like [Crontinel](https://crontinel.com) fit naturally: they sit outside your infrastructure and alert you when the scheduler itself goes silent, which is exactly the failure mode that `queue:monitor` cannot detect because it depends on the scheduler to run.
+
+## A practical setup
+
+A reasonable production configuration combines `queue:monitor` for size-based alerts with external checks for the things it misses:
+
+1. Schedule `queue:monitor` per queue with appropriate thresholds
+2. Register a `QueueBusy` listener that sends alerts to Slack, PagerDuty, or your incident tool
+3. Monitor your scheduler externally so you know if `queue:monitor` itself stops running
+4. Track worker process health through your process supervisor or container orchestrator
+5. If you use Horizon, check `horizon:status` for paused state separately
+
+The `queue:monitor` command is a useful primitive, not a complete monitoring solution. Knowing its boundaries lets you build around them instead of discovering the gaps at 2 AM.

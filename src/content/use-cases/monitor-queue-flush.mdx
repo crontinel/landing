@@ -1,0 +1,113 @@
+---
+title: "Monitoring queue:flush in Laravel Production"
+description: "Monitor Laravel's queue:flush command in production with instant alerts for unauthorized or accidental execution that could purge pending jobs."
+date: 2026-04-09
+---
+
+The file was blocked by permissions. Here's the MDX body content:
+
+A developer on your team runs a deployment script on a Friday afternoon. Somewhere in that script, `php artisan queue:flush` executes against production. By Monday morning, you discover that 3,200 failed jobs from the `payments` queue are gone. No retry, no inspection, no record of what they contained. The failed_jobs table is empty. Nobody remembers adding the flush command to the script, and there is no log entry showing it ran.
+
+This is not a rare edge case. `queue:flush` is a destructive, silent operation. It deletes every row from your `failed_jobs` table without confirmation, without logging, and without any built-in notification. In a production environment, that makes it one of the most dangerous Artisan commands you can run unmonitored.
+
+## What queue:flush Does (and Does Not Do)
+
+The `queue:flush` command has one job: truncate the `failed_jobs` table. That is it. It does not touch pending jobs, it does not affect running workers, and it does not clear any specific queue. It wipes the record of every job that previously failed.
+
+```bash
+php artisan queue:flush
+```
+
+In Laravel 10, 11, and 12, the command accepts an optional `--hours` flag to limit deletion to failed jobs older than a given number of hours:
+
+```bash
+# Only delete failed jobs older than 48 hours
+php artisan queue:flush --hours=48
+```
+
+Without `--hours`, everything goes. The command runs synchronously, returns exit code 0 on success, and produces minimal output. If you are running it inside a scheduled task or deployment script, you will not notice it executed unless you are explicitly watching for it.
+
+The underlying implementation calls `$this->laravel['queue.failer']->flush()`, which on the database failer runs a simple `DELETE` query (or a filtered one when `--hours` is provided). There is no soft delete, no trash bin, no undo.
+
+## Why Unmonitored Flushes Are Dangerous
+
+Failed jobs exist for a reason. They are your record of what went wrong: the payload, the exception, the connection, the queue name, and the number of attempts. When you flush without reviewing, you lose all of that diagnostic information.
+
+**Accidental inclusion in deployment scripts.** Someone adds `queue:flush` during a debugging session, forgets to remove it, and it ships to production inside a CI pipeline. Every deploy now silently wipes your failed jobs.
+
+**Scheduled flushes without alerts.** Teams sometimes schedule `queue:flush --hours=72` to keep the failed_jobs table small. This is reasonable housekeeping, but if the schedule runs and nobody verifies it, you lose visibility into recurring failures. A job that fails every hour gets flushed every three days, and you never notice the pattern.
+
+**Permissions gaps.** Unlike database migrations or cache clears, there is no built-in gate on `queue:flush`. Any process with Artisan access can run it. In shared hosting or container environments where multiple services share the same codebase, an unrelated process could trigger it.
+
+## Detecting When queue:flush Runs
+
+Laravel does not fire an event when `queue:flush` executes. There is no `JobsFlushed` event equivalent to `QueueBusy` or `JobFailed`. You need to build detection yourself.
+
+One approach is to wrap the command in a custom Artisan command that logs and notifies before delegating:
+
+```php
+// app/Console/Commands/SafeQueueFlush.php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+
+class SafeQueueFlush extends Command
+{
+    protected $signature = 'queue:safe-flush {--hours= : Only flush jobs older than this many hours}';
+    protected $description = 'Flush failed jobs with logging and alerts';
+
+    public function handle(): int
+    {
+        $hours = $this->option('hours');
+        $count = \DB::table('failed_jobs')
+            ->when($hours, fn ($q) => $q->where('failed_at', '<=', now()->subHours($hours)))
+            ->count();
+
+        Log::warning("queue:flush initiated", [
+            'hours_filter' => $hours,
+            'jobs_to_delete' => $count,
+            'triggered_by' => get_current_user(),
+        ]);
+
+        $this->call('queue:flush', array_filter(['--hours' => $hours]));
+
+        Log::warning("queue:flush completed, {$count} failed jobs removed");
+
+        return self::SUCCESS;
+    }
+}
+```
+
+This gives you an audit trail, but it only works if everyone uses `queue:safe-flush` instead of the original command. It does not protect against direct `queue:flush` calls.
+
+## Monitoring the Failed Jobs Table Directly
+
+A more reliable approach is to monitor the `failed_jobs` table itself. If the row count drops to zero (or drops sharply) and no one explicitly approved a flush, something unexpected happened.
+
+You can schedule a simple check:
+
+```php
+// routes/console.php (Laravel 11+)
+Schedule::call(function () {
+    $count = \DB::table('failed_jobs')->count();
+    if ($count === 0) {
+        Log::info('failed_jobs table is empty, confirm intentional flush');
+    }
+})->hourly();
+```
+
+This works, but it is brittle. You are writing monitoring logic inside the application that you are trying to monitor. If the app itself has issues, your monitoring goes dark.
+
+This is where [Crontinel](https://crontinel.com) provides genuine value. By tracking your scheduled commands externally, Crontinel can detect when `queue:flush` runs as part of your schedule, alert you if it runs unexpectedly, and flag sudden drops in failed job counts as anomalies. The monitoring lives outside your Laravel app, so it keeps working even when your application does not.
+
+## Safer Patterns for Production
+
+If you need to run `queue:flush` in production, treat it like a database migration: deliberate, logged, and reviewed.
+
+1. **Always use `--hours`.** Never run a bare `queue:flush` in production. Set a retention window that gives your team time to investigate failures.
+2. **Log before and after.** Record the count of jobs being deleted and who triggered the flush.
+3. **Review before flushing.** Run `php artisan queue:failed` first to inspect what you are about to delete. Export the data if it contains business-critical payloads.
+4. **Never put queue:flush in automated pipelines without monitoring.** If it must be scheduled, ensure an external system confirms it ran and that the result was expected.
+
+The `queue:flush` command is a maintenance tool, not a cleanup script to run on autopilot. Every execution in production should be a conscious, tracked decision.
