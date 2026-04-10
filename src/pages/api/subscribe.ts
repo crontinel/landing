@@ -34,8 +34,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
       console.error('Missing env vars:', {
         hasApiKey: !!resendApiKey,
         hasAudienceId: !!resendAudienceId,
-        importMetaEnv: Object.keys(import.meta.env || {}).filter(k => k.includes('RESEND')),
-        locals: Object.keys(locals || {}),
+        importMetaEnvKeys: Object.keys(import.meta.env || {}).filter(k => k.includes('RESEND')),
+        localsKeys: Object.keys(locals || {}),
+        processEnvKeys: Object.keys(process.env || {}).filter(k => k.includes('RESEND')),
       });
       return new Response(JSON.stringify({ ok: false, error: 'Server misconfigured' }), {
         status: 500,
