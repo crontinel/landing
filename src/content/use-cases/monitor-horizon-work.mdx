@@ -1,0 +1,87 @@
+---
+title: "Monitoring horizon:work in Laravel Production"
+description: "Monitor horizon:work in Laravel production with real-time alerts, failure tracking, and detailed logs to keep your queue workers running smoothly."
+date: 2026-04-10
+---
+
+Your Horizon dashboard shows green. Supervisors are listed as "active." But customers are reporting that webhook deliveries stopped an hour ago. You check Redis: 14,000 jobs sitting in the queue, nothing being processed. The culprit? `horizon:work` silently died after an OOM kill, and your process manager restarted it into a boot loop because the Redis connection config had changed during the last deploy. The master supervisor never fully initialized, so no worker processes spawned. From the outside, everything looked fine.
+
+This is the specific danger of `horizon:work` in production. It is not a simple queue worker. It is an orchestrator that manages supervisor processes, which in turn manage the actual workers. When it fails, the failure is structural, not just a single job going bad.
+
+## What horizon:work Actually Does
+
+`horizon:work` is the entry point that boots the Horizon master supervisor. Unlike `queue:work`, which runs a single worker daemon, `horizon:work` reads your `config/horizon.php` and spawns supervisor processes based on your environment configuration. Each supervisor then forks the actual worker processes that dequeue and execute jobs.
+
+In Laravel 10, 11, and 12, a typical `horizon.php` environment block looks like this:
+
+```php
+'environments' => [
+    'production' => [
+        'supervisor-1' => [
+            'maxProcesses' => 10,
+            'balanceMaxShift' => 1,
+            'balanceCooldown' => 3,
+            'connection' => 'redis',
+            'queue' => ['high', 'default', 'low'],
+            'memory' => 128,
+            'timeout' => 60,
+            'tries' => 3,
+            'nice' => 0,
+        ],
+    ],
+],
+```
+
+When `horizon:work` starts, it registers itself as the master supervisor in Redis, writes its PID and connection metadata, and begins its heartbeat loop. If any part of this initialization fails (Redis unreachable, misconfigured connection, permission error on the socket), the master supervisor exits and no workers ever start.
+
+## The Restart Problem After Deploys
+
+The most common `horizon:work` failure in production happens during deploys. You run `php artisan horizon:terminate` to gracefully shut down, deploy new code, and restart Horizon. But `horizon:terminate` is asynchronous. It sets a Redis key telling the master supervisor to shut down after current jobs finish. If your deploy script immediately starts `horizon:work` again, you can end up with two master supervisors competing for the same Redis keys.
+
+Laravel Horizon 5.x (the version shipping with Laravel 10 and 11) handles this better than older versions, but the race condition still exists if your deploy pipeline does not wait for the old process to fully exit. A safer approach:
+
+```bash
+php artisan horizon:terminate
+# Wait for the old master to fully exit
+while php artisan horizon:status 2>/dev/null | grep -q "running"; do
+    sleep 1
+done
+php artisan horizon:work
+```
+
+Without this, you get orphaned supervisor processes that hold Redis connections but never process jobs. They show up in `horizon:list` but sit idle. The dashboard may even report them as healthy because they are still writing heartbeats.
+
+## Detecting Silent horizon:work Failures
+
+The Horizon dashboard checks the master supervisor's heartbeat in Redis. If the master stops writing heartbeats, the dashboard shows "Inactive." But there is a gap: the heartbeat TTL is 30 seconds by default, and the dashboard only reflects what you see when you load the page. Nobody watches a dashboard at 3 AM.
+
+The programmatic way to check master supervisor health:
+
+```php
+use Laravel\Horizon\Contracts\MasterSupervisorRepository;
+
+$masters = app(MasterSupervisorRepository::class)->all();
+
+if (empty($masters)) {
+    // No master supervisor is running, horizon:work is down
+    Log::critical('Horizon master supervisor not found');
+}
+```
+
+You can wire this into a scheduled health check that runs every minute via `schedule:run`. But this creates a dependency: if your scheduler also breaks, you lose visibility into Horizon. This is where an external monitor like Crontinel becomes useful, because it watches from outside your infrastructure and alerts you when either the scheduler or `horizon:work` stops reporting.
+
+## Memory and Process Limits
+
+`horizon:work` itself is lightweight, but the worker processes it spawns are not. Each worker inherits the `memory` setting from your supervisor config. When a worker exceeds that limit, it exits gracefully after the current job. The supervisor replaces it. This is normal and expected.
+
+The problem arises when every worker in a supervisor group hits the memory limit simultaneously, typically because a batch of memory-heavy jobs landed on the queue at once. All workers exit, the supervisor frantically respawns them, and the new workers immediately pick up more heavy jobs and exit again. CPU spikes, Redis connections churn, and throughput drops to near zero.
+
+Set `balanceMaxShift` to 1 and `balanceCooldown` to at least 3 seconds in production. This prevents Horizon's auto-balancer from flooding a queue with workers that all die at once. Also consider setting `--max-jobs` or `--max-time` on the supervisor level (available in Horizon 5.x) to force periodic worker recycling before memory pressure builds.
+
+## Monitoring the Full Stack
+
+Monitoring `horizon:work` requires watching three layers: the master supervisor process, the individual supervisor processes, and the worker processes underneath them. A process manager like Supervisor or systemd only covers the first layer. It will restart `horizon:work` if the master crashes, but it has no insight into whether supervisors spawned correctly or workers are actually processing jobs.
+
+Combine process-level monitoring with queue-depth tracking. If your Redis queue length grows steadily for more than a few minutes while `horizon:work` reports as running, something is wrong at the supervisor or worker layer. Crontinel can track both the heartbeat of `horizon:work` and queue depth metrics, giving you a single alert when processing stalls regardless of which layer failed.
+
+The key insight: `horizon:work` can be "running" while doing nothing useful. Your monitoring must verify that jobs are actually being completed, not just that a process exists.

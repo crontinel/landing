@@ -1,0 +1,117 @@
+---
+title: "Monitoring horizon:terminate in Laravel Production"
+description: "Monitor Laravel's horizon:terminate command in production with instant alerts, log tracking, and failure detection using Crontinel."
+date: 2026-04-10
+---
+
+You push a deploy at 2 PM. Your CI pipeline runs `php artisan horizon:terminate` to gracefully shut down Horizon before swapping code. The deploy finishes, Horizon restarts, and everything looks normal. Except it is not. Two hours later, customers report that emails are delayed by 40 minutes. You check Redis and find 8,000 jobs piled up. The old Horizon master never actually terminated. It is still holding worker processes on the previous code revision, competing with the new master for Redis keys. Half of your workers are running stale code, silently failing jobs that depend on a new database column added in the deploy.
+
+This is the core risk of `horizon:terminate` in production: it is asynchronous. It does not kill anything. It sets a flag in Redis telling the master supervisor to shut down after currently-running jobs complete. If you do not verify that the shutdown finished, your deploy pipeline is built on an assumption that may not hold.
+
+## How horizon:terminate Works Internally
+
+When you run `horizon:terminate`, Laravel writes a key to Redis (`horizon:terminate:signal` in Horizon 5.x, used with Laravel 10, 11, and 12). The master supervisor polls for this key during its main loop. When it sees the signal, it tells each supervisor to stop accepting new jobs, waits for in-progress jobs to finish, then exits.
+
+The important detail: "waits for in-progress jobs to finish" has no upper bound by default. If a job runs for 30 minutes, `horizon:terminate` waits for 30 minutes. Your deploy script, meanwhile, has likely moved on to restarting Horizon with new code.
+
+You can inspect the termination signal directly:
+
+```bash
+# Check if a terminate signal is pending in Redis
+redis-cli GET horizon:terminate:signal
+
+# Check the current master supervisor status
+php artisan horizon:status
+
+# List all master supervisors (stale ones will appear here)
+php artisan horizon:list
+```
+
+If `horizon:list` shows more than one master supervisor for the same environment, you have overlapping instances. That means a previous `horizon:terminate` did not complete before the next `horizon:work` started.
+
+## The Deploy Race Condition
+
+The most dangerous failure pattern with `horizon:terminate` is not that it fails to run. It is that it succeeds too slowly. A typical deploy script looks like this:
+
+```bash
+php artisan horizon:terminate
+php artisan migrate --force
+php artisan config:cache
+php artisan horizon:work
+```
+
+There is no wait between the terminate and the restart. In Horizon's internals, the terminate signal is processed asynchronously during the master supervisor's sleep cycle (every 1 second by default). Then the master has to signal each supervisor, each supervisor has to wait for its workers, and only then does the process exit.
+
+A safer deploy sequence:
+
+```bash
+php artisan horizon:terminate
+
+# Poll until the old master is gone (timeout after 60s)
+SECONDS=0
+while php artisan horizon:status 2>/dev/null | grep -q "running"; do
+    if [ "$SECONDS" -ge 60 ]; then
+        echo "Horizon did not terminate within 60s, forcing kill"
+        # Find and kill the old master PID
+        pkill -f "horizon:work"
+        sleep 2
+        break
+    fi
+    sleep 1
+done
+
+php artisan migrate --force
+php artisan config:cache
+php artisan horizon:work
+```
+
+The timeout is critical. Without it, a long-running job can stall your entire deploy indefinitely. The forced kill is a last resort, but it is better than running two masters.
+
+## When horizon:terminate Silently Fails
+
+There are scenarios where `horizon:terminate` appears to succeed (exits with code 0) but does nothing. The most common: the master supervisor is not running. The command writes the terminate signal to Redis regardless. No error, no warning. Your deploy script continues, and when `horizon:work` starts, it picks up the stale terminate signal and immediately shuts itself down.
+
+This was a known issue in older Horizon versions. In Horizon 5.x, the terminate signal includes a timestamp and the master ignores signals older than its own boot time. But if your Redis data is shared across environments or you are running multiple apps on the same Redis instance without proper prefixes, the signal can still leak.
+
+Another failure case: Redis connectivity. If the `horizon:terminate` command cannot reach Redis, it throws an exception. But if your deploy runner captures stdout and ignores exit codes (common in some CI pipelines), you never see the error. The fix is straightforward but often missed:
+
+```bash
+php artisan horizon:terminate || { echo "Terminate failed"; exit 1; }
+```
+
+## Monitoring Terminate Across Deploys
+
+Process managers like Supervisor will tell you if `horizon:work` is running. They will not tell you if a terminate signal was sent, ignored, or took 90 seconds to process. This is a gap that requires application-level monitoring.
+
+What to watch for:
+
+- **Time between terminate and process exit.** If this consistently exceeds 30 seconds, you have long-running jobs that need `--timeout` adjustments or should move to a dedicated queue with shorter limits.
+- **Overlapping master supervisors.** More than one entry in `horizon:list` after a deploy means terminate did not finish in time.
+- **Queue depth spikes during deploys.** A healthy terminate/restart cycle causes a brief pause in processing. If queue depth grows for more than 2 to 3 minutes post-deploy, something went wrong.
+
+Crontinel monitors Horizon's heartbeat from outside your infrastructure. If a terminate takes too long and the new master fails to come up, Crontinel catches the gap and alerts you before queue depth becomes a customer-visible problem.
+
+## Setting Job Timeouts to Protect Deploys
+
+The single most effective thing you can do to make `horizon:terminate` reliable is to set aggressive job timeouts. In your `config/horizon.php`:
+
+```php
+'environments' => [
+    'production' => [
+        'supervisor-default' => [
+            'timeout' => 30,
+            'maxProcesses' => 8,
+            'queue' => ['default', 'notifications'],
+        ],
+        'supervisor-long' => [
+            'timeout' => 300,
+            'maxProcesses' => 2,
+            'queue' => ['reports', 'exports'],
+        ],
+    ],
+],
+```
+
+Split long-running jobs onto a separate supervisor with fewer workers. The default supervisor terminates quickly (at most 30 seconds), so your deploy is not held up by a single PDF export that takes 4 minutes. The long-running supervisor can take its time shutting down, but it only has 2 workers, limiting the blast radius.
+
+This separation also makes monitoring clearer. When you see the default supervisor terminate in 2 seconds but the long-running supervisor take 90 seconds, that is expected behavior, not an alert. Without the split, a 90-second terminate looks the same whether it is caused by one slow job or a systemic problem.

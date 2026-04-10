@@ -1,7 +1,5 @@
 {
   "pending": [
-    "horizon-work",
-    "horizon-terminate",
     "horizon-pause",
     "horizon-continue",
     "horizon-purge",
@@ -53,6 +51,8 @@
     "queue-monitor",
     "queue-flush",
     "queue-forget",
-    "queue-failed"
+    "queue-failed",
+    "horizon-work",
+    "horizon-terminate"
   ]
 }
