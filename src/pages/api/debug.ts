@@ -4,18 +4,21 @@ import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = async ({ request, locals }) => {
   try {
-    // @ts-ignore
     const cfContext = (locals as any)?.cfContext;
-    const result = {
-      localsKeys: Object.keys(locals || {}),
+    const result: Record<string, unknown> = {
       cfContextKeys: cfContext ? Object.keys(cfContext) : 'none',
-      cfContextRuntime: cfContext?.runtime ? Object.keys(cfContext.runtime) : 'none',
-      cfContextEnv: cfContext?.env ? Object.keys(cfContext.env).filter(k => k.includes('RESEND')) : 'none',
-      cfContextEnvValues: cfContext?.env ? {
-        RESEND_API_KEY: cfContext.env.RESEND_API_KEY,
-        RESEND_AUDIENCE_ID: cfContext.env.RESEND_AUDIENCE_ID,
-      } : 'none',
+      cfContextCache: typeof cfContext?.cache,
+      cfContextProps: cfContext?.props ? Object.keys(cfContext.props) : 'none',
+      cfContextExports: typeof cfContext?.exports,
+      envHasResend: typeof env !== 'undefined' ? Object.keys(env).filter(k => k.includes('RESEND')) : 'env not defined',
     };
+    // @ts-ignore
+    if (typeof globalThis !== 'undefined') {
+      // @ts-ignore
+      const gt = globalThis;
+      result.globalKeys = Object.keys(gt).filter(k => k.includes('RESEND') || k.includes('env') || k.includes('secret'));
+      result.envVarValue = typeof env !== 'undefined' ? env.RESEND_API_KEY : 'env undefined';
+    }
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
