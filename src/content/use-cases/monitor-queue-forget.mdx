@@ -1,0 +1,103 @@
+---
+title: "Monitoring queue:forget in Laravel Production"
+description: "Monitor Laravel's queue:forget command in production — get instant alerts when jobs are manually removed from your queues with Crontinel."
+date: 2026-04-10
+---
+
+You are debugging a payment processing issue on a Tuesday morning. You pull up the `failed_jobs` table to inspect the exception traces, and three of the five entries you saw yesterday are gone. No one on the team recalls deleting them. There is no log entry, no Slack notification, nothing in your deployment history. Someone ran `php artisan queue:forget` on those job IDs, and now the payloads, exception messages, and retry metadata are permanently deleted. You are left reconstructing the failure from application logs alone, assuming those logs captured enough detail in the first place.
+
+This happens more often than teams realize. `queue:forget` is a surgical command: it removes one failed job at a time, which makes it feel safe. But that precision also makes it invisible. Nobody notices three rows disappearing from a table with dozens of entries, and Laravel provides zero built-in tracking for when it runs.
+
+## How queue:forget Works
+
+The `queue:forget` command accepts a single argument: the UUID (or numeric ID, depending on your Laravel version) of a failed job. It deletes that specific row from the `failed_jobs` table.
+
+```bash
+php artisan queue:forget 91401d2c-5bb7-4c10-8fd1-a3e6e1cc9797
+```
+
+In Laravel 10, 11, and 12, the underlying call is `$this->laravel['queue.failer']->forget($id)`, which executes a `DELETE FROM failed_jobs WHERE id = ?` query. If the ID exists, the row is removed and the command outputs a confirmation. If the ID does not exist, you get an error message. Either way, no event is fired, no log entry is written, and no callback is triggered.
+
+Unlike `queue:flush`, which wipes the entire table and is obviously destructive, `queue:forget` operates on a single record. This makes it the command teams reach for during debugging sessions: inspect a failed job with `queue:failed`, decide it is not worth retrying, and forget it. The problem is not the individual deletion. The problem is that repeated, untracked deletions erode your failure history without anyone noticing.
+
+## The Silent Audit Gap
+
+Failed jobs are diagnostic artifacts. Each row in the `failed_jobs` table contains the serialized payload, the exception trace, the queue and connection names, the number of attempts, and the timestamp of the failure. When you forget a job, all of that data is gone.
+
+**Debugging sessions that clean up after themselves.** A developer SSHs into a production server, inspects a few failed jobs, retries one, and forgets the rest. The retry is logged (because the job runs again and either succeeds or fails), but the forgotten jobs vanish without a trace. If the same failure recurs next week, you have no history showing it happened before.
+
+**Automation scripts that cherry-pick.** Some teams write scripts that parse `queue:failed` output, match jobs by exception type, and forget the ones deemed unrecoverable. These scripts run silently unless you add logging yourself. In Laravel 10+ where the failed job IDs are UUIDs, these scripts often process jobs in bulk by piping IDs from one command to another:
+
+```bash
+php artisan queue:failed --raw | grep "OutOfMemoryException" | awk '{print $1}' | xargs -I {} php artisan queue:forget {}
+```
+
+This deletes every failed job matching a pattern, one at a time, with no aggregate record of what was removed or how many jobs were affected.
+
+**Inconsistent use of forget vs. retry.** Teams without clear runbook guidelines end up with some developers running `queue:retry` (which re-dispatches the job and removes it from the failed table) and others running `queue:forget` (which just deletes it). Both commands remove the row from `failed_jobs`, but only retry gives the job another chance. Without tracking, you cannot tell which path was taken.
+
+## Building Visibility Around queue:forget
+
+Since Laravel fires no event for `queue:forget`, you need to create your own instrumentation. The most reliable approach is a wrapper command that logs the operation before delegating:
+
+```php
+// app/Console/Commands/TrackedQueueForget.php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class TrackedQueueForget extends Command
+{
+    protected $signature = 'queue:tracked-forget {id}';
+    protected $description = 'Forget a failed job with audit logging';
+
+    public function handle(): int
+    {
+        $id = $this->argument('id');
+        $job = DB::table('failed_jobs')->where('id', $id)->first();
+
+        if (! $job) {
+            $this->error("Failed job [{$id}] not found.");
+            return self::FAILURE;
+        }
+
+        Log::warning('queue:forget executed', [
+            'job_id' => $id,
+            'queue' => $job->queue,
+            'connection' => $job->connection,
+            'exception' => substr($job->exception, 0, 500),
+            'failed_at' => $job->failed_at,
+            'triggered_by' => get_current_user(),
+        ]);
+
+        $this->call('queue:forget', ['id' => $id]);
+
+        return self::SUCCESS;
+    }
+}
+```
+
+This captures what was deleted and who triggered it. But like any wrapper, it only works when people use it. Direct calls to `queue:forget` bypass the logging entirely.
+
+## Monitoring the Table Externally
+
+A stronger pattern is to monitor the `failed_jobs` table from outside the application. Track the row count on a schedule and alert when it decreases without a corresponding retry event. If jobs are disappearing and your retry logs show no activity, someone is running `queue:forget` or `queue:flush`.
+
+This is where external monitoring tools earn their value. [Crontinel](https://crontinel.com) can track your scheduled commands and detect anomalies in your queue health metrics from outside your Laravel process. When monitoring lives inside the same application it is observing, a crashed app means blind monitoring. External checks keep working regardless of your application state.
+
+## Establishing Team Discipline
+
+The technical controls matter, but the operational pattern matters more. Treat `queue:forget` like a manual database deletion: something that should be logged, justified, and reviewable.
+
+1. **Always inspect before forgetting.** Run `php artisan queue:failed` and review the exception before discarding it. If the payload contains business data, export it first.
+2. **Prefer retry over forget.** If a job might succeed on a second attempt (transient network errors, temporary resource limits), use `queue:retry` instead. At least the job gets another chance and the outcome is recorded.
+3. **Log every forget in production.** Whether through a wrapper command, a shell alias that writes to syslog, or an external audit system, never let a forget operation go unrecorded.
+4. **Audit the failed_jobs count.** A scheduled check that tracks row count over time catches both deliberate and accidental deletions, regardless of which command caused them.
+
+The `queue:forget` command exists for a reason: not every failed job deserves a retry. But in production, every deletion deserves a record.
+
+---
+
+That's approximately 850 words. It follows the same structure and tone as your existing `queue:flush` and `queue:monitor` pages. When you're ready, I can write it to the file at `src/content/use-cases/monitor-queue-forget.mdx`.

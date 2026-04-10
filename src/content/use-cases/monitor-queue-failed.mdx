@@ -1,0 +1,102 @@
+---
+title: "Monitoring queue:failed in Laravel Production"
+description: "Monitor Laravel's `queue:failed` command in production with instant alerts, failure tracking, and smart retries to keep your job pipeline healthy."
+date: 2026-04-10
+---
+
+---
+
+Your queue workers have been processing jobs all week without incident. On Friday afternoon, you notice that order confirmation emails stopped going out three hours ago. You SSH into the production server and run `php artisan queue:failed`. Forty-seven failed jobs stare back at you, all with the same `ConnectionTimeoutException` against your SMTP provider. The jobs have been silently piling up since lunchtime, and nobody knew until a customer complained. The `failed_jobs` table had the answer the whole time, but no one was watching it.
+
+This is the core problem with `queue:failed` in production: it is a pull-based diagnostic tool in an environment that demands push-based alerting. You have to remember to check it, and by the time you do, the damage is already compounding.
+
+## What queue:failed Actually Shows You
+
+The `queue:failed` Artisan command reads from the `failed_jobs` database table and outputs a formatted list. Each row includes the job ID (a UUID in Laravel 10, 11, and 12), the connection, the queue name, the job class, and the timestamp of failure.
+
+```bash
+php artisan queue:failed
+
++--------------------------------------+------------+---------+----------------------------+---------------------+
+| ID                                   | Connection | Queue   | Class                      | Failed At           |
++--------------------------------------+------------+---------+----------------------------+---------------------+
+| 8a1f29c3-47d6-4e10-b8f4-2c1e7d3a9b01 | redis      | default | App\Jobs\SendOrderEmail    | 2026-04-10 14:23:11 |
+| 8a1f29c3-47d6-4e10-b8f4-2c1e7d3a9b02 | redis      | default | App\Jobs\SendOrderEmail    | 2026-04-10 14:23:14 |
+| 8a1f29c3-47d6-4e10-b8f4-2c1e7d3a9b03 | redis      | payments | App\Jobs\ChargeSubscription | 2026-04-10 14:25:02 |
++--------------------------------------+------------+---------+----------------------------+---------------------+
+```
+
+Under the hood, this queries `SELECT * FROM failed_jobs ORDER BY id DESC`. The table stores the full serialized payload and the complete exception trace, but the command's default output only shows the summary columns. To see the exception for a specific job, you pass the ID:
+
+```bash
+php artisan queue:failed 8a1f29c3-47d6-4e10-b8f4-2c1e7d3a9b01
+```
+
+This gives you the full exception, the payload, and the metadata you need for debugging. The information is all there. The gap is that nothing alerts you when new rows appear.
+
+## Why Checking Manually Breaks Down
+
+Teams typically adopt one of two habits: someone runs `queue:failed` during deploys, or a developer checks it when users report problems. Both approaches fail the same way. Failures that do not produce immediately visible symptoms (a webhook that silently stops retrying, a report generation job that nobody checks until month-end) accumulate without triggering any human review.
+
+The `failed_jobs` table also has no built-in TTL. In Laravel 10 through 12, rows persist indefinitely unless you run `queue:flush`, `queue:forget`, or `queue:prune-failed`. A table with hundreds of stale entries makes it harder to spot fresh failures. You end up scrolling past last month's known issues to find the one that broke ten minutes ago.
+
+Some teams try to automate checks with a scheduled command:
+
+```php
+// app/Console/Commands/CheckFailedJobs.php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class CheckFailedJobs extends Command
+{
+    protected $signature = 'queue:check-failed';
+    protected $description = 'Alert if new failed jobs exist';
+
+    public function handle(): int
+    {
+        $count = DB::table('failed_jobs')
+            ->where('failed_at', '>=', now()->subMinutes(10))
+            ->count();
+
+        if ($count > 0) {
+            Log::critical("Found {$count} failed jobs in the last 10 minutes.");
+            // Send Slack/email notification here
+        }
+
+        return self::SUCCESS;
+    }
+}
+```
+
+This works until the application itself is the problem. If your queue workers crash or your database connection drops, the scheduled command that checks for failures may never run. You are monitoring the system from inside the system, which is a well-known blind spot.
+
+## The Failure Patterns Worth Tracking
+
+Not all failed jobs are equal. Monitoring `queue:failed` effectively means knowing which patterns signal real incidents versus transient noise.
+
+**Spike detection.** A sudden burst of failures on the same queue usually indicates an upstream dependency went down: a third-party API, a database connection pool exhaustion, or a Redis memory limit. Counting failures per queue per time window catches this faster than reviewing the table manually.
+
+**Repeated job class failures.** When the same job class fails across multiple payloads, the issue is likely in your code or configuration, not in a single bad input. Grouping failures by class name and alerting on thresholds helps you distinguish a systemic bug from a one-off bad payload.
+
+**Silent accumulation.** Some jobs fail at a rate of two or three per day. No single failure triggers alarm, but over a week you have twenty unprocessed records. Tracking the total `failed_jobs` row count over time, not just the rate, catches this slow bleed.
+
+## Moving to External Monitoring
+
+The reliable fix is monitoring the `failed_jobs` table from outside your Laravel application. External monitoring survives application crashes, deployment failures, and queue worker restarts. If your entire stack goes down, an external check still notices that failures spiked right before the outage.
+
+[Crontinel](https://crontinel.com) takes this approach for Laravel queue and cron monitoring. It tracks your queue health metrics externally, so a crashed worker or stalled scheduler does not also take down your alerting. You get notified when failed jobs accumulate regardless of your application's state.
+
+## Keeping the Table Clean
+
+Monitoring only works when the data in `failed_jobs` is meaningful. Stale rows obscure fresh failures. Laravel 10+ ships with `queue:prune-failed`, which you should run on a schedule:
+
+```bash
+php artisan queue:prune-failed --hours=168
+```
+
+This removes entries older than seven days. Pair it with your monitoring: alert on new failures first, then prune resolved ones on a schedule. The goal is a `failed_jobs` table where every row represents an actionable problem, not a historical archive of last quarter's transient errors.
+
+The `queue:failed` command gives you the raw data. What it cannot give you is the discipline of watching that data continuously and reacting before your users notice.
