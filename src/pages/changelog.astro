@@ -15,17 +15,47 @@ import Footer from '../components/Footer.astro';
     <p class="text-gray-400 mb-12">What's new in Crontinel.</p>
 
     <div class="space-y-12">
+
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-sm font-mono text-gray-500">2026-04-09</span>
+          <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">v0.3.0</span>
+        </div>
+        <h2 class="text-lg font-semibold text-white mb-2">Package split: crontinel/php + crontinel/laravel</h2>
+        <ul class="text-gray-400 text-sm space-y-1 list-disc list-inside">
+          <li>Extracted the monitoring core into a standalone <code class="text-gray-300">crontinel/php</code> package (framework-agnostic); <code class="text-gray-300">crontinel/laravel</code> is now a thin Laravel adapter on top of it.</li>
+          <li>Published <code class="text-gray-300">crontinel/php v0.1.0</code> to Packagist, covering <code class="text-gray-300">CronMonitor</code>, <code class="text-gray-300">HorizonMonitor</code>, and <code class="text-gray-300">QueueMonitor</code> without a Laravel dependency.</li>
+          <li>MCP server updated to <code class="text-gray-300">@crontinel/mcp-server v0.2.0</code>, adding a <code class="text-gray-300">create_alert</code> tool so AI agents can configure Slack, email, or webhook alert channels directly.</li>
+        </ul>
+      </div>
+
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-sm font-mono text-gray-500">2026-04-08</span>
+          <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">v0.2.0</span>
+        </div>
+        <h2 class="text-lg font-semibold text-white mb-2">SaaS reporting, webhook alerts, and pruning</h2>
+        <ul class="text-gray-400 text-sm space-y-1 list-disc list-inside">
+          <li>When <code class="text-gray-300">CRONTINEL_API_KEY</code> is set, the package automatically POSTs a status ping to <code class="text-gray-300">app.crontinel.com</code> every minute and pushes individual cron run events after each task completes or fails.</li>
+          <li>Added a webhook alert channel: set <code class="text-gray-300">CRONTINEL_ALERT_CHANNEL=webhook</code> and <code class="text-gray-300">CRONTINEL_WEBHOOK_URL</code> to receive structured JSON POST alerts with fire and resolve events; optional custom headers for authorization are supported.</li>
+          <li>New <code class="text-gray-300">crontinel:prune</code> command deletes old <code class="text-gray-300">cron_runs</code> records beyond the configured retention window; accepts <code class="text-gray-300">--days=N</code> to override. Fixed a bug where <code class="text-gray-300">isLate</code> detection incorrectly used <code class="text-gray-300">Carbon::now()->next()</code> instead of <code class="text-gray-300">CronExpression::getPreviousRunDate()</code>.</li>
+        </ul>
+      </div>
+
       <div>
         <div class="flex items-center gap-3 mb-4">
           <span class="text-sm font-mono text-gray-500">2026-04-05</span>
+          <span class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full">v0.1.0</span>
           <span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full">launch</span>
         </div>
-        <h2 class="text-lg font-semibold text-white mb-2">Crontinel is live</h2>
-        <p class="text-gray-400 text-sm">
-          Landing page is up. OSS package development in progress. Follow along on
-          <a href="https://github.com/crontinel/crontinel" class="text-gray-300 underline hover:text-white" target="_blank" rel="noopener">GitHub</a>.
-        </p>
+        <h2 class="text-lg font-semibold text-white mb-2">Initial release: OSS package MVP</h2>
+        <ul class="text-gray-400 text-sm space-y-1 list-disc list-inside">
+          <li>Cron monitoring via <code class="text-gray-300">ScheduledTaskFinished</code> and <code class="text-gray-300">ScheduledTaskFailed</code> events, no command wrapping required. Queue monitoring covers depth, failed count, and oldest job age for Redis and database drivers. Horizon monitoring tracks supervisor status, paused state, and failed jobs per minute.</li>
+          <li>Self-hosted dashboard at <code class="text-gray-300">/crontinel</code> with dark theme and 30-second auto-refresh. JSON status API at <code class="text-gray-300">/crontinel/api/status</code>. Alert channels for Slack webhooks and email with 5-minute deduplication.</li>
+          <li><code class="text-gray-300">crontinel:check</code> CLI command exits 0 (healthy) or 1 (alert), with <code class="text-gray-300">--json</code> and <code class="text-gray-300">--no-alerts</code> flags for scripting and CI use. <code class="text-gray-300">crontinel:install</code> publishes config and runs the migration in one step. Supports PHP 8.2 and 8.3, Laravel 11 and 12.</li>
+        </ul>
       </div>
+
     </div>
   </main>
 
