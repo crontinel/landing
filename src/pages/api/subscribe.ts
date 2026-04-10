@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const body = await request.json();
     const email = body?.email;
@@ -20,15 +20,38 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // Cloudflare Workers: secrets via import.meta.env (Astro) or process.env fallback
+    // For Astro SSR with Cloudflare, secrets are injected as env vars at runtime
+    const resendApiKey = import.meta.env.RESEND_API_KEY
+      ?? (locals as any)?.runtime?.env?.RESEND_API_KEY
+      ?? process.env.RESEND_API_KEY;
+
+    const resendAudienceId = import.meta.env.RESEND_AUDIENCE_ID
+      ?? (locals as any)?.runtime?.env?.RESEND_AUDIENCE_ID
+      ?? process.env.RESEND_AUDIENCE_ID;
+
+    if (!resendApiKey || !resendAudienceId) {
+      console.error('Missing env vars:', {
+        hasApiKey: !!resendApiKey,
+        hasAudienceId: !!resendAudienceId,
+        importMetaEnv: Object.keys(import.meta.env || {}).filter(k => k.includes('RESEND')),
+        locals: Object.keys(locals || {}),
+      });
+      return new Response(JSON.stringify({ ok: false, error: 'Server misconfigured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const resendRes = await fetch('https://api.resend.com/contacts', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         email,
-        audience_id: process.env.RESEND_AUDIENCE_ID,
+        audience_id: resendAudienceId,
       }),
     });
 
