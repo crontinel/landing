@@ -1,2 +1,6 @@
 name = "crontinel-landing"
 compatibility_date = "2026-04-05"
+main = "dist/server/entry.mjs"
+assets = { directory = "dist/client" }
+
+[vars]
