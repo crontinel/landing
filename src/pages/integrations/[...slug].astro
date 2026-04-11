@@ -14,6 +14,8 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 const { Content } = await render(page);
+
+export const prerender = true;
 ---
 
 <Base
