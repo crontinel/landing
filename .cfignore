@@ -1,2 +1,4 @@
-dist/_worker.js
-dist/_worker.js/**
+# Crontinel Landing — .cfignore
+
+# Cloudflare
+.wrangler/
