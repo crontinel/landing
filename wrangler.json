@@ -11,4 +11,7 @@
 	"observability": {
 		"enabled": true
 	},
+	"vars": {
+		"PUBLIC_GA_MEASUREMENT_ID": "G-KJDPL4R7LZ"
+	}
 }
