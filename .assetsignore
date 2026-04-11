@@ -1,2 +1,4 @@
 _worker.js
 _routes.json
+
+dist/_worker.js

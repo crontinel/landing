@@ -5,7 +5,20 @@
 	"main": "./dist/_worker.js/index.js",
 	"assets": {
 		"directory": "./dist",
-		"binding": "ASSETS"
+		"binding": "ASSETS",
+		"include": [
+			"_astro/**/*.css",
+			"_astro/**/*.js",
+			"favicon.ico",
+			"favicon.png",
+			"favicon.svg",
+			"robots.txt",
+			"og-default.png",
+			"og-default.svg",
+			"logo-dark.png",
+			"logo-light.png",
+			"logo-harun.jpg"
+		]
 	},
 	"observability": {
 		"enabled": true
