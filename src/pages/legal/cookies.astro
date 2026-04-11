@@ -1,0 +1,81 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const updated = '2026-04-11';
+---
+
+<Base
+  title="Cookie Policy — Crontinel"
+  description="How Crontinel uses cookies and similar technologies."
+>
+  <Nav />
+
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16">
+    <h1 class="text-3xl font-bold text-white mb-2">Cookie Policy</h1>
+    <p class="text-sm text-gray-500 mb-10">Last updated: {updated}</p>
+
+    <div class="space-y-8 text-gray-400 text-sm leading-relaxed">
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">What are cookies</h2>
+        <p>Cookies are small text files stored on your device when you visit a website. They are widely used to make websites work, remember your preferences, and enable analytics. Crontinel uses cookies on crontinel.com and app.crontinel.com as described below.</p>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">How we use them</h2>
+        <p>We use two categories of cookies:</p>
+        <ul class="list-disc pl-5 space-y-1 mt-2">
+          <li><strong class="text-gray-300">Essential cookies:</strong> required for authentication and security — including your session cookie and CSRF token. These are set automatically and cannot be disabled without affecting your ability to use the service.</li>
+          <li><strong class="text-gray-300">Analytics cookies:</strong> set by Google Analytics 4 on crontinel.com only, after you click "Accept" on the cookie banner. These help us understand how visitors use our site so we can improve it.</li>
+          <li><strong class="text-gray-300">Optional cookies:</strong> any third-party or marketing cookies beyond analytics. We do not use any.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Google Analytics 4</h2>
+        <p>Crontinel uses Google Analytics 4 (GA4) on crontinel.com to collect basic usage statistics. GA4 uses cookies to distinguish unique visitors and store session state:</p>
+        <ul class="list-disc pl-5 space-y-1 mt-2">
+          <li><strong class="text-gray-300">_ga</strong> — used to distinguish users; expires after 2 years</li>
+          <li><strong class="text-gray-300">_gid</strong> — used to distinguish users; expires after 24 hours</li>
+          <li><strong class="text-gray-300">_gat_*</strong> — used to throttle request rate; expires after 1 minute</li>
+        </ul>
+        <p class="mt-2">GA4 collects your IP address as part of the standard analytics payload. This data is sent to Google under Google's <a href="https://policies.google.com/privacy" class="text-gray-300 hover:text-white" target="_blank" rel="noopener">privacy policy</a>. We do not share any personal data with Google beyond standard analytics.</p>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Your choices</h2>
+        <p>You have full control over analytics cookies. To opt out of GA4:</p>
+        <ul class="list-disc pl-5 space-y-1 mt-2">
+          <li>Click "Decline" on the cookie banner on crontinel.com — this will prevent analytics cookies from being set</li>
+          <li>Alternatively, install the <a href="https://tools.google.com/dlpage/gaoptout" class="text-gray-300 hover:text-white" target="_blank" rel="noopener">Google Analytics Opt-out Browser Add-on</a> which prevents GA4 cookies from being set in any browser</li>
+          <li>You can also clear cookies at any time via your browser settings — this will remove all analytics identifiers</li>
+          <li>To manage cookies site-wide, use your browser's cookie settings to block third-party cookies or site-specific cookies</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Third-party cookies</h2>
+        <p>In addition to our own cookies, some third-party services may set cookies as part of their integration with Crontinel:</p>
+        <ul class="list-disc pl-5 space-y-1 mt-2">
+          <li><strong class="text-gray-300">Cloudflare</strong> — sets <code class="text-gray-300">__cf_bm</code> (Bot Management cookie) on app.crontinel.com to protect against bots and abuse. Subject to Cloudflare's <a href="https://www.cloudflare.com/privacy-policy/" class="text-gray-300 hover:text-white" target="_blank" rel="noopener">privacy policy</a>.</li>
+        </ul>
+        <p class="mt-2">We do not knowingly use any other third-party cookie providers beyond those listed above.</p>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Updates</h2>
+        <p>This cookie policy may be updated from time to time to reflect changes in how we use cookies or to comply with new regulations. We encourage you to review this page periodically. The "Last updated" date at the top indicates when this policy was most recently revised.</p>
+      </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">Contact</h2>
+        <p>Questions about our use of cookies? <a href="mailto:support@crontinel.com" class="text-gray-300 hover:text-white">support@crontinel.com</a></p>
+      </section>
+
+    </div>
+  </main>
+
+  <Footer />
+</Base>
