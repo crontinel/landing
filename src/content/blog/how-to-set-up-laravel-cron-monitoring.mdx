@@ -1,0 +1,161 @@
+---
+title: "How to Set Up Laravel Cron Monitoring (The Right Way)"
+description: "A step-by-step guide to setting up Laravel cron monitoring that actually works. Detect missed schedules, failed tasks, and silent cron failures before your users notice."
+date: 2026-04-12
+---
+
+Laravel's task scheduler is powerful — but fragile. One misconfigured cron entry and your daily reports stop sending. Your weekly cleanup jobs silently fail. Your payment reconciliation sits idle for days.
+
+This guide walks through the right way to monitor Laravel cron jobs, so nothing slips through the cracks.
+
+## The Problem with Default Cron
+
+Most Laravel apps have this in `crontab`:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This runs every minute. But what happens when it breaks? The cron keeps running. No error appears anywhere. Your tasks just... stop.
+
+Common failure modes:
+
+- **Server reboots** and the cron service doesn't restart automatically
+- **Memory exhaustion** kills the PHP process mid-run
+- **Disk full** prevents log writes and the job silently fails
+- **Deployment** changes the deployment path and breaks the cron entry
+- **Timezone misconfiguration** causes jobs to run at the wrong time or not at all
+
+## Step 1: Set Up the Scheduler Correctly
+
+First, make sure your Laravel scheduler is configured properly in `app/Console/Kernel.php`:
+
+```php
+class Kernel extends ConsoleKernel
+{
+    protected function schedule(Schedule $schedule)
+    {
+        $schedule->command('reports:generate')
+            ->dailyAt('09:00')
+            ->timezone('America/New_York')
+            ->onOneServer()
+            ->withoutOverlapping();
+    }
+}
+```
+
+The `withoutOverlapping()` method is critical — it prevents a job from running twice if the previous run didn't finish. The `onOneServer()` method (requires Laravel Forge or a cache driver) ensures the job only runs on one server in a multi-server setup.
+
+## Step 2: Set Up the System Cron
+
+In your server's crontab (`crontab -e`):
+
+```bash
+* * * * * cd /your-project-path && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Never use `artisan cron:run` or any custom artisan command unless you've checked the Laravel source. `schedule:run` is the correct entry point.
+
+For production, consider using `supervisord` to keep the scheduler running:
+
+```ini
+[program:laravel-scheduler]
+process_name=%(program_name)s
+command=php /your-project-path/artisan schedule:work
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/laravel-scheduler.log
+```
+
+## Step 3: Install a Monitoring Package
+
+The `crontinel/laravel` package gives you a live dashboard and alerts:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Add your API key to `.env`:
+
+```env
+CRONTINEL_API_KEY=your_api_key_here
+```
+
+Set the API URL:
+
+```env
+CRONTINEL_API_URL=https://app.crontinel.com
+```
+
+Now every call to `schedule:run` sends a heartbeat to your dashboard. If the heartbeat stops, you get an alert.
+
+## Step 4: Monitor Horizon Jobs Too
+
+If you're using Laravel Horizon for queue management, the scheduler and Horizon workers are separate systems. Both need monitoring.
+
+```env
+CRONTINEL_HORIZON_ENABLED=true
+```
+
+This tells the package to also ping Crontinel when Horizon supervisors stop processing jobs.
+
+## Step 5: Set Up Alerts for the Right Events
+
+Don't alert on everything — you'll get alert fatigue. Alert on:
+
+- **Scheduler stopped** — no heartbeat for 90+ seconds
+- **Job failed** — non-zero exit code
+- **Job took too long** — ran longer than expected
+- **Horizon supervisor down** — no heartbeat from Horizon
+
+Configure alert channels in `.env`:
+
+```env
+# Slack
+CRONTINEL_ALERT_CHANNEL=slack
+CRONTINEL_SLACK_WEBHOOK=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# Or email
+CRONTINEL_ALERT_CHANNEL=mail
+CRONTINEL_ALERT_EMAIL=you@example.com
+
+# Or generic webhook
+CRONTINEL_ALERT_CHANNEL=webhook
+CRONTINEL_WEBHOOK_URL=https://your-endpoint.com/alerts
+```
+
+## Step 6: Verify It Actually Works
+
+After setup, verify your monitoring is receiving data:
+
+1. **Manual trigger**: Run `php artisan schedule:run` manually and check your dashboard for a new ping
+2. **Kill test**: Stop the scheduler process and confirm you receive an alert within 90 seconds
+3. **Failure test**: Temporarily add `->throw(new \Exception('Test failure'))` to a scheduled job and verify the failure alert fires
+
+Don't leave the test failure code in — remove it after verification.
+
+## What Generic Uptime Monitors Miss
+
+Standard uptime monitors check if your server is up. They have no idea what a "missed Laravel cron" even means. A generic monitor will show green while your scheduler has been broken for six hours.
+
+Real cron monitoring needs to understand:
+- The expected schedule frequency (every minute, not just "up")
+- What a "missed" heartbeat looks like for a Laravel scheduler
+- Laravel-specific failure modes (Horizon supervisors, queue workers, `withoutOverlapping` locks)
+
+That's why Crontinel exists — it's built specifically for Laravel's scheduler and queue system.
+
+## Quick Checklist
+
+- [ ] `* * * * * php artisan schedule:run` is in crontab
+- [ ] `withoutOverlapping()` on long-running jobs
+- [ ] `crontinel/laravel` installed and configured
+- [ ] API key set in `.env`
+- [ ] Dashboard shows "Waiting for first ping" → then shows live data
+- [ ] Alert channel (Slack/email/webhook) configured
+- [ ] Alert fires within 90 seconds of scheduler stopping
+- [ ] Horizon monitoring enabled if using Horizon
+
+If you're running Laravel in production and not monitoring your scheduler, you're flying blind. Set up proper monitoring before something breaks on a Friday evening.
