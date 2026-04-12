@@ -36,6 +36,16 @@ import Footer from '../components/Footer.astro';
 }
 </script>
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" }
+  ]
+}
+</script>
+
 <Base
   title="Crontinel | Cron, Scheduler & Background Job Monitoring"
   description="Know when your cron jobs, schedulers, and background jobs stop working, before your customers do. Health monitoring that generic uptime tools miss."

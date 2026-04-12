@@ -49,6 +49,17 @@ const comparisons = [
 ];
 ---
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Comparisons", "item": "https://crontinel.com/vs" }
+  ]
+}
+</script>
+
 <Base
   title="Crontinel vs Alternatives  |  Laravel Monitoring Comparison"
   description="How Crontinel compares to Cronitor, Healthchecks.io, Better Stack, Telescope, Datadog, UptimeRobot, and Forge Heartbeats for Laravel queue and cron monitoring."

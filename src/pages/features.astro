@@ -37,6 +37,17 @@ import Footer from '../components/Footer.astro';
 }
 </script>
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Features", "item": "https://crontinel.com/features" }
+  ]
+}
+</script>
+
 <Base
   title="Features — Crontinel"
   description="Horizon internals, queue depth monitoring, cron run history, multi-app dashboard, and alerts. Everything background job and cron monitoring should have been."
