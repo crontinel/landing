@@ -7,6 +7,11 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      # Pin to Node.js 22 LTS — GitHub runners will default to Node 24 on June 2 2026
+      # Node 20 removed Sept 16 2026; this ensures actions/checkout and actions/setup-node stay on LTS
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: 'false'
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'false'
     steps:
       - uses: actions/checkout@v4
 
