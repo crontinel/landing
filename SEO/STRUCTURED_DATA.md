@@ -19,11 +19,12 @@
 | About | BreadcrumbList | ✅ about.astro |
 | Changelog | BreadcrumbList | ✅ changelog.astro |
 | Security | BreadcrumbList | ✅ security.astro |
-| Legal pages | BreadcrumbList | ❌ legal/* |
-| Lifetime deal | BreadcrumbList | ❌ lifetime-deal.astro |
-| FAQ page | BreadcrumbList | ❌ faq.astro |
+| FAQ | BreadcrumbList | ✅ faq.astro |
+| Lifetime Deal | BreadcrumbList | ✅ lifetime-deal.astro |
+| Cookies | BreadcrumbList | ✅ legal/cookies.astro |
+| Privacy | BreadcrumbList | ✅ legal/privacy.astro |
+| Terms | BreadcrumbList | ✅ legal/terms.astro |
 
 ## Pending
 
-- [ ] BreadcrumbList — legal, faq, lifetime-deal pages
-- [ ] WebPage — about, changelog, legal pages
+- [ ] WebPage schema — about, changelog, legal pages (supplementary)
