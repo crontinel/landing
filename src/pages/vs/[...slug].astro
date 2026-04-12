@@ -16,7 +16,19 @@ const { page } = Astro.props;
 const { Content } = await render(page);
 
 export const prerender = true;
+
+const breadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Comparisons", "item": "https://crontinel.com/vs" },
+    { "@type": "ListItem", "position": 3, "name": page.data.title, "item": `https://crontinel.com/vs/${page.id}` }
+  ]
+};
 ---
+
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} />
 
 <Base
   title={`${page.data.title}  |  Crontinel`}
