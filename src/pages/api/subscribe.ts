@@ -29,8 +29,8 @@ export const POST: APIRoute = async ({ request }) => {
         hasApiKey: !!resendApiKey,
         hasAudienceId: !!resendAudienceId,
       });
-      return new Response(JSON.stringify({ ok: false, error: 'Server misconfigured' }), {
-        status: 500,
+      return new Response(JSON.stringify({ ok: false, unavailable: true, error: 'Signup is temporarily unavailable.' }), {
+        status: 503,
         headers: { 'Content-Type': 'application/json' },
       });
     }
