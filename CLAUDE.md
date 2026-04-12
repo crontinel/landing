@@ -40,7 +40,27 @@ Static by default. MDX content in `src/content/`.
 - Never add tracking scripts to app.crontinel.com — landing page only
 - Run `npm run build` before committing to verify no errors
 
+## Repo structure
+
+```
+SEO/                    # SEO work & tracking
+  AUDIT.md              # Full page-by-page audit
+  STRUCTURED_DATA.md    # JSON-LD implementation tracker
+  CONTENT_PLAN.md       # 24-page content tracker
+  FAQ_CONTENT.md        # FAQ source content
+LAUNCH/                # Launch prep & go-to-market
+  CHECKLIST.md          # Pre/post-launch checklist
+  HN/FINAL.md           # Hacker News pitch
+  PH/FINAL.md           # Product Hunt pitch
+  TWITTER/FINAL.md      # Twitter/X launch thread
+RESEARCH/              # Research, waitlist, fallback plans
+  PSEO_RESEARCH.md
+  WAITLIST.md + WAITLIST_FALLBACK.md
+docs/                  # Internal docs (browser setup, etc.)
+```
+
 ## Content plan
 
 24 SEO pages total (v1): 10 blog, 4 vs/competitor, 6 use-case, 4 integration.
 Add as MDX files in the respective `src/content/` subdirectory.
+Track progress in `SEO/CONTENT_PLAN.md`.
