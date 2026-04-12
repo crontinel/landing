@@ -7,12 +7,15 @@ export async function GET() {
     { url: '/', priority: '1.0', changefreq: 'weekly' },
     { url: '/docs', priority: '0.8', changefreq: 'weekly' },
     { url: '/pricing', priority: '0.9', changefreq: 'monthly' },
+    { url: '/lifetime-deal', priority: '0.9', changefreq: 'monthly' },
     { url: '/features', priority: '0.8', changefreq: 'monthly' },
+    { url: '/faq', priority: '0.7', changefreq: 'monthly' },
     { url: '/about', priority: '0.6', changefreq: 'monthly' },
     { url: '/changelog', priority: '0.7', changefreq: 'weekly' },
     { url: '/blog', priority: '0.8', changefreq: 'weekly' },
     { url: '/legal/privacy', priority: '0.3', changefreq: 'yearly' },
     { url: '/legal/terms', priority: '0.3', changefreq: 'yearly' },
+    { url: '/legal/cookies', priority: '0.3', changefreq: 'yearly' },
   ];
 
   const blogPosts = await getCollection('blog');
