@@ -1,0 +1,149 @@
+---
+title: "Laravel Queue Monitoring: Catch Failures Before Your Users Do"
+description: "Laravel queues fail silently in production. A job throws an exception, gets buried, and nobody notices until a customer asks where their order went. Here's how to monitor queues properly."
+date: 2026-04-12
+tags: ["laravel", "queues", "monitoring"]
+---
+
+Every Laravel application with asynchronous work uses queues. Sending welcome emails, generating PDF reports, processing payments, dispatching notifications — all of these happen in the background, away from the HTTP request cycle. That's the point. But it also means they're invisible.
+
+A job that fails silently doesn't surface an error to your users. It just... doesn't happen. The user gets a success response. The email never arrives. You find out three days later when they email support.
+
+This is the queue monitoring problem.
+
+## How Laravel queues fail
+
+Laravel queues fail in a few distinct ways, each with different symptoms.
+
+### The job throws an exception
+
+The most straightforward failure. Your job code encounters an error, throws an exception, and Laravel marks the job as failed. If you've configured a `failed` queue table, the failure is recorded. If you're using Horizon, failed jobs show up in the dashboard.
+
+The catch: if nobody is watching the failed jobs table or Horizon dashboard, the failure goes unnoticed.
+
+### The queue worker dies
+
+A `php artisan queue:work` process can die for many reasons — out-of-memory kill from the OS, a segfault, Redis connection dropping, an unhandled exception at the top level. When the worker dies, jobs that were being processed are lost (or if you're using `queue:work --expire=0`, they go back to the queue). Jobs waiting in the queue keep waiting. Your application appears to be working — the web layer is fine — but nothing is processing.
+
+The only signal is that queue depth starts climbing.
+
+### Jobs are retrying in a loop
+
+A job that always fails and gets retried creates a different symptom: a job that sits in `failed` immediately after each retry attempt. If your job hits an external API that returns transient errors, and you've set unlimited retries, the job will retry forever. This burns CPU and queue capacity without doing any work.
+
+### Redis goes down
+
+If Redis is your queue driver and Redis becomes unavailable, `queue:work` will continuously try to reconnect and fail. The queue doesn't fail — it just stops processing. Depth climbs. Nothing happens. No exceptions are thrown in your application code.
+
+## What to monitor
+
+Effective queue monitoring covers four signals:
+
+### 1. Failed job count
+
+Track the number of failed jobs per queue over time. A sudden spike in failed jobs is an incident — investigate immediately. A slow accumulation of failures is a degradation — schedule time to fix the underlying issue.
+
+If you're using Horizon, `failed_jobs` is tracked per supervisor and per queue. If you're using the database queue driver, query `failed_jobs` directly.
+
+### 2. Queue depth
+
+The number of jobs waiting in a queue is a load signal, not a failure signal — but it's the first sign of trouble when workers die or Redis goes down.
+
+A queue that normally has 50 jobs and suddenly has 5,000 is a problem, even if none of them have failed yet. The work isn't being processed fast enough, which means something is wrong upstream.
+
+### 3. Oldest job age
+
+A job that's been waiting in a queue for 30 minutes when your SLA is "emails sent within 5 minutes" is a failure, even if it hasn't technically failed yet. Track the age of the oldest job in each queue.
+
+### 4. Worker status
+
+Horizon supervisors can stop — a memory limit gets hit, the process crashes, a deployment kills old workers before new ones are ready. When all supervisors for a queue are stopped, jobs accumulate with no processing. Horizon's `status` field tells you: active, paused, or stopped.
+
+## Setting up queue monitoring in Laravel
+
+The Laravel framework gives you the primitives to build monitoring, but you need something to actually observe them.
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+After installation, Crontinel starts recording queue metrics automatically. For each queue, it tracks:
+
+- Current depth
+- Failed job count
+- Oldest job age in seconds
+- Worker status (for Horizon users)
+
+You can view all of this from the Crontinel dashboard, or query it via the API if you want to build your own alerting.
+
+## Alerting on queue failures
+
+Monitoring without alerting is just historical data. Set up alerts for:
+
+- **Failed jobs > 0** on critical queues (payment processing, order fulfillment)
+- **Queue depth > threshold** — determine what depth is abnormal for your workload
+- **Oldest job age > N minutes** — set based on your SLA
+- **All Horizon supervisors stopped** — if workers are down and nobody scheduled a restart, you need to know
+
+```php
+// In your Crontinel dashboard or via API
+// Alert when failed jobs exceed 0 on the critical-queue
+$criteria = [
+    'app_slug' => 'your-app',
+    'queue' => 'critical-queue',
+    'condition' => 'failed_count_greater_than',
+    'threshold' => 0,
+    'channel' => 'slack', // or email, webhook, pagerduty
+];
+```
+
+## Common queue failure patterns
+
+### Memory exhaustion
+
+`queue:work` consumes memory for each job. If your jobs process large datasets without releasing memory, the worker eventually hits the PHP memory limit and dies. New jobs fail with a memory exhausted error. Horizon supervisors can be configured with memory limits:
+
+```php
+'defaults' => [
+    'supervisor-1' => [
+        'memory' => 256, // megabytes — restart if exceeded
+    ],
+],
+```
+
+Monitoring catches this when failed jobs start appearing with memory errors.
+
+### Database connection timeouts
+
+If your database becomes slow or unavailable during a long-running job, the job fails with a connection timeout. The queue worker keeps retrying. Set `queue timeout` to a reasonable maximum:
+
+```php
+$schedule->command('process-queue')
+    ->everyMinute()
+    ->runInBackground()
+    ->withoutOverlapping();
+```
+
+And set job timeouts explicitly:
+
+```php
+ProcessImageJob::dispatch($image)
+    ->onQueue('images')
+    ->timeout(120) // seconds
+    ->retryUntil(now()->addMinutes(5));
+```
+
+### Serialized closures
+
+Laravel serializes queued closures (jobs defined as anonymous functions) to store in the queue. If your closure captures a large object or a database connection, serialization can fail silently or produce a job that unserializes into a broken state. Avoid closures in favor of explicit job classes.
+
+## When queue monitoring isn't enough
+
+Queue monitoring tells you *that* something is wrong. It doesn't tell you *what* is wrong. For detailed debugging — inspecting job payloads, replaying failed jobs, tracing a job through its lifecycle — you need Horizon's job management interface.
+
+Think of monitoring as the alert system and Horizon as the investigative tool. You need both.
+
+---
+
+Crontinel monitors queue depth, failed jobs, oldest job age, and Horizon worker status across all your applications. [Get started](https://crontinel.com) with two commands.
