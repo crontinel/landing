@@ -1,6 +1,8 @@
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 
+const RATE_LIMIT_KV = 'subscribe_ratelimit';
+
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
@@ -19,6 +21,55 @@ export const POST: APIRoute = async ({ request }) => {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    // --- Bot protection via Cloudflare Turnstile ---
+    const turnstileToken = request.headers.get('cf-turnstile-response');
+    const turnstileSecret = env.TURNSTILE_SECRET_KEY;
+
+    if (turnstileSecret && turnstileToken) {
+      const turnstileRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          secret: turnstileSecret,
+          response: turnstileToken,
+          remoteip: request.headers.get('CF-Connecting-IP') ?? '',
+        }),
+      });
+
+      const turnstileData = await turnstileRes.json();
+      if (!turnstileData.success) {
+        return new Response(JSON.stringify({ ok: false, error: 'Security check failed. Please try again.' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    // --- Rate limiting via KV (max 3 signups per IP per hour) ---
+    const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
+    const kv = env.SUBSCRIBE_KV as KVNamespace | undefined;
+
+    if (kv) {
+      const key = `${RATE_LIMIT_KV}:${ip}`;
+      const existing = await kv.get(key);
+      const count = existing ? parseInt(existing, 10) : 0;
+
+      if (count >= 3) {
+        return new Response(JSON.stringify({
+          ok: false,
+          error: 'Too many signup attempts. Please try again later.',
+        }), {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': '3600',
+          },
+        });
+      }
+
+      await kv.put(key, String(count + 1), { expirationTtl: 3600 });
     }
 
     const resendApiKey = env.RESEND_API_KEY;
