@@ -1,0 +1,145 @@
+---
+title: "How to Detect Silent Cron Failures in Laravel"
+description: "Laravel's scheduler runs your cron jobs but doesn't tell you when they fail. Here's how to detect silent failures before they become support tickets."
+date: 2026-04-12
+tags: ["laravel", "cron", "monitoring"]
+---
+
+Most Laravel applications have a cron entry that runs `schedule:run` every minute. If you've set it up, you probably tested it once — the job ran, everything looked fine — and then you never checked on it again.
+
+That "it ran once" test is worthless. It tells you nothing about what happens at 2am on a Sunday, or after a deployment that changed the job's dependencies, or when a queue worker crashes and the scheduler keeps running but no jobs actually execute.
+
+Silent failures are the most dangerous kind. You find out about them from customers, not from your monitoring.
+
+## Why Laravel cron fails silently
+
+Laravel's scheduler uses the operating system's cron daemon, which just runs a command on a schedule. The OS cron doesn't understand Laravel. It doesn't know what a job is, what a failed job looks like, or whether the schedule actually executed. It only knows: "did the command exit with a code?"
+
+This means several failure modes are completely invisible:
+
+### The schedule is running but no jobs are executing
+
+This happens when `schedule:run` exits successfully (exit code 0) but decides not to run any jobs. This can occur if:
+- The scheduled time didn't match the current time due to timezone issues
+- The `withoutOverlapping()` mutex locked the job indefinitely
+- An exception was thrown before any job could run, but the exception was caught somewhere and exited cleanly
+
+### The cron entry disappeared after a deploy
+
+Many deployment scripts overwrite the crontab. If your deploy process doesn't explicitly preserve the Laravel cron entry, it can disappear silently. The scheduler stops running. No errors. No alerts. Just silent jobs.
+
+### The scheduler runs but jobs throw exceptions
+
+If a scheduled job throws an exception, `schedule:run` catches it, logs it, and exits. The OS cron sees exit code 0 (or a non-zero that you didn't configure alerting for). Unless you're reading the Laravel log every morning, you'll never know.
+
+### Redis or the database becomes unavailable mid-run
+
+A job starts, hits Redis for a queue connection, gets a timeout, and fails. The scheduler moves on. The job is marked failed in the queue, but nobody gets paged about it unless you've set up explicit queue failure alerting.
+
+## What "silent" actually means in practice
+
+When we say a failure is silent, we mean the people who should know about it don't find out until something downstream breaks. A failed nightly invoice job doesn't just mean "one invoice didn't send." It means:
+
+- An invoice that should have been sent wasn't
+- The customer doesn't know it wasn't sent
+- You find out days later when someone notices the missing invoice
+- Now you have to manually figure out which runs failed, why, and how to recover
+
+This is the real cost of silent failures.
+
+## The detection checklist
+
+Here are the failure signals to monitor for every Laravel scheduler:
+
+### 1. Did the scheduler actually run?
+
+Add a heartbeat to your scheduler. Every time `schedule:run` executes, write a timestamp somewhere. If the heartbeat stops, the scheduler stopped.
+
+With Crontinel:
+
+```bash
+# In your Laravel app's crontab:
+* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
+```
+
+Crontinel records every `schedule:run` invocation automatically. If no run is recorded for more than 65 seconds, you get an alert.
+
+### 2. Did scheduled jobs actually complete?
+
+Exit code monitoring isn't sufficient, but it's a start. Configure your monitoring to alert on non-zero exit codes from `schedule:run`.
+
+Better: instrument individual jobs. Laravel's scheduler fires `ScheduledTaskStarting` and `ScheduledTaskFinished` events. Crontinel hooks into these automatically:
+
+```php
+// Crontinel records: command name, exit code, duration, timestamp
+// You get an alert if a job didn't run at its expected time
+```
+
+### 3. Is the schedule mutex stuck?
+
+`withoutOverlapping()` is great for preventing duplicate runs. But if the mutex isn't released properly — because the job died mid-execution, or the mutex TTL is misconfigured — subsequent runs of that job are silently skipped.
+
+```php
+$schedule->command('process-payments')
+    ->daily()
+    ->withoutOverlapping(60); // Lock expires after 60 minutes
+```
+
+Monitor the mutex. If the same job has been "running" for longer than its max expected duration, that's a stuck mutex — alert immediately.
+
+### 4. Are queue jobs being processed?
+
+If your scheduled job dispatches to a queue, the scheduler can run successfully (exit 0) while the queue is completely backed up or stalled.
+
+Monitor queue depth and the oldest job age. A `payments` queue that normally has 0–5 jobs and suddenly has 500 means something stopped processing.
+
+## Setting up detection
+
+The fastest path to Laravel cron monitoring:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+This gives you:
+- Automatic recording of every `schedule:run` invocation
+- Exit code and duration tracking per scheduled task
+- Alerting when a scheduled task doesn't run at its expected time
+- Horizon supervisor monitoring if you're using Horizon
+
+## Common failure patterns
+
+### Timezone mismatches
+
+If your server timezone doesn't match your application's configured timezone, jobs run at the wrong time. Laravel's scheduler respects the application timezone (`config('app.timezone')`), but the OS cron runs based on the server's system time. Set them explicitly:
+
+```php
+// config/app.php
+'timezone' => 'UTC',
+
+// crontab
+CRON_TZ=UTC
+* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
+```
+
+### Deployment overwriting the crontab
+
+Always verify your cron entry survives deployments. Add it to your deployment checklist, or better, use a deploy hook that re-installs the cron entry if it's missing.
+
+### Long-running jobs and overlapping
+
+A job that takes 10 minutes but runs every 5 minutes will overlap with itself. Laravel handles this with `withoutOverlapping()`, but if the job dies while holding the lock, subsequent runs are blocked for the lock TTL duration. If your lock TTL is 60 minutes and a job dies at minute 5, you don't get another run for 55 minutes.
+
+## The minimum viable monitoring
+
+If you do nothing else:
+1. Add a heartbeat for `schedule:run` — if it stops running, alert immediately
+2. Track the last successful run timestamp for each scheduled job — if it's later than expected, alert
+3. Log exit codes and alert on non-zero
+
+That's it. Three signals, no overhead, catches 90% of silent failures. Everything else is refinement.
+
+---
+
+Crontinel monitors your Laravel scheduler automatically: heartbeat detection, exit codes, duration tracking, and alerts when jobs don't run on schedule. [Try it free](https://crontinel.com).
