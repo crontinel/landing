@@ -4,6 +4,38 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 ---
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Crontinel",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Laravel",
+  "description": "Cron, scheduler, and background job health monitoring for Laravel applications. Detects failures, late runs, and queue issues that generic uptime tools miss.",
+  "url": "https://crontinel.com",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "description": "Free plan with 1 app, 5 monitors, 7-day history"
+  },
+  "featureList": [
+    "Cron job health monitoring",
+    "Laravel Horizon queue monitoring",
+    "Background job failure detection",
+    "Slack, email, PagerDuty, and webhook alerts",
+    "Public status pages",
+    "14-day alert history",
+    "REST API access",
+    "Self-hosted MIT option"
+  ],
+  "provider": {
+    "@type": "Organization",
+    "@id": "https://crontinel.com/#organization"
+  }
+}
+</script>
+
 <Base
   title="Crontinel | Cron, Scheduler & Background Job Monitoring"
   description="Know when your cron jobs, schedulers, and background jobs stop working, before your customers do. Health monitoring that generic uptime tools miss."
