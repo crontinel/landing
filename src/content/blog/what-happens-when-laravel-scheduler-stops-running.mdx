@@ -1,0 +1,137 @@
+---
+title: "What Happens When Your Laravel Scheduler Stops Running"
+description: "The Laravel scheduler depends on a single cron entry. When that entry disappears, breaks, or deadlocks, your scheduled tasks stop running — and you might not notice for days. Here's what actually breaks and how to detect it."
+date: 2026-04-12
+tags: ["laravel", "cron", "scheduler"]
+---
+
+Your Laravel application has a cron entry that looks like this:
+
+```
+* * * * * php /path/to/artisan schedule:run >> /dev/null 2>&1
+```
+
+This one line is responsible for every scheduled task in your application. Invoice generation, report exports, cache cleanup, database maintenance, external API sync jobs — all of them depend on `schedule:run` executing every minute.
+
+When it stops, things break in ways that aren't always obvious.
+
+## What breaks first
+
+The immediate effect depends on what your scheduled tasks do.
+
+### Nightly batch jobs that don't fire
+
+Your `generate-invoices` job was supposed to run at midnight. It didn't. The invoices weren't generated. Your billing system shows zero invoices for the day. Customers don't get charged. You find out when the finance team asks why revenue is down.
+
+### Cache cleanup that never runs
+
+`cache:prune-stale-tags` hasn't fired in three days. Your cache directory is accumulating stale entries. Memory usage is climbing. Response times are degrading slowly enough that nobody files a ticket, but your monitoring dashboard shows a gradual uptick in latency.
+
+### External sync that falls behind
+
+Your hourly job that syncs product data from your supplier's API hasn't run in 12 hours. Your product catalog is now 12 hours stale. Customers are ordering products that are out of stock in your supplier's warehouse but still showing as available on your site.
+
+### Horizon supervisors that starve
+
+Horizon is still running. Workers are alive. The queue is accepting jobs. But the job that dispatches the queue — the scheduled task that enqueues `ProcessImages` and `SendWelcomeEmails` — stopped firing. The queue empties out and nobody notices until the support tickets start arriving.
+
+## Why the scheduler stops
+
+The most common reasons `schedule:run` stops executing:
+
+### 1. The crontab was overwritten during deployment
+
+Many deployment scripts (especially those based on Capistrano, Envoy, or custom bash scripts) rewrite the crontab file as part of deployment. If the script doesn't explicitly include the Laravel cron entry, it gets wiped.
+
+### 2. The deploy user doesn't match the cron user
+
+If your cron runs as `root` but your deployment runs as `www-data`, file permissions or directory paths might cause `schedule:run` to silently exit with an error. The cron fires, the command runs, it fails, the error goes to `/dev/null`.
+
+### 3. The artisan path is wrong
+
+`php /path/to/artisan` assumes PHP is in the system PATH. On some server configurations, the full path is needed: `/usr/bin/php /path/to/artisan`. If the path is wrong, cron fires the command, the shell can't find PHP, the command exits with error 127 (command not found), and the error disappears into the void.
+
+### 4. The working directory is wrong
+
+`schedule:run` needs to run from the Laravel application root. If cron fires from a different working directory, the artisan command fails silently. Use the full path:
+
+```
+* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### 5. WithoutOverlapping locks that never expire
+
+If a scheduled job uses `withoutOverlapping()` and the job dies while holding the lock, the lock isn't released until the TTL expires. During that window, subsequent runs of the job are blocked. If the TTL is 60 minutes and the job dies 30 seconds after acquiring the lock, you lose 59.5 minutes of scheduled runs.
+
+## How to detect it
+
+### Heartbeat monitoring
+
+The most reliable detection mechanism: every time `schedule:run` fires, write a timestamp to a known location (Redis, a file, an external service). If no heartbeat arrives for more than 65 seconds, alert.
+
+```php
+// In a scheduled job or event listener
+Redis::set('scheduler:heartbeat', now()->toIso8601String());
+```
+
+Or use Crontinel, which records heartbeats automatically and alerts when the expected ping doesn't arrive.
+
+### Deploy hook verification
+
+After every deployment, verify the cron entry is still present:
+
+```bash
+crontab -l | grep schedule:run
+# If empty, reinstall:
+(crontab -l | grep -v schedule:run; echo "* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1") | crontab -
+```
+
+### Health check endpoint
+
+Add a simple health check that reports when the scheduler last ran:
+
+```bash
+curl https://yourapp.com/health/scheduler
+# {"status":"ok","last_run":"2026-04-12T08:00:00Z"}
+```
+
+If `last_run` is more than 2 minutes ago, something is wrong.
+
+## The recovery problem
+
+When you discover the scheduler has been down, recovery isn't always as simple as restarting it.
+
+### Missed runs
+
+If `generate-invoices` was supposed to run Monday through Friday at midnight, and the scheduler was down Monday night, Monday's invoices weren't generated. Restarting the scheduler Tuesday morning won't run Monday's job. You need a recovery mechanism — either a catch-up command or manual intervention.
+
+### Lock cleanup
+
+If `withoutOverlapping()` locks are stuck, restarting the scheduler won't help. You need to clear the Redis locks:
+
+```php
+// In tinker or a custom command
+Redis::del('laravel_scheduler_lock:command-name');
+```
+
+Or use `php artisan schedule:list` to see which jobs have active locks.
+
+### Alert fatigue
+
+When the scheduler recovers after being down for a long weekend, you'll get a flood of alerts — one for every missed scheduled run. Configure your alerting to deduplicate or batch these so you don't wake up to 500 notifications.
+
+## Prevention
+
+1. **Add a heartbeat** — the single most effective thing you can do. If the heartbeat stops, you know immediately.
+
+2. **Test your deploy script** — verify the cron entry survives a fresh deploy to staging before pushing to production.
+
+3. **Use supervisor for long-running jobs** — don't rely on the scheduler for jobs that take longer than a few seconds. Use queue workers supervised by systemd or Supervisor.
+
+4. **Set reasonable mutex TTLs** — `withoutOverlapping(60)` means a stuck lock lasts at most 60 minutes. Don't set 24-hour mutex locks unless you absolutely need to prevent a job from running for 24 hours.
+
+5. **Monitor the monitor** — if you're using Crontinel or any external monitoring, set up an alert for when Crontinel stops receiving pings from your app.
+
+---
+
+The Laravel scheduler is deceptively simple. One cron entry, everything works. But that simplicity means a single point of failure can hide for days. Heartbeat monitoring and regular health checks are the difference between finding out about failures from customers and finding out about them from your alerting system.
