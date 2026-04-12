@@ -1,0 +1,121 @@
+---
+title: "What is Cron Monitoring and Why Laravel Developers Need It"
+description: "Laravel cron jobs fail silently by default. Here's what that means, why it's dangerous, and how to detect failures before they become production incidents."
+date: 2026-04-12
+tags: ["laravel", "cron", "monitoring"]
+---
+
+Most Laravel applications have at least one cron job. Send invoices, generate reports, process imports, clean up stale data. These tasks run on a schedule, usually at night, and almost never produce visible output unless something goes wrong.
+
+And when something goes wrong, Laravel's default behavior is: nothing. No error. No alert. No record that the task even ran.
+
+This is what cron monitoring solves.
+
+## What "failing silently" actually means
+
+When a Laravel scheduled command fails, `schedule:run` exits with a non-zero code. The cron daemon logs that exit code to `syslog`. If you're not watching `syslog`, you never see it.
+
+Consider a typical `invoices:send` command that runs every morning at 6 AM:
+
+```bash
+0 6 * * * cd /var/www && php artisan schedule:run >> /dev/null 2>&1
+```
+
+The cron daemon runs this every minute. At 6:00 AM, `schedule:run` finds `invoices:send`, executes it, and the command runs. If the command throws an exception — maybe the database is locked, maybe the Stripe API returned a 500 — Laravel catches it, logs it, and exits.
+
+The exit code is non-zero. The cron daemon logs:
+```
+CRON[12345]: (root) CMD (cd /var/www && php artisan schedule:run >> /dev/null 2>&1)
+```
+
+If you have a service like Datadog or CloudWatch parsing your cron logs, you might get an alert. If you're relying on the cron log being checked manually, you won't. Most of the time, "silent" means "nobody noticed until a customer complained."
+
+## Why standard uptime monitoring misses cron failures
+
+Classical uptime monitoring checks if a URL returns 200. Cron jobs don't have URLs. A health check on `https://yourapp.com` tells you the web server is running. It tells you nothing about whether your `invoices:send` command ran at 6 AM, whether it completed successfully, or whether it took 47 minutes instead of the usual 4.
+
+This is the fundamental blind spot: cron monitoring is not web monitoring. The approaches that work for HTTP services — ping a URL, alert on 5xx — don't apply to background scheduled tasks.
+
+## The three most common ways Laravel cron jobs fail
+
+### 1. Wrong schedule syntax
+
+Laravel's scheduler uses human-readable expressions. `->dailyAt('14:00')` is intuitive. `->cron('0 14 * * *')` is explicit. Both work — until they don't.
+
+A misplaced space in a cron expression produces no error. `->cron('0 14 * * *')` works. `->cron('0 14 * *  *')` (extra space before the asterisk) silently becomes invalid and the task never runs.
+
+### 2. Overlapping jobs
+
+Laravel's `withoutOverlapping()` prevents a task from running if a previous instance is still running. This is good. But if your task takes longer than expected, the next scheduled run is skipped. Skipped runs don't fire events. If your `process-queue` task normally takes 10 minutes and suddenly takes 3 hours due to a slow database query, you lose 17 scheduled runs with no indication anything went wrong.
+
+### 3. Queue worker crashes
+
+A queue worker running `php artisan queue:work` exits when it encounters an unrecoverable error — an out-of-memory kill, a Redis connection loss, an unhandled exception in a job. When the worker dies, jobs queue up. They don't fail in the traditional sense; they just stop being processed. You'll only notice when customers start asking why their orders aren't being fulfilled.
+
+## How Laravel cron monitoring works
+
+Purpose-built cron monitoring for Laravel works by hooking into Laravel's scheduler lifecycle events:
+
+- **`ScheduledTaskStarting`** — fired when a task begins execution
+- **`ScheduledTaskFinished`** — fired when a task completes successfully
+- **`ScheduledTaskFailed`** — fired when a task exits with a non-zero code or throws an exception
+
+By recording every invocation, a monitor can show you:
+
+- **What ran** — the task name and command
+- **When it ran** — exact timestamps
+- **How long it took** — duration in milliseconds
+- **What happened** — exit code and output
+- **What didn't run** — a task that was scheduled but never started
+
+This is the difference between "I think my cron jobs are working" and "I know exactly what happened with each scheduled task for the past 30 days."
+
+## Setting up Laravel cron monitoring
+
+With Crontinel, you get monitoring in two commands:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Then set two environment variables:
+
+```bash
+CRONTINEL_API_KEY=your_api_key_here
+CRONTINEL_API_URL=https://app.crontinel.com
+```
+
+Once installed, Crontinel automatically captures scheduler events and sends them to your dashboard. Every scheduled command is recorded: whether it ran, how long it took, and whether it succeeded or failed.
+
+## What you get on the dashboard
+
+For each monitored application, you'll see:
+
+- **Recent cron runs** — a timestamped log of every scheduled task execution with status (completed, failed, late)
+- **Missed run alerts** — notification when a task was scheduled but never started
+- **Duration tracking** — a task that normally takes 2 seconds taking 30 seconds is a signal worth investigating
+- **Horizon status** — if you're using Laravel Horizon, worker status and failed job counts
+
+Alerts can be sent to Slack, email, PagerDuty, or a generic webhook — whatever your team already uses.
+
+## Do you need cron monitoring?
+
+If you answer yes to any of these questions, the answer is probably yes:
+
+- Do you have any cron job that runs fewer than once per minute? (Uptime monitors can't catch missed runs at these intervals.)
+- Is there a business consequence if a scheduled task doesn't run? (Billing, cleanup, data sync, notifications.)
+- Do you rely on queue workers staying alive to process customer orders?
+- Have you ever discovered a cron job had been broken for days without anyone noticing?
+
+If you've ever had "I didn't know that cron wasn't running" in a postmortem, you need cron monitoring.
+
+## Beyond failure detection
+
+Once you have monitoring in place, you start getting signal you didn't have before. A task that's been taking 500ms and suddenly takes 8 seconds is a performance regression worth investigating. A queue depth that's growing steadily means your workers can't keep up with incoming jobs. A task that's been "late" three times this week means the server is hitting resource limits during peak hours.
+
+Cron monitoring turns invisible background processes into visible, actionable data. You stop finding out about failures from customers and start catching them yourself.
+
+---
+
+Ready to set up monitoring? [Install the Crontinel package](https://docs.crontinel.com/installation/) and connect it to your Laravel app in under five minutes.
