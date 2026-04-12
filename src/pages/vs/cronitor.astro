@@ -8,6 +8,46 @@ import Footer from '../../components/Footer.astro';
   title="Crontinel vs Cronitor: Laravel Cron Monitoring Comparison"
   description="Cronitor tells you a job ran. Crontinel tells you your Horizon supervisor is paused. Here's what that difference means for Laravel apps."
 >
+  <script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How is this different from Crontinel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Most generic monitors tell you a job ran. They have no visibility into Laravel Horizon, queue depth, or whether your supervisor crashed. Crontinel reads the same Redis keys Horizon uses, so it catches failures the outside-in approach misses entirely."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Crontinel require code changes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The Laravel package hooks into ScheduledTaskStarting, ScheduledTaskFinished, and ScheduledTaskFailed events automatically. You run composer require and the monitoring starts. No command wrapping, no custom metrics, no configuration required."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I self-host Crontinel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The package ships with a built-in dashboard at /crontinel that works entirely offline. The SaaS at app.crontinel.com is optional. Either way you own your data."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What alert channels does Crontinel support?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Slack, email, PagerDuty, and webhooks. Webhooks support HMAC signature verification. You can set different channels per monitor so critical jobs page PagerDuty while background tasks Slack."
+      }
+    }
+  ]
+}
+</script>
   <Nav />
 
   <main class="max-w-4xl mx-auto px-4 sm:px-6 py-16">
