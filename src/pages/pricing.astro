@@ -68,7 +68,7 @@ import Footer from '../components/Footer.astro';
 >
   <Nav />
 
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16">
+  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16" id="main-content">
     <div class="text-center mb-12">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple, transparent pricing</h1>
       <p class="text-gray-400 mb-8">14-day Pro trial on every signup. No credit card required.</p>
@@ -94,9 +94,9 @@ import Footer from '../components/Footer.astro';
       <!-- Free -->
       <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
         <div class="mb-6">
-          <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Free</div>
+          <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Free</div>
           <div class="text-4xl font-bold text-white">$0</div>
-          <div class="text-sm text-gray-500 mt-1">forever</div>
+          <div class="text-sm text-gray-400 mt-1">forever</div>
         </div>
         <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 app</li>
@@ -118,12 +118,12 @@ import Footer from '../components/Footer.astro';
           Most popular
         </div>
         <div class="mb-6">
-          <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Pro</div>
+          <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Pro</div>
           <div class="flex items-end gap-2">
             <div class="text-4xl font-bold text-white">
               <span id="pro-price">$19</span>
             </div>
-            <div class="text-gray-500 mb-1" id="pro-period">/mo</div>
+            <div class="text-gray-400 mb-1" id="pro-period">/mo</div>
           </div>
           <div class="text-sm mt-1 h-5">
             <span id="pro-note" class="text-green-400"></span>
@@ -147,12 +147,12 @@ import Footer from '../components/Footer.astro';
       <!-- Team -->
       <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
         <div class="mb-6">
-          <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Team</div>
+          <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Team</div>
           <div class="flex items-end gap-2">
             <div class="text-4xl font-bold text-white">
               <span id="team-price">$49</span>
             </div>
-            <div class="text-gray-500 mb-1" id="team-period">/mo</div>
+            <div class="text-gray-400 mb-1" id="team-period">/mo</div>
           </div>
           <div class="text-sm mt-1 h-5">
             <span id="team-note" class="text-green-400"></span>
@@ -195,7 +195,7 @@ import Footer from '../components/Footer.astro';
         <code class="block bg-gray-950 text-green-400 text-sm rounded px-4 py-2.5 pr-16">
           composer require crontinel/laravel
         </code>
-        <button onclick="navigator.clipboard.writeText('composer require crontinel/laravel'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-1.5 right-2 text-xs text-gray-500 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
+        <button role="button" aria-label="Copy to clipboard" onclick="navigator.clipboard.writeText('composer require crontinel/laravel'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-1.5 right-2 text-xs text-gray-400 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
       </div>
     </div>
 

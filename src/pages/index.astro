@@ -52,7 +52,7 @@ import Footer from '../components/Footer.astro';
 >
   <Nav />
 
-  <main>
+  <main id="main-content">
     <!-- Hero -->
     <section class="max-w-5xl mx-auto px-4 sm:px-6 pt-20 pb-16 text-center">
       <div class="inline-flex items-center gap-2 bg-green-500/10 text-green-400 text-xs font-medium px-3 py-1 rounded-full border border-green-500/20 mb-6">
@@ -103,14 +103,14 @@ import Footer from '../components/Footer.astro';
           href="https://github.com/crontinel/crontinel"
           target="_blank"
           rel="noopener"
-          class="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          class="text-sm text-gray-400 hover:text-gray-300 transition-colors"
         >
           Open source →
         </a>
         <span class="text-gray-700">·</span>
         <a
           href="https://docs.crontinel.com/introduction"
-          class="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+          class="text-sm text-gray-400 hover:text-gray-300 transition-colors"
         >
           Docs →
         </a>
@@ -179,20 +179,20 @@ import Footer from '../components/Footer.astro';
           <!-- Horizon section -->
           <div>
             <div class="flex items-center justify-between mb-2">
-              <span class="text-gray-500 text-xs uppercase tracking-widest">Horizon</span>
+              <span class="text-gray-400 text-xs uppercase tracking-widest">Horizon</span>
               <span class="text-green-400 text-xs">● running</span>
             </div>
             <div class="grid sm:grid-cols-3 gap-3">
               <div class="bg-gray-950 rounded p-3">
-                <div class="text-xs text-gray-500 mb-1">Status</div>
+                <div class="text-xs text-gray-400 mb-1">Status</div>
                 <div class="text-green-400 font-medium">running</div>
               </div>
               <div class="bg-gray-950 rounded p-3">
-                <div class="text-xs text-gray-500 mb-1">Supervisors</div>
+                <div class="text-xs text-gray-400 mb-1">Supervisors</div>
                 <div class="text-white font-medium">2 active</div>
               </div>
               <div class="bg-gray-950 rounded p-3">
-                <div class="text-xs text-gray-500 mb-1">Failed / min</div>
+                <div class="text-xs text-gray-400 mb-1">Failed / min</div>
                 <div class="text-white font-medium">0.0</div>
               </div>
             </div>
@@ -200,7 +200,7 @@ import Footer from '../components/Footer.astro';
 
           <!-- Queues section -->
           <div>
-            <div class="text-gray-500 text-xs uppercase tracking-widest mb-2">Queues</div>
+            <div class="text-gray-400 text-xs uppercase tracking-widest mb-2">Queues</div>
             <table class="w-full text-xs">
               <thead>
                 <tr class="text-gray-600">
@@ -232,7 +232,7 @@ import Footer from '../components/Footer.astro';
 
           <!-- Crons section -->
           <div>
-            <div class="text-gray-500 text-xs uppercase tracking-widest mb-2">Scheduled Commands</div>
+            <div class="text-gray-400 text-xs uppercase tracking-widest mb-2">Scheduled Commands</div>
             <table class="w-full text-xs">
               <thead>
                 <tr class="text-gray-600">
@@ -360,7 +360,7 @@ import Footer from '../components/Footer.astro';
     <!-- Integrations -->
     <section class="max-w-5xl mx-auto px-4 sm:px-6 pb-16 text-center">
       <h2 class="text-xl font-semibold text-white mb-2">Deep integrations. REST API for everything else.</h2>
-      <p class="text-gray-500 text-sm mb-8">Deep native integrations. REST API for any other stack.</p>
+      <p class="text-gray-400 text-sm mb-8">Deep native integrations. REST API for any other stack.</p>
       <div class="flex flex-wrap justify-center gap-3">
         {[
           { name: 'Cron monitoring', status: 'native', color: 'text-green-400 border-green-500/30 bg-green-500/5' },
@@ -370,7 +370,7 @@ import Footer from '../components/Footer.astro';
           { name: 'MCP server', status: 'native', color: 'text-green-400 border-green-500/30 bg-green-500/5' },
           { name: 'Status pages', status: 'native', color: 'text-green-400 border-green-500/30 bg-green-500/5' },
           { name: 'Webhook alerts', status: 'native', color: 'text-green-400 border-green-500/30 bg-green-500/5' },
-          { name: 'HTTP endpoints', status: 'soon', color: 'text-gray-500 border-gray-700 bg-gray-900' },
+          { name: 'HTTP endpoints', status: 'soon', color: 'text-gray-400 border-gray-700 bg-gray-900' },
         ].map((i) => (
           <div class={`flex items-center gap-2 border rounded-full px-4 py-1.5 text-sm font-medium ${i.color}`}>
             {i.name}
@@ -409,9 +409,9 @@ import Footer from '../components/Footer.astro';
           <!-- Free -->
           <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
             <div class="mb-4">
-              <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Free</div>
+              <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Free</div>
               <div class="text-3xl font-bold text-white">$0</div>
-              <div class="text-sm text-gray-500 mt-1">forever</div>
+              <div class="text-sm text-gray-400 mt-1">forever</div>
             </div>
             <ul class="space-y-2 text-sm text-gray-400 flex-1 mb-6">
               <li class="flex gap-2"><span class="text-green-400">✓</span> 1 app</li>
@@ -432,9 +432,9 @@ import Footer from '../components/Footer.astro';
               Most popular
             </div>
             <div class="mb-4">
-              <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Pro</div>
+              <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Pro</div>
               <div class="text-3xl font-bold text-white">
-                <span id="hp-pro-price">$19</span><span class="text-lg font-normal text-gray-500">/mo</span>
+                <span id="hp-pro-price">$19</span><span class="text-lg font-normal text-gray-400">/mo</span>
               </div>
               <div class="text-sm mt-1 h-5"><span id="hp-pro-note" class="text-green-400"></span></div>
             </div>
@@ -455,9 +455,9 @@ import Footer from '../components/Footer.astro';
           <!-- Team -->
           <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
             <div class="mb-4">
-              <div class="text-sm text-gray-500 uppercase tracking-wide mb-1">Team</div>
+              <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Team</div>
               <div class="text-3xl font-bold text-white">
-                <span id="hp-team-price">$49</span><span class="text-lg font-normal text-gray-500">/mo</span>
+                <span id="hp-team-price">$49</span><span class="text-lg font-normal text-gray-400">/mo</span>
               </div>
               <div class="text-sm mt-1 h-5"><span id="hp-team-note" class="text-green-400"></span></div>
             </div>
@@ -486,7 +486,7 @@ import Footer from '../components/Footer.astro';
       </p>
       <div class="grid sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
         <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
-          <div class="text-xs text-gray-500 uppercase tracking-widest mb-3">Self-hosted (free, MIT)</div>
+          <div class="text-xs text-gray-400 uppercase tracking-widest mb-3">Self-hosted (free, MIT)</div>
           <ul class="space-y-2 text-sm text-gray-400">
             <li class="flex gap-2"><span class="text-green-400">✓</span> Full queue and cron visibility</li>
             <li class="flex gap-2"><span class="text-green-400">✓</span> Blade dashboard on your own server</li>
@@ -529,7 +529,7 @@ import Footer from '../components/Footer.astro';
           <button
             id="copy-install-btn"
             aria-label="Copy install command"
-            class="absolute top-2 right-2 p-1.5 rounded text-gray-500 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+            class="absolute top-2 right-2 p-1.5 rounded text-gray-400 hover:text-gray-300 hover:bg-gray-800 transition-colors"
           >
             <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>

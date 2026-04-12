@@ -36,8 +36,8 @@ const breadcrumb = {
 >
   <Nav />
 
-  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16">
-    <a href="/use-cases" class="text-sm text-gray-500 hover:text-gray-300 mb-8 inline-block">← All use cases</a>
+  <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">
+    <a href="/use-cases" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← All use cases</a>
     <h1 class="text-3xl font-bold text-white mb-8">{page.data.title}</h1>
     <article class="prose prose-invert prose-gray text-sm leading-relaxed max-w-none
       prose-headings:text-white prose-headings:font-semibold
@@ -63,7 +63,7 @@ const breadcrumb = {
           <div>composer require crontinel/laravel</div>
           <div>php artisan crontinel:install</div>
         </div>
-        <button onclick="navigator.clipboard.writeText('composer require crontinel/laravel\nphp artisan crontinel:install'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-2 right-2 text-xs text-gray-500 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
+        <button role="button" aria-label="Copy to clipboard" onclick="navigator.clipboard.writeText('composer require crontinel/laravel\nphp artisan crontinel:install'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-2 right-2 text-xs text-gray-400 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
       </div>
       <a
         href="/#waitlist"

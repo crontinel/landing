@@ -52,7 +52,7 @@ const integrations = [
 >
   <Nav />
 
-  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-16">
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-16" id="main-content">
 
     <div class="text-center mb-14">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Integrations</h1>
@@ -67,7 +67,7 @@ const integrations = [
           <div class="flex items-start justify-between mb-3">
             <h2 class="text-lg font-semibold text-white">{i.name}</h2>
             {i.status === 'coming-soon'
-              ? <span class="text-xs text-gray-500 bg-gray-800 px-2 py-0.5 rounded-full">Soon</span>
+              ? <span class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">Soon</span>
               : <span class="text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Available</span>
             }
           </div>
