@@ -15,6 +15,30 @@ import Footer from '../components/Footer.astro';
 }
 </script>
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Crontinel",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Laravel",
+  "description": "Laravel-native cron, scheduler, and background job monitoring. Monitors Horizon internals, queue depth, failed jobs, and cron run history.",
+  "url": "https://crontinel.com/changelog",
+  "version": "0.3.0",
+  "offers": {
+    "@type": "AggregateOffer",
+    "lowPrice": "0",
+    "highPrice": "49",
+    "priceCurrency": "USD"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "Crontinel",
+    "url": "https://crontinel.com"
+  }
+}
+</script>
+
 <Base
   title="Changelog  |  Crontinel"
   description="What's new in Crontinel. Product updates, fixes, and improvements."
