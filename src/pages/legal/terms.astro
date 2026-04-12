@@ -6,6 +6,17 @@ import Footer from '../../components/Footer.astro';
 const updated = '2026-04-05';
 ---
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Terms of Service", "item": "https://crontinel.com/legal/terms" }
+  ]
+}
+</script>
+
 <Base
   title="Terms of Service — Crontinel"
   description="Crontinel Terms of Service."

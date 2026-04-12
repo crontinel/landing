@@ -31,6 +31,17 @@ const faqs = [
 ];
 ---
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Lifetime Deal", "item": "https://crontinel.com/lifetime-deal" }
+  ]
+}
+</script>
+
 <Base
   title="Lifetime Deal | Crontinel"
   description="Get Crontinel Pro or Team forever with a single payment. Limited to 250 codes. Laravel-native cron and queue monitoring, one price, no subscriptions."

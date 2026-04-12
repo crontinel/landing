@@ -6,6 +6,17 @@ import Footer from '../../components/Footer.astro';
 const updated = '2026-04-11';
 ---
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Cookie Policy", "item": "https://crontinel.com/legal/cookies" }
+  ]
+}
+</script>
+
 <Base
   title="Cookie Policy — Crontinel"
   description="How Crontinel uses cookies and similar technologies."

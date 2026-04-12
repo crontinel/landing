@@ -47,6 +47,17 @@ const faqs = [
 ];
 ---
 
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "FAQ", "item": "https://crontinel.com/faq" }
+  ]
+}
+</script>
+
 <Base
   title="FAQ — Crontinel"
   description="Common questions about Crontinel: what it monitors, how it compares to alternatives, pricing, self-hosting, and getting started."
