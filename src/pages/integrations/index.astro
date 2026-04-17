@@ -27,8 +27,8 @@ const integrations = [
   },
   {
     name: 'PagerDuty',
-    status: 'available',
-    description: 'Create and auto-resolve PagerDuty incidents via Events API v2. Dedup keys keep fire/resolve events linked to a single incident.',
+    status: 'coming-soon',
+    description: 'Create and auto-resolve PagerDuty incidents via Events API v2. Dedup keys keep fire/resolve events linked to a single incident. (Coming soon)',
     config: 'CRONTINEL_PAGERDUTY_ROUTING_KEY',
     icon: '🔔',
   },
@@ -48,7 +48,7 @@ const integrations = [
 
 <Base
   title="Integrations — Crontinel"
-  description="Connect Crontinel alerts to Slack, email, webhooks, and PagerDuty. Get notified the moment something breaks in your Laravel app."
+  description="Connect Crontinel alerts to Slack, email, and webhooks. Get notified the moment something breaks in your Laravel app."
 >
   <Nav />
 
@@ -72,7 +72,7 @@ const integrations = [
             }
           </div>
           <p class="text-sm text-gray-400 mb-4">{i.description}</p>
-          {i.config && (
+          {i.config && i.status !== 'coming-soon' && (
             <div class="font-mono text-xs text-green-400 bg-gray-950 rounded px-3 py-2">
               {i.config}=your-value
             </div>
@@ -86,7 +86,7 @@ const integrations = [
       <div class="space-y-3 font-mono text-sm">
         <div class="flex gap-4 text-gray-400">
           <code class="text-green-400 min-w-[220px]">CRONTINEL_ALERT_CHANNEL</code>
-          <span>slack | mail | webhook | pagerduty | null</span>
+          <span>slack | mail | webhook | null</span>
         </div>
         <div class="flex gap-4 text-gray-400">
           <code class="text-green-400 min-w-[220px]">CRONTINEL_SLACK_WEBHOOK</code>
@@ -99,10 +99,6 @@ const integrations = [
         <div class="flex gap-4 text-gray-400">
           <code class="text-green-400 min-w-[220px]">CRONTINEL_WEBHOOK_URL</code>
           <span>HTTPS endpoint for alert POSTs</span>
-        </div>
-        <div class="flex gap-4 text-gray-400">
-          <code class="text-green-400 min-w-[220px]">CRONTINEL_PAGERDUTY_ROUTING_KEY</code>
-          <span>Events API v2 integration key</span>
         </div>
       </div>
     </div>
