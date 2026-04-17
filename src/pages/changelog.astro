@@ -87,7 +87,7 @@ import Footer from '../components/Footer.astro';
         <ul class="text-gray-400 text-sm space-y-1 list-disc list-inside">
           <li>Cron monitoring via <code class="text-gray-300">ScheduledTaskFinished</code> and <code class="text-gray-300">ScheduledTaskFailed</code> events, no command wrapping required. Queue monitoring covers depth, failed count, and oldest job age for Redis and database drivers. Horizon monitoring tracks supervisor status, paused state, and failed jobs per minute.</li>
           <li>Self-hosted dashboard at <code class="text-gray-300">/crontinel</code> with dark theme and 30-second auto-refresh. JSON status API at <code class="text-gray-300">/crontinel/api/status</code>. Alert channels for Slack webhooks and email with 5-minute deduplication.</li>
-          <li><code class="text-gray-300">crontinel:check</code> CLI command exits 0 (healthy) or 1 (alert), with <code class="text-gray-300">--json</code> and <code class="text-gray-300">--no-alerts</code> flags for scripting and CI use. <code class="text-gray-300">crontinel:install</code> publishes config and runs the migration in one step. Supports PHP 8.2 and 8.3, Laravel 11 and 12.</li>
+          <li><code class="text-gray-300">crontinel:check</code> CLI command exits 0 (healthy) or 1 (alert), with <code class="text-gray-300">--json</code> and <code class="text-gray-300">--no-alerts</code> flags for scripting and CI use. <code class="text-gray-300">crontinel:install</code> publishes config and runs the migration in one step. Supports PHP 8.2 through 8.5, Laravel 11, 12, and 13.</li>
         </ul>
       </div>
 
