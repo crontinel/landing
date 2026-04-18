@@ -108,6 +108,55 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
 
     /* Prevent horizontal bleed at small widths */
     html, body { max-width: 100%; overflow-x: hidden; }
+
+    /* ── MOBILE FIXES ─────────────────────────────────────────────────
+       The design CSS references .db-table in responsive rules, but our
+       HTML uses .table. These overrides correct that mismatch and plug
+       any remaining mobile overflow gaps.
+    ──────────────────────────────────────────────────────────────────── */
+
+    /* Allow pre blocks to scroll rather than force-expand the page */
+    pre { max-width: 100%; overflow-x: auto; }
+    .step pre { overflow-x: auto; }
+
+    /* At 860 px: ensure .table (our class) also gets overflow-x guard */
+    @media (max-width: 860px) {
+      .table { max-width: 100%; }
+      /* Dashboard: let panel scroll rather than clip table content */
+      .db-panel { overflow-x: auto; }
+    }
+
+    /* At 640 px (phone): match .db-table rules that components.css sets
+       but never applies because our HTML uses .table */
+    @media (max-width: 640px) {
+      .table th, .table td { padding: 8px 6px; font-size: 11.5px; }
+      .table td:nth-child(3), .table th:nth-child(3) { display: none; }
+      /* Remove fixed min-height so the dashboard collapses cleanly */
+      .db-body { min-height: 0 !important; }
+      /* Dashboard KPI strip — ensure 2 cols already applied */
+      .kpis { grid-template-columns: repeat(2, 1fr) !important; }
+      /* Hero monitor height guard */
+      .monitor-graph { height: 160px; }
+    }
+
+    /* At 480 px: monitor-head wraps to avoid overflow */
+    @media (max-width: 480px) {
+      .monitor-head { flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+      .monitor-head .label { font-size: 11px; }
+      .monitor-head .stats { font-size: 11px; }
+      /* Hero captions: stack to avoid wide inline row */
+      .hero-captions { flex-direction: column; gap: 6px; }
+      /* db-title wraps on narrow screens */
+      .db-title { flex-wrap: wrap; gap: 8px; }
+      .db-title h3 { font-size: 18px; }
+    }
+
+    /* At 380 px: further tighten anything that could bleed */
+    @media (max-width: 380px) {
+      .monitor-head .label span:nth-child(3),
+      .monitor-head .label span:nth-child(4) { display: none; }
+      .hero-trust { font-size: 10px; }
+    }
   </style>
 </head>
 
