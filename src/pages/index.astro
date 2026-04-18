@@ -1,879 +1,2345 @@
 ---
 import Base from '../layouts/Base.astro';
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
 ---
 
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Crontinel",
-  "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "Laravel",
-  "description": "Cron, scheduler, and background job health monitoring for Laravel applications. Detects failures, late runs, and queue issues that generic uptime tools miss.",
-  "url": "https://crontinel.com",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD",
-    "description": "Free plan with 1 app, 5 monitors, 7-day history"
-  },
-  "featureList": [
-    "Cron job health monitoring",
-    "Laravel Horizon queue monitoring",
-    "Background job failure detection",
-    "Slack, email, PagerDuty, and webhook alerts",
-    "Public status pages",
-    "14-day alert history",
-    "REST API access",
-    "Self-hosted MIT option"
-  ],
-  "provider": { "@type": "Organization", "@id": "https://crontinel.com/#organization" }
-}
-</script>
+<Base title="Crontinel — Your cron is lying to you" description="Know when your cron jobs, schedulers, queues, workers, and AI agents stop working — before your users do. Open-source monitoring that generic uptime tools miss.">
 
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" }]
-}
-</script>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-<Base
-  title="Crontinel - Cron, Scheduler & Background Job Monitoring for Laravel"
-  description="Know when your cron jobs, schedulers, and background jobs stop working — before your customers do. Health monitoring that generic uptime tools miss."
->
-  <Nav />
+<!-- NAV -->
+<nav class="nav" id="top">
+  <div class="container nav-inner">
+    <a href="#top" class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="#6366f1" stroke-width="2" fill="none"/>
+        <line x1="14" y1="6" x2="14" y2="14" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+        <line x1="14" y1="14" x2="19" y2="18" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="22" cy="6" r="3" fill="#22c55e"/>
+      </svg>
+      <span>crontinel</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a>
+    </div>
+    <div class="nav-right">
+      <a class="btn btn-ghost btn-sm" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        1.2k
+      </a>
+      <a class="btn btn-primary btn-sm" href="https://app.crontinel.com">Start free &#8599;</a>
+      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <svg class="hamburger-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        <svg class="close-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#dashboard">Dashboard</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a>
+    <div class="nav-mobile-ctas">
+      <a class="btn btn-ghost btn-sm" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="https://app.crontinel.com">Start free &#8599;</a>
+    </div>
+  </div>
+</nav>
 
-  <main id="main-content">
-
-    <!-- ========================================
-         HERO
-    ======================================== -->
-    <section class="relative overflow-hidden pt-24 pb-20 md:pt-32 md:pb-28">
-      <!-- Background layers -->
-      <div class="absolute inset-0 dot-grid opacity-40"></div>
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full"
-           style="background: radial-gradient(ellipse at center, rgba(34,197,94,0.08) 0%, transparent 70%); animation: heroGlow 8s ease-in-out infinite;"></div>
-      <div class="absolute top-20 right-1/4 w-[300px] h-[300px] rounded-full opacity-20"
-           style="background: radial-gradient(ellipse, rgba(34,197,94,0.06) 0%, transparent 70%); animation: heroFloat 12s ease-in-out infinite;"></div>
-
-      <div class="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
-
-        <!-- Badge -->
-        <div class="reveal inline-flex items-center gap-2 text-xs font-medium px-3 py-1 rounded-full mb-8"
-             style="background:rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #22c55e;">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style="background:#22c55e; animation-duration: 2s;"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2" style="background:#22c55e;"></span>
-          </span>
-          Built for Laravel — Open source + hosted
-        </div>
-
-        <!-- Headline -->
-        <h1 class="reveal reveal-delay-1 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-          Never miss a<br class="hidden sm:block" />
-          <span class="gradient-accent">failed cron</span><br class="hidden sm:block" />
-          again.
-        </h1>
-
-        <!-- Subheadline -->
-        <p class="reveal reveal-delay-2 text-lg md:text-xl text-[#a3a3a3] max-w-2xl mx-auto mb-10 leading-relaxed">
-          Crontinel monitors your cron jobs, schedulers, and background queues —
-          the things uptime tools simply can't see.
-        </p>
-
-        <!-- CTAs -->
-        <div class="reveal reveal-delay-3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-          <a href="https://app.crontinel.com/register"
-             class="w-full sm:w-auto text-center text-sm font-semibold px-6 py-3 rounded-lg transition-all duration-200"
-             style="background:#22c55e; color:#000;"
-             onmouseover="this.style.background='#16a34a'"
-             onmouseout="this.style.background='#22c55e'">
-            Start monitoring free
-          </a>
-          <a href="https://github.com/crontinel/crontinel"
-             target="_blank" rel="noopener"
-             class="w-full sm:w-auto text-center text-sm font-medium px-6 py-3 rounded-lg transition-all duration-200 border"
-             style="border-color:#2a2a2a; color:#a3a3a3;"
-             onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-             onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-            <span class="flex items-center justify-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-              View on GitHub
-            </span>
-          </a>
-        </div>
-
-        <!-- Trust strip -->
-        <p class="reveal reveal-delay-4 text-xs text-[#525252] flex items-center justify-center gap-3 flex-wrap">
-          <span>Free plan forever</span>
-          <span style="width:1px;height:10px;background:#2a2a2a;display:inline-block;"></span>
-          <span>No credit card required</span>
-          <span style="width:1px;height:10px;background:#2a2a2a;display:inline-block;"></span>
-          <span>MIT open-source package</span>
-          <span style="width:1px;height:10px;background:#2a2a2a;display:inline-block;"></span>
-          <span>14-day Pro trial included</span>
-        </p>
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-scanline"></div>
+  </div>
+  <div class="container hero-content">
+    <div class="hero-left">
+      <span class="hero-status mono">
+        <span class="dot dot-ok pulse"></span>
+        all.systems.operational &middot; 99.987% last 30d
+      </span>
+      <h1>Your cron<br/>is <span class="accent">lying</span><br/>to you<span class="cursor">|</span></h1>
+      <p class="hero-sub">Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure <em>before</em> your users do.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free &#8599;</a>
+        <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">View on GitHub</a>
       </div>
-    </section>
-
-
-    <!-- ========================================
-         METRICS STRIP
-    ======================================== -->
-    <section class="border-y" style="border-color:#1c1c1c; background:#0c0c0c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <div class="grid grid-cols-3 divide-x text-center" style="divide-color:#1c1c1c;">
-          {[
-            { value: 'Laravel', label: 'Built exclusively for' },
-            { value: '1 app · 5 monitors', label: 'Free plan includes' },
-            { value: '14-day', label: 'Pro trial, no card needed' },
-          ].map((m, i) => (
-            <div class={`reveal reveal-delay-${i + 1} px-4`}>
-              <div class="text-lg md:text-xl font-bold text-white mb-0.5">{m.value}</div>
-              <div class="text-xs text-[#525252]">{m.label}</div>
-            </div>
-          ))}
+      <div class="hero-trust mono">node &middot; python &middot; go &middot; php &middot; cli &middot; MIT licensed &middot; free tier, no card</div>
+    </div>
+    <div class="hero-right">
+      <div class="monitor">
+        <div class="monitor-head mono">
+          <span>live.monitor &middot; app.crontinel.com</span>
+          <span class="monitor-stats">jobs: 1,847 &middot; latency: 42ms</span>
         </div>
+        <div class="monitor-graph">
+          <svg id="heartbeat-svg" viewBox="0 0 600 120" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.1"/>
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="1"/>
+              </linearGradient>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="heartbeat-area" fill="url(#areaGrad)" d=""/>
+            <path id="heartbeat-line" fill="none" stroke="url(#lineGrad)" stroke-width="2" d=""/>
+            <circle id="heartbeat-dot" r="4" fill="#22c55e" cx="0" cy="0">
+              <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        <div class="monitor-feed" id="monitor-feed"></div>
       </div>
-    </section>
-
-
-    <!-- ========================================
-         PROBLEM
-    ======================================== -->
-    <section class="py-24 md:py-28">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-14">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">The Problem</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            Your uptime monitor says <span class="text-[#ef4444]">green</span>.<br />
-            Your queue has been dead for hours.
-          </h2>
-          <p class="reveal reveal-delay-2 text-[#a3a3a3] mt-4 max-w-xl mx-auto">
-            Ping-based monitors confirm a process started — not that it worked, or that your workers are still alive.
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-              title: 'Silent cron failures',
-              desc: 'Your send-invoices job has been failing silently for 3 days. The generic monitor shows green because the cron process started — even though the command inside it crashed.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
-              title: 'Queue backlog accumulation',
-              desc: 'The emails queue has 8,000 jobs pending. Nobody knows until customers start complaining that they didn\'t receive their order confirmations.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
-              title: 'Worker process crashes',
-              desc: 'A Horizon supervisor died. Your queue shows "running" because one worker is still up. Your invoice queue is completely stuck with no alerts firing.',
-            },
-          ].map((card, i) => (
-            <div class={`reveal reveal-delay-${i + 1} card p-7`}>
-              <div class="mb-4 p-2 w-fit rounded-lg" style="background: rgba(239,68,68,0.06);">
-                <Fragment set:html={card.icon} />
-              </div>
-              <h3 class="text-base font-semibold text-white mb-2">{card.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed">{card.desc}</p>
-            </div>
-          ))}
-        </div>
+      <div class="hero-captions mono">
+        <span><span class="dot dot-ok"></span> heartbeat &middot; every 60s</span>
+        <span><span class="dot dot-fail"></span> failure &middot; detected in &lt; 60s</span>
+        <span><span class="dot dot-warn"></span> drift &middot; scheduler out of sync</span>
       </div>
-    </section>
+    </div>
+  </div>
+</header>
 
-
-    <!-- ========================================
-         FEATURES — BENTO GRID
-    ======================================== -->
-    <section class="py-24 md:py-28" style="background:#0c0c0c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-14">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">Everything You Need</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            Monitor what uptime tools <span class="gradient-accent">miss</span>
-          </h2>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- Large feature cards (span 2 cols) -->
-          {[
-            {
-              icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
-              title: 'Deep queue internals, not just pings',
-              desc: 'Crontinel reads worker state directly from Redis — which supervisors are running, failed job rate, queue depths, whether Horizon is paused. Uptime monitors can\'t see this.',
-              badge: 'Unique to Crontinel',
-              large: true,
-            },
-            {
-              icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-              title: 'Queue depth & age alerts',
-              desc: 'Get notified when your queue depth exceeds a threshold, when jobs are older than expected, or when the failed job count spikes. Configurable per queue.',
-              large: true,
-            },
-          ].map((f, i) => (
-            <div class={`reveal reveal-delay-${i + 1} card p-7 ${f.large ? 'md:col-span-2' : ''}`}
-                 style={f.large ? 'border-top: 2px solid rgba(34,197,94,0.4);' : ''}>
-              {f.badge && (
-                <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-3"
-                      style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); color:#22c55e;">
-                  {f.badge}
-                </span>
-              )}
-              <div class="mb-3">
-                <Fragment set:html={f.icon} />
-              </div>
-              <h3 class="text-base font-semibold text-white mb-2">{f.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-
-          <!-- Regular feature cards -->
-          {[
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
-              title: 'Cron run history with output',
-              desc: 'Every scheduled command run is recorded with exit code, duration, and output. Know exactly what ran, when, and if it succeeded.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
-              title: 'Multi-app dashboard',
-              desc: 'One view for all your Laravel apps. See health summaries across your fleet and drill into any app in one click.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
-              title: 'Slack, PagerDuty & webhooks',
-              desc: 'Alerts go where your team works. Plus automatic "resolved" notifications when issues clear — so you know it\'s actually fixed.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-              title: 'REST API + MCP server',
-              desc: 'Query cron status from your AI assistant. Ask "Did my invoice job run today?" and get a real answer, not a redirect to a dashboard.',
-              badge: 'At launch',
-            },
-          ].map((f, i) => (
-            <div class={`reveal reveal-delay-${i + 2} card p-6`}>
-              {f.badge && (
-                <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-3"
-                      style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.15); color:#22c55e;">
-                  {f.badge}
-                </span>
-              )}
-              <div class="mb-3">
-                <Fragment set:html={f.icon} />
-              </div>
-              <h3 class="text-sm font-semibold text-white mb-1.5">{f.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
+<!-- METRICS -->
+<section class="section-metrics reveal">
+  <div class="container">
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-n"><span class="val" data-count="62">0</span><span class="unit">s</span></div>
+        <div class="metric-l">avg time to detect a silent cron failure</div>
       </div>
-    </section>
-
-
-    <!-- ========================================
-         HOW IT WORKS
-    ======================================== -->
-    <section class="py-24 md:py-28">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-14">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">How It Works</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            Up and running in minutes
-          </h2>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-8 relative">
-          <!-- Connector line (desktop only) -->
-          <div class="absolute top-6 left-1/3 w-[calc(33.333%-2rem)] h-px hidden md:block" style="background: linear-gradient(to right, #1c1c1c, #22c55e44, #1c1c1c);"></div>
-          <div class="absolute top-6 right-1/3 w-[calc(33.333%-2rem)] h-px hidden md:block" style="background: linear-gradient(to right, #1c1c1c, #22c55e44, #1c1c1c);"></div>
-
-          {[
-            {
-              step: '01',
-              title: 'Install the package',
-              desc: 'Add the Crontinel package to your Laravel app with one Composer command. No infrastructure changes needed.',
-              code: 'composer require crontinel/laravel',
-            },
-            {
-              step: '02',
-              title: 'Connect your app',
-              desc: 'Point Crontinel at your Laravel app. It reads queue state, cron history, and worker health directly from Redis and your scheduler.',
-              code: null,
-            },
-            {
-              step: '03',
-              title: 'Get alerted on failures',
-              desc: 'Configure alerts in Slack, email, PagerDuty, or any webhook. Crontinel sends real alerts — not "process is up" pings.',
-              code: null,
-            },
-          ].map((step, i) => (
-            <div class={`reveal reveal-delay-${i + 1} text-center`}>
-              <div class="inline-flex items-center justify-center w-12 h-12 rounded-full mb-5 font-mono text-sm font-bold relative z-10"
-                   style="background:#111; border: 1px solid #22c55e; color:#22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.15);">
-                {step.step}
-              </div>
-              <h3 class="text-base font-semibold text-white mb-2">{step.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed mb-4">{step.desc}</p>
-              {step.code && (
-                <code class="block text-xs text-[#22c55e] font-mono px-3 py-2 rounded"
-                      style="background:#080808; border: 1px solid #1c1c1c;">
-                  {step.code}
-                </code>
-              )}
-            </div>
-          ))}
-        </div>
+      <div class="metric">
+        <div class="metric-n"><span class="val" data-count="14">0</span><span class="unit">%</span></div>
+        <div class="metric-l">of production apps run a silently broken job</div>
       </div>
-    </section>
+      <div class="metric">
+        <div class="metric-n"><span class="val" data-count="2">0</span><span class="unit"> cmds</span></div>
+        <div class="metric-l">to monitor jobs, queues, workers &amp; agents</div>
+      </div>
+      <div class="metric">
+        <div class="metric-n">$<span class="val" data-count="19">0</span><span class="unit">/mo</span></div>
+        <div class="metric-l">starts at, or self-host for free</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-
-    <!-- ========================================
-         DASHBOARD PREVIEW
-    ======================================== -->
-    <section class="py-24 md:py-28" style="background:#0c0c0c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-12">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">The Dashboard</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            See everything at a glance
-          </h2>
-        </div>
-
-        <!-- Terminal mockup -->
-        <div class="reveal reveal-delay-2 rounded-xl overflow-hidden"
-             style="border: 1px solid #1c1c1c; box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(34,197,94,0.05);">
-          <!-- Title bar -->
-          <div class="flex items-center gap-2 px-4 py-3"
-               style="background:#0a0a0a; border-bottom: 1px solid #1c1c1c;">
-            <span class="w-3 h-3 rounded-full" style="background:#ef4444;"></span>
-            <span class="w-3 h-3 rounded-full" style="background:#f59e0b;"></span>
-            <span class="w-3 h-3 rounded-full" style="background:#22c55e;"></span>
-            <span class="ml-3 text-xs font-mono" style="color:#525252;">app.crontinel.com/apps/my-laravel-app</span>
+<!-- PROBLEM -->
+<section id="sec-problem" class="section">
+  <div class="container">
+    <div class="section-head-split reveal">
+      <div class="section-head-copy">
+        <span class="eyebrow">The gap</span>
+        <h2>Your uptime monitor says <span class="ok-green">green</span>.<br/>Your queue disagrees.</h2>
+        <p>A URL responding 200 doesn't mean your cron ran. It doesn't mean your workers are draining. It doesn't mean your <span class="mono accent">invoices</span> queue isn't 6,000 deep, or that your agent isn't looping on a broken tool call. Generic monitors can't tell you any of that.</p>
+      </div>
+      <aside class="section-head-aside">
+        <div class="gap-wall">
+          <div class="gap-col">
+            <div class="gap-label mono">uptime.check</div>
+            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">GET /health</span><span class="gap-val ok-green">200</span></div>
+            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">GET /api/v1</span><span class="gap-val ok-green">200</span></div>
+            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">GET /login</span><span class="gap-val ok-green">200</span></div>
+            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">TLS valid</span><span class="gap-val ok-green">&#10003;</span></div>
           </div>
-          <!-- Content -->
-          <div class="p-6 font-mono text-sm" style="background:#080808;">
-            <!-- Horizon status -->
-            <div class="mb-6">
-              <div class="flex items-center justify-between mb-3">
-                <span class="text-xs uppercase tracking-widest" style="color:#525252;">Horizon</span>
-                <span class="text-xs" style="color:#22c55e;">● running</span>
-              </div>
-              <div class="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Status', value: 'running', color: '#22c55e' },
-                  { label: 'Supervisors', value: '2 active', color: '#fff' },
-                  { label: 'Failed / min', value: '0.0', color: '#fff' },
-                ].map(s => (
-                  <div class="rounded p-3" style="background:#0c0c0c; border: 1px solid #1c1c1c;">
-                    <div class="text-xs mb-1" style="color:#525252;">{s.label}</div>
-                    <div style={`color:${s.color}; font-weight:500;`}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div class="gap-divider">vs</div>
+          <div class="gap-col gap-col-truth">
+            <div class="gap-label mono">crontinel</div>
+            <div class="gap-item gap-bad"><span class="dot dot-fail"></span><span class="mono">schedule:run</span><span class="gap-val danger">17h late</span></div>
+            <div class="gap-item gap-bad"><span class="dot dot-fail"></span><span class="mono">agent.run.874</span><span class="gap-val danger">42m loop</span></div>
+            <div class="gap-item gap-bad"><span class="dot dot-warn"></span><span class="mono">queue:invoices</span><span class="gap-val warn">6.2k deep</span></div>
+            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">worker.main</span><span class="gap-val ok-green">ok</span></div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <div class="problem-grid">
+      <article class="card problem reveal">
+        <div class="pico"><span class="dot dot-warn"></span><span class="mono">scheduled.task</span></div>
+        <h3>Scheduler stops. Site stays up.</h3>
+        <p>A deploy clobbers your cron entry. The app responds 200. No one fires the scheduler. Your nightly emails stop.</p>
+        <pre class="mono">GET /health         200 ok
+schedule:run        &middot; 17h ago</pre>
+      </article>
+      <article class="card problem reveal reveal-delay-1">
+        <div class="pico"><span class="dot dot-fail"></span><span class="mono">agent.loop</span></div>
+        <h3>The agent loops. The bill climbs.</h3>
+        <p>A model retry storm or a tool-call loop runs for 40 minutes. The endpoint returns 200 for every request. You find out from billing.</p>
+        <pre class="mono">api.status          200 ok
+agent.run.874       42m &middot; 318 tool calls</pre>
+      </article>
+      <article class="card problem reveal reveal-delay-2">
+        <div class="pico"><span class="dot dot-warn"></span><span class="mono">queue.backpressure</span></div>
+        <h3>A downstream API throttles.</h3>
+        <p>Your invoices queue is backing up silently. No alert fires because no job has failed. Customers are just waiting.</p>
+        <pre class="mono">invoices.depth      127 &rarr; 6,413
+oldest_job          12m 04s</pre>
+      </article>
+    </div>
+  </div>
+</section>
 
-            <!-- Queue table -->
-            <div class="mb-6">
-              <div class="text-xs uppercase tracking-widest mb-3" style="color:#525252;">Queues</div>
-              <table class="w-full text-xs" style="color:#a3a3a3;">
-                <thead>
-                  <tr style="color:#525252;">
-                    <th class="text-left pb-2">Queue</th>
-                    <th class="text-right pb-2">Depth</th>
-                    <th class="text-right pb-2">Failed</th>
-                    <th class="text-right pb-2">Oldest</th>
-                    <th class="text-right pb-2">Health</th>
-                  </tr>
-                </thead>
+<!-- FEATURES BENTO -->
+<section id="features" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Everything uptime tools miss</span>
+      <h2>Paranoid monitoring,<br/>without the instrumentation.</h2>
+      <p>One SDK hooks into your scheduler, queue driver and agent runner. It watches job runs, queue depth, worker state, model latency and agent tool calls, end to end. No endpoint pings. No per-task wrapping. No missed instrumentation.</p>
+    </div>
+    <div class="bento">
+      <!-- Large: Workers -->
+      <article class="card b b-lg reveal">
+        <h3>See the worker, not just the URL.</h3>
+        <p>Per-worker status, paused detection, queue sparklines. Horizon, Sidekiq, Celery, BullMQ. The moment one blinks, you know.</p>
+        <div class="horizon-grid" id="worker-grid"></div>
+      </article>
+      <!-- Medium: Heartbeat -->
+      <article class="card b b-md reveal reveal-delay-1">
+        <h3>60-second detection.</h3>
+        <p>Every scheduled task registers a run attempt, exit code, and duration. Missed runs trip an alert before the next cron tick.</p>
+        <div class="viz-ping">
+          <span class="mono">pulse</span>
+          <div class="wave">
+            <span class="wave-ring"></span>
+            <span class="wave-ring wave-ring-2"></span>
+            <span class="wave-ring wave-ring-3"></span>
+          </div>
+          <span class="accent mono">60s</span>
+        </div>
+      </article>
+      <!-- Small: Zero wrap -->
+      <article class="card b b-sm reveal reveal-delay-2">
+        <h3>No per-task instrumentation.</h3>
+        <p>Hooks into your framework's events, not your code.</p>
+      </article>
+      <!-- Small: Self-hosted -->
+      <article class="card b b-sm reveal reveal-delay-3">
+        <h3>Works offline. MIT.</h3>
+        <p>OSS first. Local dashboard, CLI, no SaaS needed.</p>
+      </article>
+      <!-- Medium: Alert channels -->
+      <article class="card b b-md reveal">
+        <h3>Route once, quiet forever.</h3>
+        <p>One alert fans out to the channels your team watches — per-service routing, quiet hours, auto-resolve.</p>
+        <div class="viz-channels">
+          <span class="channel-pill">Slack</span>
+          <span class="channel-pill">PagerDuty</span>
+          <span class="channel-pill">Webhook</span>
+          <span class="channel-pill">Email</span>
+        </div>
+      </article>
+      <!-- Medium: CI/CD check -->
+      <article class="card b b-md reveal reveal-delay-1">
+        <h3>crontinel:check in your deploy hook.</h3>
+        <p>One command verifies scheduler, supervisors and queues after each deploy.</p>
+        <pre class="mono code-snippet">$ crontinel check
+<span class="ok-green">&#10003;</span> scheduler           last run 00:00:12 ago
+<span class="ok-green">&#10003;</span> workers.default     2 supervisors &middot; running
+<span class="ok-green">&#10003;</span> queue.invoices      127 pending &middot; 2m oldest
+<span class="ok-green">&#10003;</span> agents.support      12 runs &middot; p95 8.2s
+<span class="danger">&#10007;</span> queue.emails        backpressure &middot; 6,413 pending</pre>
+      </article>
+      <!-- Wide: Agents & MCP -->
+      <article class="card b b-wide reveal">
+        <h3>Monitor the agent like any other worker.</h3>
+        <p>Track runs, tool calls, token spend, model latency and loop detection. Ask via MCP.</p>
+        <div class="viz-mcp">
+          <div class="mcp-q mono"><span class="accent">&#8250;</span> are any queues backing up?</div>
+          <div class="mcp-a mono">Yes &middot; <span class="danger">emails</span> is at 6,413 and rising. Oldest job 12m 04s. <span class="ok-green">invoices</span> is healthy.</div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Two commands.<br/>One source of truth.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-n mono">01 &middot; INSTALL</div>
+        <h3>One SDK, your stack</h3>
+        <p>Drop the SDK in. No scheduler wrapping. No per-job decorators.</p>
+        <pre class="mono code-snippet"><span class="text-3"># pick your runtime</span>
+$ npm i @crontinel/node
+$ pip install crontinel
+$ go get github.com/crontinel/go</pre>
+      </div>
+      <div class="step reveal reveal-delay-1">
+        <div class="step-n mono">02 &middot; ROUTE ALERTS</div>
+        <h3>Pick a channel</h3>
+        <p>Slack, PagerDuty, email, webhook. HMAC-signed. Quiet hours.</p>
+        <pre class="mono code-snippet"><span class="text-3"># .env</span>
+CRONTINEL_ALERT_CHANNEL=slack
+CRONTINEL_SLACK_WEBHOOK=...</pre>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-n mono">03 &middot; SLEEP</div>
+        <h3>Listen instead of watch</h3>
+        <p>When something drifts, you hear from us, not a user.</p>
+        <pre class="mono code-snippet"><span class="text-3"># ci/cd deploy hook</span>
+$ crontinel check
+<span class="ok-green">&#10003;</span> 47 jobs &middot; 3 workers &middot; 2 queues &middot; 4 agents</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD MOCKUP -->
+<section id="dashboard" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Not a heartbeat ping chart.<br/>The inside of your queue.</h2>
+      <p>Every scheduled task with its last run, duration and exit code. Every worker with its state. Every queue with depth, oldest job, and failure rate.</p>
+    </div>
+    <div class="dashboard reveal">
+      <div class="db-top">
+        <div class="db-lights"><span class="db-dot db-dot-r"></span><span class="db-dot db-dot-y"></span><span class="db-dot db-dot-g"></span></div>
+        <div class="db-url mono">app.crontinel.com/invoice-processor</div>
+        <div class="db-actions mono">&#8984;K</div>
+      </div>
+      <div class="db-body">
+        <aside class="db-side">
+          <div class="db-side-label mono">APPS</div>
+          <div class="db-app">customer-portal</div>
+          <div class="db-app db-app-active">invoice-processor</div>
+          <div class="db-app db-app-alert">notifications <span class="db-badge-warn">2</span></div>
+          <div class="db-app">analytics-etl</div>
+          <div class="db-app">billing-webhooks</div>
+          <div class="db-side-divider"></div>
+          <div class="db-side-label mono">FILTER</div>
+          <div class="db-filter db-filter-active">All statuses</div>
+          <div class="db-filter">Alerts only</div>
+        </aside>
+        <div class="db-main">
+          <div class="db-title">
+            invoice-processor
+            <span class="db-env-badge">production &middot; eu-west-1</span>
+            <span class="db-alert-badge">1 alert</span>
+          </div>
+          <div class="db-kpis">
+            <div class="db-kpi">
+              <div class="db-kpi-label mono">schedule runs/24h</div>
+              <div class="db-kpi-val">1,447 <span class="ok-green">+2.1%</span></div>
+            </div>
+            <div class="db-kpi">
+              <div class="db-kpi-label mono">avg run time</div>
+              <div class="db-kpi-val">842ms <span class="ok-green">&minus;120ms</span></div>
+            </div>
+            <div class="db-kpi">
+              <div class="db-kpi-label mono">queue depth</div>
+              <div class="db-kpi-val">241 <span class="ok-green">healthy</span></div>
+            </div>
+            <div class="db-kpi">
+              <div class="db-kpi-label mono">failed last 1h</div>
+              <div class="db-kpi-val">12 <span class="danger">+12 vs 0</span></div>
+            </div>
+          </div>
+          <div class="db-panels">
+            <div class="db-panel">
+              <div class="db-panel-head mono">Scheduled tasks</div>
+              <table class="db-table">
                 <tbody>
-                  <tr style="border-top: 1px solid #1c1c1c;">
-                    <td class="py-2">default</td>
-                    <td class="text-right">5</td>
-                    <td class="text-right">0</td>
-                    <td class="text-right">12s</td>
-                    <td class="text-right" style="color:#22c55e;">✓ ok</td>
-                  </tr>
-                  <tr style="border-top: 1px solid #1c1c1c; background:rgba(239,68,68,0.05);">
-                    <td class="py-2">emails</td>
-                    <td class="text-right" style="color:#ef4444;">1,204</td>
-                    <td class="text-right" style="color:#ef4444;">3</td>
-                    <td class="text-right" style="color:#ef4444;">8m 32s</td>
-                    <td class="text-right" style="color:#ef4444;">✗ alert</td>
-                  </tr>
+                  <tr><td class="mono">generate:daily-invoices</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">2m 14s</td></tr>
+                  <tr><td class="mono">dunning:send-reminders</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">48s</td></tr>
+                  <tr class="db-row-fail"><td class="mono">sync:stripe-webhooks</td><td><span class="dot dot-fail"></span> exit 1</td><td class="mono text-3">12s</td></tr>
+                  <tr><td class="mono">export:accounting-feed</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">3m 41s</td></tr>
+                  <tr class="db-row-warn"><td class="mono">telemetry:roll-up</td><td><span class="dot dot-warn"></span> slow</td><td class="mono text-3">8m 02s</td></tr>
+                  <tr><td class="mono">cleanup:stale-sessions</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">1m 08s</td></tr>
                 </tbody>
               </table>
             </div>
-
-            <!-- Crons table -->
-            <div>
-              <div class="text-xs uppercase tracking-widest mb-3" style="color:#525252;">Scheduled Commands</div>
-              <table class="w-full text-xs" style="color:#a3a3a3;">
-                <thead>
-                  <tr style="color:#525252;">
-                    <th class="text-left pb-2">Command</th>
-                    <th class="text-right pb-2">Last run</th>
-                    <th class="text-right pb-2">Duration</th>
-                    <th class="text-right pb-2">Status</th>
-                  </tr>
-                </thead>
+            <div class="db-panel">
+              <div class="db-panel-head mono">Workers &amp; queues</div>
+              <table class="db-table">
                 <tbody>
-                  <tr style="border-top: 1px solid #1c1c1c;">
-                    <td class="py-2">inspire</td>
-                    <td class="text-right">6h ago</td>
-                    <td class="text-right">124ms</td>
-                    <td class="text-right" style="color:#22c55e;">✓ ok</td>
-                  </tr>
-                  <tr style="border-top: 1px solid #1c1c1c;">
-                    <td class="py-2">send-invoices</td>
-                    <td class="text-right">5d ago</td>
-                    <td class="text-right">2.1s</td>
-                    <td class="text-right" style="color:#22c55e;">✓ ok</td>
-                  </tr>
-                  <tr style="border-top: 1px solid #1c1c1c; background:rgba(245,158,11,0.04);">
-                    <td class="py-2">cleanup-old-logs</td>
-                    <td class="text-right">23h ago</td>
-                    <td class="text-right">–</td>
-                    <td class="text-right" style="color:#f59e0b;">⚠ late</td>
-                  </tr>
+                  <tr><td class="mono">default</td><td class="mono">12</td><td><div class="sparkline-placeholder"></div></td></tr>
+                  <tr><td class="mono">invoices</td><td class="mono">127</td><td><div class="sparkline-placeholder"></div></td></tr>
+                  <tr class="db-row-fail"><td class="mono">emails</td><td class="mono danger">6,413</td><td><div class="sparkline-placeholder sparkline-red"></div></td></tr>
+                  <tr><td class="mono">analytics</td><td class="mono">88</td><td><div class="sparkline-placeholder"></div></td></tr>
+                  <tr><td class="mono">notifications</td><td class="mono">3</td><td><div class="sparkline-placeholder"></div></td></tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
-
-    <!-- ========================================
-         INTEGRATIONS
-    ======================================== -->
-    <section class="py-20">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center">
-        <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">Integrations</p>
-        <h2 class="reveal reveal-delay-1 text-2xl md:text-3xl font-bold text-white mb-10">
-          Works where you work
-        </h2>
-        <div class="reveal reveal-delay-2 flex flex-wrap justify-center gap-3">
-          {[
-            { name: 'Laravel Horizon', native: true },
-            { name: 'Redis', native: true },
-            { name: 'Slack', native: true },
-            { name: 'PagerDuty', native: true },
-            { name: 'Webhooks', native: true },
-            { name: 'REST API', native: true },
-            { name: 'MCP Server', native: true },
-            { name: 'Status Pages', native: true },
-            { name: 'Email', native: true },
-            { name: 'GitHub Actions', native: false },
-          ].map(integration => (
-            <div class={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-              integration.native
-                ? 'border-[#22c55e]/20 text-[#a3a3a3] hover:border-[#22c55e]/40'
-                : 'border-[#1c1c1c] text-[#525252]'
-            }`}
-                 style={integration.native ? 'background: rgba(34,197,94,0.04);' : 'background:#0c0c0c;'}>
-              {integration.name}
-              {integration.native && (
-                <span class="text-xs" style="color:#22c55e;">native</span>
-              )}
-              {!integration.native && (
-                <span class="text-xs" style="color:#525252;">soon</span>
-              )}
-            </div>
-          ))}
+<!-- INTEGRATIONS -->
+<section id="sec-integrations" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Alerts go where you listen.</h2>
+    </div>
+    <div class="integrations reveal">
+      <div class="card int-group">
+        <h4>Native &middot; shipping</h4>
+        <div class="int-pills">
+          <span class="int-pill">Slack</span>
+          <span class="int-pill">PagerDuty</span>
+          <span class="int-pill">Email / SES</span>
+          <span class="int-pill">Webhook &middot; HMAC</span>
+          <span class="int-pill">Telegram</span>
+          <span class="int-pill">MCP &middot; any agent</span>
         </div>
       </div>
-    </section>
-
-
-    <!-- ========================================
-         PRICING
-    ======================================== -->
-    <section id="pricing" class="py-24 md:py-28" style="background:#0c0c0c; border-top: 1px solid #1c1c1c; border-bottom: 1px solid #1c1c1c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-12">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">Pricing</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white mb-3">
-            Start free. Scale as you grow.
-          </h2>
-          <p class="reveal reveal-delay-2 text-[#a3a3a3] text-sm">
-            14-day Pro trial included. No credit card required.
-          </p>
-
-          <!-- Billing toggle -->
-          <div class="reveal reveal-delay-3 flex justify-center mt-8">
-            <div class="inline-flex items-center gap-1 p-1 rounded-full"
-                 style="background:#111; border: 1px solid #1c1c1c;">
-              <button id="toggle-monthly"
-                      class="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 pricing-btn-active">
-                Monthly
-              </button>
-              <button id="toggle-yearly"
-                      class="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 pricing-btn-inactive">
-                Yearly <span style="color:#22c55e; font-size:0.75em;">−20%</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- Free -->
-          <div class="reveal card p-7 flex flex-col">
-            <div class="mb-6">
-              <div class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Free</div>
-              <div class="text-4xl font-bold text-white">$0</div>
-              <div class="text-sm mt-1" style="color:#525252;">forever</div>
-            </div>
-            <ul class="space-y-2.5 text-sm flex-1 mb-8">
-              {[
-                '1 app',
-                '5 monitors per app',
-                '7-day history',
-                'Status page (1)',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-              {['Alerts', 'API access', 'Team members'].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#525252;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a href="https://app.crontinel.com/register"
-               class="block text-center text-sm font-medium py-2.5 rounded-lg transition-colors border w-full"
-               style="border-color:#2a2a2a; color:#a3a3a3;"
-               onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-               onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-              Start free
-            </a>
-          </div>
-
-          <!-- Pro (highlighted) -->
-          <div class="reveal reveal-delay-1 card p-7 flex flex-col relative"
-               style="border-color: rgba(34,197,94,0.35); box-shadow: 0 0 40px rgba(34,197,94,0.06);">
-            <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full"
-                 style="background:#22c55e; color:#000;">
-              Most popular
-            </div>
-            <div class="mb-6">
-              <div class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Pro</div>
-              <div class="flex items-baseline gap-1">
-                <span id="pro-price" class="text-4xl font-bold text-white">$8</span>
-                <span class="text-lg font-normal" style="color:#525252;">/mo</span>
-              </div>
-              <div id="pro-note" class="text-xs mt-1 h-4" style="color:#22c55e;"></div>
-            </div>
-            <ul class="space-y-2.5 text-sm flex-1 mb-8">
-              {[
-                '5 apps',
-                'Unlimited monitors',
-                '90-day history',
-                'Slack, email, PagerDuty alerts',
-                'REST API access',
-                'Status page (1 per app)',
-                '3 team members',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a href="https://app.crontinel.com/register"
-               class="block text-center text-sm font-semibold py-2.5 rounded-lg transition-all duration-200 w-full"
-               style="background:#22c55e; color:#000;"
-               onmouseover="this.style.background='#16a34a'"
-               onmouseout="this.style.background='#22c55e'">
-              Start 14-day trial
-            </a>
-          </div>
-
-          <!-- Team -->
-          <div class="reveal reveal-delay-2 card p-7 flex flex-col">
-            <div class="mb-6">
-              <div class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Team</div>
-              <div class="flex items-baseline gap-1">
-                <span id="team-price" class="text-4xl font-bold text-white">$29</span>
-                <span class="text-lg font-normal" style="color:#525252;">/mo</span>
-              </div>
-              <div id="team-note" class="text-xs mt-1 h-4" style="color:#22c55e;"></div>
-            </div>
-            <ul class="space-y-2.5 text-sm flex-1 mb-8">
-              {[
-                'Unlimited apps',
-                'Unlimited monitors',
-                '1-year history',
-                'Unlimited team members',
-                'Unlimited status pages',
-                'Custom alert rules',
-                'Priority support',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a href="https://app.crontinel.com/register"
-               class="block text-center text-sm font-medium py-2.5 rounded-lg transition-colors border w-full"
-               style="border-color:#2a2a2a; color:#a3a3a3;"
-               onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-               onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-              Start 14-day trial
-            </a>
-          </div>
+      <div class="card int-group">
+        <h4>Coming soon</h4>
+        <div class="int-pills">
+          <span class="int-pill int-pill-muted">Discord</span>
+          <span class="int-pill int-pill-muted">Opsgenie</span>
+          <span class="int-pill int-pill-muted">Linear</span>
+          <span class="int-pill int-pill-muted">Zapier</span>
+          <span class="int-pill int-pill-muted">Microsoft Teams</span>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
+<!-- PRICING -->
+<section id="pricing" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Free for one app.<br/>Generous for teams.</h2>
+      <div class="billing-toggle" id="billing-toggle">
+        <button class="toggle-btn toggle-active" data-period="monthly">Monthly</button>
+        <button class="toggle-btn" data-period="yearly">Yearly <span class="toggle-save">&minus;20%</span></button>
+      </div>
+    </div>
+    <div class="pricing reveal">
+      <div class="card pricing-card">
+        <div class="pricing-name">Free</div>
+        <div class="pricing-price">$<span class="price-val" data-monthly="0" data-yearly="0">0</span><span class="pricing-period">/mo</span></div>
+        <ul class="pricing-features">
+          <li>1 app</li>
+          <li>7-day history</li>
+          <li>All alert channels</li>
+          <li class="pricing-no">No team access</li>
+          <li class="pricing-no">No audit log</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://app.crontinel.com">Start free</a>
+      </div>
+      <div class="card pricing-card pricing-card-featured">
+        <div class="pricing-badge">most teams</div>
+        <div class="pricing-name">Pro</div>
+        <div class="pricing-price">$<span class="price-val" data-monthly="19" data-yearly="15">19</span><span class="pricing-period">/mo</span></div>
+        <ul class="pricing-features">
+          <li>5 apps</li>
+          <li>90-day history</li>
+          <li>PagerDuty / Slack / webhook</li>
+          <li>Quiet hours</li>
+          <li>MCP server</li>
+        </ul>
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start with Pro</a>
+      </div>
+      <div class="card pricing-card">
+        <div class="pricing-name">Team</div>
+        <div class="pricing-price">$<span class="price-val" data-monthly="49" data-yearly="39">49</span><span class="pricing-period">/mo</span></div>
+        <ul class="pricing-features">
+          <li>Unlimited apps</li>
+          <li>1-year history</li>
+          <li>Unlimited teammates</li>
+          <li>Audit log / SSO <span class="coming-soon">soon</span></li>
+          <li>Priority support</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://app.crontinel.com">Start with Team</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- ========================================
-         OSS VS SAAS
-    ======================================== -->
-    <section class="py-24 md:py-28">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-12">
-          <h2 class="reveal text-3xl md:text-4xl font-bold tracking-tight text-white">
-            Self-hosted or fully managed?
-          </h2>
-          <p class="reveal reveal-delay-1 text-[#a3a3a3] mt-3 max-w-xl mx-auto text-sm">
-            The open-source package is free forever. The SaaS adds everything you'd have to build yourself.
-          </p>
+<!-- OSS PACKAGES -->
+<section id="sec-oss" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>A family of open-source packages.</h2>
+      <p>MIT-licensed. Works against your own database. The cloud dashboard is an option, not a dependency.</p>
+    </div>
+    <div class="pkg-grid reveal">
+      <a class="card pkg" href="https://github.com/crontinel/node" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-ts">TS</span>
+        <div><strong>crontinel/node</strong><br/><span class="text-2">Node &amp; TypeScript. BullMQ, Agenda, node-cron, workers.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/python" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-py">PY</span>
+        <div><strong>crontinel/python</strong><br/><span class="text-2">Celery, RQ, Huey, APScheduler, Prefect, Dramatiq.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/go" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-go">GO</span>
+        <div><strong>crontinel/go</strong><br/><span class="text-2">Asynq, Machinery, Temporal, gocron.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/rust" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-rs">RS</span>
+        <div><strong>crontinel/rust</strong><br/><span class="text-2">Tokio, async-std, apalis, tokio-cron-scheduler.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/php" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-php">PHP</span>
+        <div><strong>crontinel/php</strong><br/><span class="text-2">Framework-agnostic. Symfony Messenger + plain cron.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-la">LA</span>
+        <div><strong>crontinel/laravel</strong><br/><span class="text-2">Laravel Horizon &amp; scheduler. Auto-detect, zero wrap.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-rs">RS</span>
+        <div><strong>crontinel/crontinel</strong><br/><span class="text-2">Rust core. Recorder, agent, shared wire format.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/cli" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-sh">SH</span>
+        <div><strong>crontinel/cli</strong><br/><span class="text-2">Language-agnostic. Wrap any cron, Docker job, K8s CronJob.</span></div>
+      </a>
+      <a class="card pkg" href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">
+        <span class="pkg-lang pkg-ai">AI</span>
+        <div><strong>@crontinel/mcp-server</strong><br/><span class="text-2">MCP server. Let your agent query jobs, queues and runs.</span></div>
+      </a>
+    </div>
+    <div class="oss-cloud reveal">
+      <div class="oss-cloud-inner">
+        <div class="oss-cloud-copy">
+          <h3>Crontinel Cloud</h3>
+          <p class="text-2">Hosted: Multi-app dashboards, team access, long history, MCP server, routing rules.</p>
         </div>
+        <div class="oss-cloud-features">
+          <span>&#10003; Multi-app view &amp; search</span>
+          <span>&#10003; History retention (90d &rarr; 1y)</span>
+          <span>&#10003; Team access, audit log</span>
+          <span>&#10003; MCP server for agents</span>
+        </div>
+        <a class="btn btn-primary" href="https://app.crontinel.com">Try Cloud free &#8599;</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          <!-- Self-hosted -->
-          <div class="reveal card p-7">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Self-hosted</p>
-                <p class="text-xs" style="color:#525252;">MIT License — free forever</p>
-              </div>
-              <span class="text-xs font-mono px-2 py-1 rounded" style="background:#111; border:1px solid #1c1c1c; color:#525252;">
-                composer require
-              </span>
-            </div>
-            <ul class="space-y-2 text-sm">
-              {[
-                { ok: true, text: 'Full queue and cron visibility' },
-                { ok: true, text: 'Blade dashboard on your own server' },
-                { ok: true, text: 'Slack alerts built in' },
-                { ok: true, text: 'Your data, your infra' },
-                { ok: false, text: 'No hosted dashboard' },
-                { ok: false, text: 'No team access or roles' },
-                { ok: false, text: '7-day history max' },
-                { ok: false, text: 'You manage the server' },
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style={f.ok ? 'color:#a3a3a3' : 'color:#525252'}>
-                  {f.ok
-                    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  }
-                  {f.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <!-- SaaS -->
-          <div class="reveal reveal-delay-1 card p-7 relative"
-               style="border-top: 2px solid rgba(34,197,94,0.4);">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#22c55e;">Crontinel SaaS</p>
-                <p class="text-xs" style="color:#525252;">Zero server management</p>
-              </div>
-            </div>
-            <ul class="space-y-2 text-sm">
-              {[
-                'Everything in the open-source package',
-                'Hosted dashboard at app.crontinel.com',
-                'Team access with roles',
-                'Up to 1-year run history',
-                'Multi-app overview in one place',
-                'PagerDuty, webhooks, status pages',
-                'REST API and MCP server access',
-                'Always up-to-date, zero maintenance',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
+<!-- INSTALL TABS -->
+<section id="sec-install" class="section">
+  <div class="container">
+    <div class="section-head reveal">
+      <h2>Two commands. No pings.</h2>
+    </div>
+    <div class="sdk-tabs reveal">
+      <div class="sdk-tab-bar" id="sdk-tab-bar">
+        <button class="sdk-tab sdk-tab-active" data-tab="node">Node</button>
+        <button class="sdk-tab" data-tab="python">Python</button>
+        <button class="sdk-tab" data-tab="go">Go</button>
+        <button class="sdk-tab" data-tab="rust">Rust</button>
+        <button class="sdk-tab" data-tab="php">PHP</button>
+        <button class="sdk-tab" data-tab="cli">CLI / Docker</button>
+      </div>
+      <div class="sdk-panels">
+        <div class="sdk-panel sdk-panel-active" data-panel="node">
+          <div class="sdk-cmd"><code class="mono">npm install @crontinel/node</code><button class="copy-btn" data-copy="npm install @crontinel/node">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">npx crontinel check</code><button class="copy-btn" data-copy="npx crontinel check">Copy</button></div>
+        </div>
+        <div class="sdk-panel" data-panel="python">
+          <div class="sdk-cmd"><code class="mono">pip install crontinel</code><button class="copy-btn" data-copy="pip install crontinel">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
+        </div>
+        <div class="sdk-panel" data-panel="go">
+          <div class="sdk-cmd"><code class="mono">go get github.com/crontinel/go</code><button class="copy-btn" data-copy="go get github.com/crontinel/go">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
+        </div>
+        <div class="sdk-panel" data-panel="rust">
+          <div class="sdk-cmd"><code class="mono">cargo add crontinel</code><button class="copy-btn" data-copy="cargo add crontinel">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
+        </div>
+        <div class="sdk-panel" data-panel="php">
+          <div class="sdk-cmd"><code class="mono">composer require crontinel/php</code><button class="copy-btn" data-copy="composer require crontinel/php">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">php artisan crontinel:check</code><button class="copy-btn" data-copy="php artisan crontinel:check">Copy</button></div>
+        </div>
+        <div class="sdk-panel" data-panel="cli">
+          <div class="sdk-cmd"><code class="mono">curl -fsSL https://get.crontinel.com | sh</code><button class="copy-btn" data-copy="curl -fsSL https://get.crontinel.com | sh">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">export CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="export CRONTINEL_TOKEN=your-token">Copy</button></div>
+          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</section>
 
+<!-- FINAL CTA -->
+<section id="signup" class="section section-cta">
+  <div class="container">
+    <div class="final reveal">
+      <h2>Stop finding out<br/>from your users.</h2>
+      <p>Free plan, no credit card. Two commands to install. Slack alert in under five minutes.</p>
+      <div class="final-ctas">
+        <a class="btn btn-primary btn-lg" href="https://app.crontinel.com">Start monitoring free &#8599;</a>
+        <a class="btn btn-ghost btn-lg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">Read the source</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <!-- ========================================
-         FINAL CTA
-    ======================================== -->
-    <section class="py-24 md:py-28" style="background:#0c0c0c; border-top: 1px solid #1c1c1c;">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 text-center">
-        <h2 class="reveal text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-          Ready to monitor what matters?
-        </h2>
-        <p class="reveal reveal-delay-1 text-[#a3a3a3] mb-8">
-          Join thousands of Laravel developers who use Crontinel to catch job failures before customers notice.
-        </p>
-
-        <!-- CTA buttons -->
-        <div class="reveal reveal-delay-2 flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-          <a href="https://app.crontinel.com/register"
-             class="w-full sm:w-auto text-center text-sm font-semibold px-6 py-3 rounded-lg transition-all duration-200"
-             style="background:#22c55e; color:#000;"
-             onmouseover="this.style.background='#16a34a'"
-             onmouseout="this.style.background='#22c55e'">
-            Start monitoring free
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#top" class="brand">
+          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="13" stroke="#6366f1" stroke-width="2" fill="none"/>
+            <line x1="14" y1="6" x2="14" y2="14" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+            <line x1="14" y1="14" x2="19" y2="18" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="22" cy="6" r="3" fill="#22c55e"/>
+          </svg>
+          <span>crontinel</span>
+        </a>
+        <p class="text-3">Cron, scheduler &amp; background job monitoring.</p>
+        <div class="footer-status mono">
+          <span class="dot dot-ok pulse"></span> uptime: 99.987% &middot; last 30d
+        </div>
+        <div class="footer-social">
+          <a href="https://github.com/crontinel" target="_blank" rel="noopener" aria-label="GitHub">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
           </a>
-          <a href="https://docs.crontinel.com"
-             class="w-full sm:w-auto text-center text-sm font-medium px-6 py-3 rounded-lg transition-colors border"
-             style="border-color:#2a2a2a; color:#a3a3a3;"
-             onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-             onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-            Read the docs →
+          <a href="https://x.com/crontinel" target="_blank" rel="noopener" aria-label="X (Twitter)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </a>
         </div>
-
-        <!-- Install command -->
-        <div class="reveal reveal-delay-3">
-          <p class="text-xs font-medium mb-3" style="color:#525252;">Or install the open-source package:</p>
-          <div class="relative inline-block w-full max-w-sm mx-auto">
-            <code id="install-cmd"
-                  class="block text-sm text-[#22c55e] font-mono text-left px-4 py-3 rounded-lg overflow-x-auto"
-                  style="background:#080808; border: 1px solid #1c1c1c;">
-              composer require crontinel/laravel
-            </code>
-            <button id="copy-btn"
-                    aria-label="Copy install command"
-                    class="absolute top-2.5 right-2.5 p-1.5 rounded transition-colors"
-                    style="background:#111; border:1px solid #1c1c1c; color:#525252;"
-                    onmouseover="this.style.color='#a3a3a3'; this.style.borderColor='#2a2a2a'"
-                    onmouseout="this.style.color='#525252'; this.style.borderColor='#1c1c1c'">
-              <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </button>
-          </div>
-        </div>
       </div>
-    </section>
-
-  </main>
-
-  <Footer />
-</Base>
-
-
-<!-- ========================================
-     CLIENT-SIDE INTERACTIVITY
-======================================== -->
-<script>
-  // ---- Scroll Reveal ----
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-        }
-      });
-    },
-    { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-  );
-  reveals.forEach((el) => observer.observe(el));
-
-  // ---- Nav scroll effect ----
-  const nav = document.querySelector('header') as HTMLElement | null;
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-      nav?.classList.add('nav-scrolled');
-    } else {
-      nav?.classList.remove('nav-scrolled');
-    }
-  }, { passive: true });
-
-  // ---- Pricing toggle ----
-  const monthlyBtn = document.getElementById('toggle-monthly') as HTMLButtonElement;
-  const yearlyBtn  = document.getElementById('toggle-yearly')  as HTMLButtonElement;
-  const proPrice   = document.getElementById('pro-price')      as HTMLElement;
-  const teamPrice  = document.getElementById('team-price')     as HTMLElement;
-  const proNote    = document.getElementById('pro-note')       as HTMLElement;
-  const teamNote   = document.getElementById('team-note')      as HTMLElement;
-
-  const pricingData = {
-    monthly: { pro: '$8',  team: '$29', proNote: '',        teamNote: '' },
-    yearly:  { pro: '$6',  team: '$23', proNote: 'Billed $72/year', teamNote: 'Billed $276/year' },
-  };
-
-  function setActive(btn: HTMLButtonElement, other: HTMLButtonElement) {
-    btn.classList.remove('pricing-btn-inactive');
-    btn.classList.add('pricing-btn-active');
-    other.classList.remove('pricing-btn-active');
-    other.classList.add('pricing-btn-inactive');
-  }
-
-  monthlyBtn?.addEventListener('click', () => {
-    const d = pricingData.monthly;
-    proPrice.textContent = d.pro; teamPrice.textContent = d.team;
-    proNote.textContent  = d.proNote; teamNote.textContent = d.teamNote;
-    setActive(monthlyBtn, yearlyBtn);
-  });
-
-  yearlyBtn?.addEventListener('click', () => {
-    const d = pricingData.yearly;
-    proPrice.textContent = d.pro; teamPrice.textContent = d.team;
-    proNote.textContent  = d.proNote; teamNote.textContent = d.teamNote;
-    setActive(yearlyBtn, monthlyBtn);
-  });
-
-  // Init active state
-  monthlyBtn?.classList.add('pricing-btn-active');
-  yearlyBtn?.classList.add('pricing-btn-inactive');
-
-  // ---- Copy install command ----
-  const copyBtn   = document.getElementById('copy-btn');
-  const copyIcon  = document.getElementById('copy-icon');
-  const checkIcon = document.getElementById('check-icon');
-  const installCmd = document.getElementById('install-cmd');
-
-  copyBtn?.addEventListener('click', async () => {
-    const text = installCmd?.textContent?.trim() ?? '';
-    await navigator.clipboard.writeText(text);
-    copyIcon?.classList.add('hidden');
-    checkIcon?.classList.remove('hidden');
-    setTimeout(() => {
-      copyIcon?.classList.remove('hidden');
-      checkIcon?.classList.add('hidden');
-    }, 1500);
-  });
-</script>
+      <div class="footer-col">
+        <h4 class="footer-heading">Packages</h4>
+        <a href="https://github.com/crontinel/node" target="_blank" rel="noopener">Node / TypeScript</a>
+        <a href="https://github.com/crontinel/python" target="_blank" rel="noopener">Python</a>
+        <a href="https://github.com/crontinel/go" target="_blank" rel="noopener">Go</a>
+        <a href="https://github.com/crontinel/rust" target="_blank" rel="noopener">Rust</a>
+        <a href="https://github.com/crontinel/php" target="_blank" rel="noopener">PHP</a>
+        <a href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">Laravel</a>
+        <a href="https://github.com/crontinel/cli" target="_blank" rel="noopener">CLI</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-heading">Product</h4>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="https://app.crontinel.com" target="_blank" rel="noopener">Sign in</a>
+        <a href="https://status.crontinel.com" target="_blank" rel="noopener">Status</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-heading">Resources</h4>
+        <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Documentation</a>
+        <a href="/blog">Blog</a>
+        <a href="/changelog">Changelog</a>
+        <a href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="footer-col">
+        <h4 class="footer-heading">Company</h4>
+        <a href="/about">About</a>
+        <a href="/faq">FAQ</a>
+        <a href="/security">Security</a>
+        <a href="/legal/privacy">Privacy</a>
+        <a href="/legal/terms">Terms</a>
+      </div>
+    </div>
+    <div class="footer-wordmark" aria-hidden="true">crontinel</div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 Crontinel &middot; MIT-licensed packages</span>
+      <span class="mono">uptime: 99.987% &middot; last 30d</span>
+    </div>
+  </div>
+</footer>
 
 <style>
-  .pricing-btn-active {
-    background: #22c55e;
+  /* ============================================
+     DESIGN TOKENS
+     ============================================ */
+  :root {
+    --accent: #22c55e;
+    --accent-dim: rgba(34,197,94,0.15);
+    --bg: #09090b;
+    --bg-2: #0f0f12;
+    --text: #f8fafc;
+    --text-2: #94a3b8;
+    --text-3: #475569;
+    --border: rgba(148,163,184,0.1);
+    --danger: #ef4444;
+    --warn: #f59e0b;
+    --radius: 12px;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+
+  /* ============================================
+     RESET / BASE
+     ============================================ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  .container {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .mono { font-family: var(--font-mono); }
+  .accent { color: var(--accent); }
+  .ok-green { color: var(--accent); }
+  .danger { color: var(--danger); }
+  .warn { color: var(--warn); }
+  .text-2 { color: var(--text-2); }
+  .text-3 { color: var(--text-3); }
+
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; }
+
+  /* ============================================
+     DOTS
+     ============================================ */
+  .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 6px;
+    flex-shrink: 0;
+  }
+  .dot-ok { background: var(--accent); }
+  .dot-fail { background: var(--danger); }
+  .dot-warn { background: var(--warn); }
+  .pulse {
+    animation: pulse-anim 2s ease-in-out infinite;
+  }
+  @keyframes pulse-anim {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+  }
+
+  /* ============================================
+     BUTTONS
+     ============================================ */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 0.65rem 1.4rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--accent);
     color: #000;
   }
-  .pricing-btn-inactive {
-    background: transparent;
-    color: #525252;
+  .btn-primary:hover {
+    background: #16a34a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(34,197,94,0.3);
   }
-  .pricing-btn-inactive:hover {
-    color: #a3a3a3;
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-2);
+    border: 1px solid rgba(148,163,184,0.2);
+  }
+  .btn-ghost:hover {
+    border-color: rgba(148,163,184,0.4);
+    color: var(--text);
+  }
+  .btn-sm {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.9rem;
+  }
+  .btn-lg {
+    font-size: 1rem;
+    padding: 0.8rem 2rem;
+  }
+
+  /* ============================================
+     EYEBROW
+     ============================================ */
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-family: var(--font-mono);
+  }
+
+  /* ============================================
+     SECTION
+     ============================================ */
+  .section {
+    padding: 6rem 0;
+  }
+  .section-head {
+    text-align: center;
+    max-width: 42rem;
+    margin: 0 auto 3.5rem;
+  }
+  .section-head h2 {
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 1rem;
+  }
+  .section-head p {
+    color: var(--text-2);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    max-width: 36rem;
+    margin: 0 auto;
+  }
+
+  /* ============================================
+     CARD
+     ============================================ */
+  .card {
+    background: var(--bg-2);
+    border: 1px solid rgba(148,163,184,0.08);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+  .card:hover {
+    border-color: rgba(148,163,184,0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .card h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .card p {
+    color: var(--text-2);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  /* ============================================
+     NAV
+     ============================================ */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    transition: background 0.3s, backdrop-filter 0.3s, border-color 0.3s;
+    border-bottom: 1px solid transparent;
+  }
+  .nav.scrolled {
+    background: rgba(9,9,11,0.82);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom-color: var(--border);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 3.5rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text);
+  }
+  .nav-links {
+    display: flex;
+    gap: 1.8rem;
+  }
+  .nav-links a {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-2);
+    cursor: pointer;
+    padding: 0.25rem;
+  }
+  .nav-mobile {
+    display: none;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .nav-mobile a {
+    display: block;
+    padding: 0.6rem 0;
+    color: var(--text-2);
+    font-size: 0.95rem;
+    transition: color 0.2s;
+  }
+  .nav-mobile a:hover { color: var(--text); }
+  .nav-mobile-ctas {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-right .btn { display: none; }
+    .nav-toggle { display: block; }
+    .nav-mobile.open {
+      display: flex;
+    }
+  }
+
+  /* ============================================
+     HERO
+     ============================================ */
+  .hero {
+    position: relative;
+    padding: 7rem 0 4rem;
+    overflow: hidden;
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-glow {
+    position: absolute;
+    top: -20%;
+    left: 30%;
+    width: 60%;
+    height: 80%;
+    background: radial-gradient(ellipse at center, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.08) 40%, transparent 70%);
+    filter: blur(60px);
+    animation: heroGlowAnim 8s ease-in-out infinite;
+  }
+  @keyframes heroGlowAnim {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.08); }
+  }
+  .hero-scanline {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+  .hero-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-2);
+    padding: 0.35rem 0.8rem;
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.15);
+    border-radius: 999px;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.5rem, 5.5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+  .cursor {
+    color: var(--accent);
+    animation: blink 1s steps(1) infinite;
+  }
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  .hero-sub {
+    color: var(--text-2);
+    font-size: 1.1rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 30rem;
+  }
+  .hero-sub em { color: var(--text); font-style: normal; font-weight: 600; }
+  .hero-ctas {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .hero-trust {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    letter-spacing: 0.02em;
+  }
+
+  /* Monitor widget */
+  .monitor {
+    background: rgba(15,15,18,0.9);
+    border: 1px solid rgba(148,163,184,0.1);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .monitor-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    font-size: 0.7rem;
+    color: var(--text-3);
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.3);
+  }
+  .monitor-stats {
+    color: var(--text-2);
+  }
+  .monitor-graph {
+    padding: 1rem;
+    height: 140px;
+  }
+  .monitor-graph svg {
+    width: 100%;
+    height: 100%;
+  }
+  .monitor-feed {
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    max-height: 120px;
+    overflow: hidden;
+  }
+  .feed-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    color: var(--text-2);
+    animation: feedSlide 0.3s ease-out;
+  }
+  @keyframes feedSlide {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .feed-row .feed-time { color: var(--text-3); margin-left: auto; }
+
+  .hero-captions {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 0.72rem;
+    color: var(--text-3);
+  }
+  .hero-captions span {
+    display: flex;
+    align-items: center;
+  }
+
+  @media (max-width: 900px) {
+    .hero-content {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+    .hero { min-height: auto; padding: 5rem 0 3rem; }
+    .hero-captions { flex-wrap: wrap; gap: 0.75rem; }
+  }
+
+  /* ============================================
+     METRICS
+     ============================================ */
+  .section-metrics {
+    padding: 3rem 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+  .metric {
+    text-align: center;
+  }
+  .metric-n {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 800;
+    color: var(--text);
+    font-family: var(--font-mono);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .metric-n .unit {
+    font-size: 0.5em;
+    color: var(--text-2);
+    font-weight: 500;
+  }
+  .metric-l {
+    font-size: 0.85rem;
+    color: var(--text-3);
+    max-width: 14rem;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 640px) {
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ============================================
+     PROBLEM
+     ============================================ */
+  .section-head-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: start;
+    margin-bottom: 3rem;
+  }
+  .section-head-copy .eyebrow { margin-bottom: 0.75rem; }
+  .section-head-copy h2 {
+    font-size: clamp(1.6rem, 3.5vw, 2.5rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .section-head-copy p {
+    color: var(--text-2);
+    line-height: 1.7;
+    font-size: 0.95rem;
+  }
+
+  .gap-wall {
+    display: flex;
+    gap: 0;
+    background: var(--bg-2);
+    border: 1px solid rgba(148,163,184,0.08);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 0.8rem;
+  }
+  .gap-col {
+    flex: 1;
+    padding: 1rem;
+  }
+  .gap-col-truth { background: rgba(34,197,94,0.03); }
+  .gap-label {
+    font-size: 0.7rem;
+    color: var(--text-3);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .gap-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0;
+    font-size: 0.75rem;
+  }
+  .gap-val {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  .gap-divider {
+    display: flex;
+    align-items: center;
+    padding: 0 0.75rem;
+    font-size: 0.7rem;
+    color: var(--text-3);
+    font-family: var(--font-mono);
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    background: rgba(0,0,0,0.3);
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .problem .pico {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-3);
+    margin-bottom: 0.75rem;
+  }
+  .problem h3 { margin-bottom: 0.5rem; }
+  .problem pre {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-2);
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .section-head-split { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 768px) {
+    .problem-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ============================================
+     BENTO GRID
+     ============================================ */
+  .bento {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+  }
+  .b { padding: 1.5rem; }
+  .b-lg { grid-column: span 2; }
+  .b-md { grid-column: span 2; }
+  .b-sm { grid-column: span 1; }
+  .b-wide { grid-column: span 4; }
+
+  @media (max-width: 768px) {
+    .bento { grid-template-columns: 1fr; }
+    .b-lg, .b-md, .b-sm, .b-wide { grid-column: span 1; }
+  }
+
+  /* Worker grid viz */
+  .horizon-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+  }
+  .worker-cell {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-2);
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .worker-cell.busy {
+    border-color: rgba(34,197,94,0.2);
+    background: rgba(34,197,94,0.04);
+  }
+  .worker-cell.paused {
+    border-color: rgba(245,158,11,0.2);
+    background: rgba(245,158,11,0.04);
+  }
+  .worker-cell.idle {
+    border-color: var(--border);
+  }
+
+  /* Heartbeat pulse viz */
+  .viz-ping {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    padding: 1rem 0;
+  }
+  .wave {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wave::before {
+    content: '';
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+  }
+  .wave-ring {
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    opacity: 0;
+    animation: waveExpand 2s ease-out infinite;
+  }
+  .wave-ring-2 { animation-delay: 0.5s; }
+  .wave-ring-3 { animation-delay: 1s; }
+  @keyframes waveExpand {
+    0% { transform: scale(0.3); opacity: 0.6; }
+    100% { transform: scale(1); opacity: 0; }
+  }
+
+  /* Alert channels viz */
+  .viz-channels {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+  .channel-pill {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 999px;
+    color: var(--text-2);
+    background: rgba(0,0,0,0.3);
+  }
+
+  /* Code snippet */
+  .code-snippet {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--text-2);
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* MCP chat */
+  .viz-mcp {
+    margin-top: 1.25rem;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+  .mcp-q {
+    font-size: 0.82rem;
+    color: var(--text-2);
+    margin-bottom: 0.75rem;
+  }
+  .mcp-a {
+    font-size: 0.82rem;
+    color: var(--text);
+    padding-left: 1rem;
+    border-left: 2px solid var(--accent);
+  }
+
+  /* ============================================
+     HOW IT WORKS
+     ============================================ */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  .step-n {
+    font-size: 0.72rem;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .step h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .step p {
+    color: var(--text-2);
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 768px) {
+    .steps { grid-template-columns: 1fr; }
+  }
+
+  /* ============================================
+     DASHBOARD MOCKUP
+     ============================================ */
+  .dashboard {
+    background: var(--bg-2);
+    border: 1px solid rgba(148,163,184,0.1);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .db-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(0,0,0,0.4);
+    border-bottom: 1px solid var(--border);
+  }
+  .db-lights { display: flex; gap: 6px; }
+  .db-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .db-dot-r { background: #ef4444; }
+  .db-dot-y { background: #f59e0b; }
+  .db-dot-g { background: #22c55e; }
+  .db-url {
+    flex: 1;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-3);
+  }
+  .db-actions {
+    font-size: 0.72rem;
+    color: var(--text-3);
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+  }
+  .db-body {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    min-height: 350px;
+  }
+  .db-side {
+    padding: 1rem;
+    border-right: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+  .db-side-label {
+    font-size: 0.6rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  .db-app {
+    font-size: 0.78rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.35rem;
+    color: var(--text-2);
+    cursor: default;
+    margin-bottom: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .db-app-active {
+    background: rgba(34,197,94,0.08);
+    color: var(--text);
+    border: 1px solid rgba(34,197,94,0.15);
+  }
+  .db-app-alert {
+    color: var(--warn);
+  }
+  .db-badge-warn {
+    font-size: 0.6rem;
+    background: rgba(245,158,11,0.15);
+    color: var(--warn);
+    padding: 0.1rem 0.35rem;
+    border-radius: 999px;
+    margin-left: 0.25rem;
+  }
+  .db-side-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.75rem 0;
+  }
+  .db-filter {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.35rem;
+    color: var(--text-3);
+    cursor: default;
+    margin-bottom: 0.15rem;
+  }
+  .db-filter-active { color: var(--text-2); background: rgba(148,163,184,0.06); }
+
+  .db-main { padding: 1.25rem; }
+  .db-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+  }
+  .db-env-badge {
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    padding: 0.2rem 0.5rem;
+    background: rgba(148,163,184,0.06);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  .db-alert-badge {
+    font-size: 0.65rem;
+    font-family: var(--font-mono);
+    padding: 0.2rem 0.5rem;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 999px;
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .db-kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .db-kpi {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+  }
+  .db-kpi-label {
+    font-size: 0.6rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+  }
+  .db-kpi-val {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+  .db-kpi-val span { font-size: 0.72rem; font-weight: 500; }
+  .db-panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .db-panel {
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  .db-panel-head {
+    font-size: 0.65rem;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+  .db-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+  }
+  .db-table td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-2);
+  }
+  .db-table td:first-child { color: var(--text); }
+  .db-table td:last-child { text-align: right; }
+  .db-row-fail td { background: rgba(239,68,68,0.04); }
+  .db-row-warn td { background: rgba(245,158,11,0.04); }
+
+  .sparkline-placeholder {
+    width: 60px;
+    height: 16px;
+    background: linear-gradient(90deg, rgba(34,197,94,0.1), rgba(34,197,94,0.3));
+    border-radius: 2px;
+    display: inline-block;
+    vertical-align: middle;
+    float: right;
+  }
+  .sparkline-red {
+    background: linear-gradient(90deg, rgba(239,68,68,0.1), rgba(239,68,68,0.4));
+  }
+
+  @media (max-width: 768px) {
+    .db-body { grid-template-columns: 1fr; }
+    .db-side { display: none; }
+    .db-kpis { grid-template-columns: repeat(2, 1fr); }
+    .db-panels { grid-template-columns: 1fr; }
+  }
+
+  /* ============================================
+     INTEGRATIONS
+     ============================================ */
+  .integrations {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+  .int-group h4 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .int-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .int-pill {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid rgba(148,163,184,0.15);
+    border-radius: 999px;
+    color: var(--text-2);
+    background: rgba(0,0,0,0.3);
+  }
+  .int-pill-muted {
+    color: var(--text-3);
+    border-color: rgba(148,163,184,0.08);
+  }
+  @media (max-width: 640px) {
+    .integrations { grid-template-columns: 1fr; }
+  }
+
+  /* ============================================
+     PRICING
+     ============================================ */
+  .billing-toggle {
+    display: inline-flex;
+    margin-top: 1.25rem;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.2rem;
+  }
+  .toggle-btn {
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
+    border: none;
+    border-radius: 0.35rem;
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .toggle-active {
+    background: rgba(148,163,184,0.1);
+    color: var(--text);
+  }
+  .toggle-save {
+    font-size: 0.7rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .pricing {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    max-width: 56rem;
+    margin: 0 auto;
+  }
+  .pricing-card {
+    display: flex;
+    flex-direction: column;
+    padding: 2rem;
+    position: relative;
+  }
+  .pricing-card-featured {
+    border-color: rgba(34,197,94,0.3);
+    background: linear-gradient(180deg, rgba(34,197,94,0.04) 0%, var(--bg-2) 40%);
+  }
+  .pricing-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.2rem 0.75rem;
+    background: var(--accent);
+    color: #000;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pricing-name {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .pricing-price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-family: var(--font-mono);
+    margin-bottom: 1.5rem;
+    line-height: 1;
+  }
+  .pricing-period {
+    font-size: 0.9rem;
+    color: var(--text-3);
+    font-weight: 400;
+  }
+  .pricing-features {
+    list-style: none;
+    flex: 1;
+    margin-bottom: 1.5rem;
+  }
+  .pricing-features li {
+    font-size: 0.88rem;
+    color: var(--text-2);
+    padding: 0.35rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+  }
+  .pricing-features li::before {
+    content: '\2713';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 0.8rem;
+  }
+  .pricing-no {
+    color: var(--text-3) !important;
+  }
+  .pricing-no::before {
+    content: '\2014' !important;
+    color: var(--text-3) !important;
+  }
+  .coming-soon {
+    font-size: 0.6rem;
+    font-family: var(--font-mono);
+    color: var(--text-3);
+    background: rgba(148,163,184,0.06);
+    padding: 0.1rem 0.4rem;
+    border-radius: 999px;
+    vertical-align: middle;
+    margin-left: 0.25rem;
+  }
+  .pricing-card .btn { width: 100%; justify-content: center; }
+
+  @media (max-width: 768px) {
+    .pricing { grid-template-columns: 1fr; max-width: 24rem; }
+  }
+
+  /* ============================================
+     OSS PACKAGES
+     ============================================ */
+  .pkg-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .pkg {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+  }
+  .pkg strong {
+    font-size: 0.88rem;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+  .pkg .text-2 {
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+  .pkg-lang {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0.25rem 0.45rem;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+    margin-top: 0.15rem;
+  }
+  .pkg-ts { background: rgba(49,120,198,0.15); color: #60a5fa; }
+  .pkg-py { background: rgba(255,212,59,0.12); color: #fbbf24; }
+  .pkg-go { background: rgba(0,173,216,0.12); color: #22d3ee; }
+  .pkg-rs { background: rgba(222,165,132,0.12); color: #fb923c; }
+  .pkg-php { background: rgba(119,123,180,0.15); color: #a78bfa; }
+  .pkg-la { background: rgba(239,68,68,0.12); color: #f87171; }
+  .pkg-sh { background: rgba(148,163,184,0.12); color: #94a3b8; }
+  .pkg-ai { background: rgba(34,197,94,0.12); color: #4ade80; }
+
+  @media (max-width: 768px) {
+    .pkg-grid { grid-template-columns: 1fr; }
+  }
+
+  .oss-cloud {
+    background: linear-gradient(135deg, rgba(34,197,94,0.05) 0%, rgba(99,102,241,0.05) 100%);
+    border: 1px solid rgba(34,197,94,0.15);
+    border-radius: var(--radius);
+    padding: 2rem;
+  }
+  .oss-cloud-inner {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .oss-cloud-copy {
+    flex: 1;
+    min-width: 200px;
+  }
+  .oss-cloud-copy h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+  .oss-cloud-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem 1.5rem;
+    font-size: 0.82rem;
+    color: var(--text-2);
+  }
+  .oss-cloud-features span { white-space: nowrap; }
+
+  /* ============================================
+     SDK TABS
+     ============================================ */
+  .sdk-tabs {
+    max-width: 36rem;
+    margin: 0 auto;
+  }
+  .sdk-tab-bar {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    overflow-x: auto;
+  }
+  .sdk-tab {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 0.6rem 1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .sdk-tab:hover { color: var(--text-2); }
+  .sdk-tab-active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .sdk-panel {
+    display: none;
+  }
+  .sdk-panel-active {
+    display: block;
+  }
+  .sdk-cmd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .sdk-cmd code {
+    font-size: 0.82rem;
+    color: var(--text-2);
+  }
+  .copy-btn {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0.25rem 0.6rem;
+    background: rgba(148,163,184,0.08);
+    border: 1px solid var(--border);
+    border-radius: 0.25rem;
+    color: var(--text-3);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    margin-left: 0.75rem;
+  }
+  .copy-btn:hover {
+    background: rgba(148,163,184,0.15);
+    color: var(--text-2);
+  }
+
+  /* ============================================
+     FINAL CTA
+     ============================================ */
+  .section-cta {
+    padding: 8rem 0;
+  }
+  .final {
+    text-align: center;
+    max-width: 36rem;
+    margin: 0 auto;
+  }
+  .final h2 {
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .final p {
+    color: var(--text-2);
+    font-size: 1.05rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+  }
+  .final-ctas {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  /* ============================================
+     FOOTER
+     ============================================ */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding: 4rem 0 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: 1.5fr repeat(4, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  .footer-brand p {
+    margin-top: 0.75rem;
+  }
+  .footer-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    color: var(--text-3);
+    margin-top: 0.75rem;
+  }
+  .footer-social {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  .footer-social a {
+    color: var(--text-3);
+    transition: color 0.2s;
+  }
+  .footer-social a:hover { color: var(--text-2); }
+
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .footer-heading {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-3);
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+  }
+  .footer-col a {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    transition: color 0.2s;
+  }
+  .footer-col a:hover { color: var(--text); }
+
+  .footer-wordmark {
+    font-family: var(--font-mono);
+    font-size: clamp(4rem, 12vw, 10rem);
+    font-weight: 800;
+    text-align: center;
+    color: rgba(148,163,184,0.03);
+    line-height: 1;
+    margin-bottom: 1.5rem;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--text-3);
+  }
+
+  @media (max-width: 768px) {
+    .footer-top {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer-brand {
+      grid-column: span 2;
+    }
+    .footer-bottom {
+      flex-direction: column;
+      gap: 0.5rem;
+      text-align: center;
+    }
+  }
+  @media (max-width: 480px) {
+    .footer-top { grid-template-columns: 1fr; }
+    .footer-brand { grid-column: span 1; }
+  }
+
+  /* ============================================
+     SCROLL REVEAL
+     ============================================ */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1),
+                transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; }
   }
 </style>
 
-<!-- trigger -->
+<script is:inline>
+(function() {
+  'use strict';
+
+  /* ==== NAV SCROLL ==== */
+  var nav = document.querySelector('.nav');
+  window.addEventListener('scroll', function() {
+    if (window.scrollY > 20) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+  }, { passive: true });
+
+  /* ==== NAV TOGGLE ==== */
+  var toggleBtn = document.querySelector('.nav-toggle');
+  var mobileMenu = document.getElementById('nav-mobile');
+  var hamburgerIcon = document.querySelector('.hamburger-icon');
+  var closeIcon = document.querySelector('.close-icon');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', function() {
+      var isOpen = mobileMenu.classList.contains('open');
+      mobileMenu.classList.toggle('open', !isOpen);
+      hamburgerIcon.style.display = isOpen ? '' : 'none';
+      closeIcon.style.display = isOpen ? 'none' : '';
+      toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+    });
+    mobileMenu.querySelectorAll('a').forEach(function(a) {
+      a.addEventListener('click', function() {
+        mobileMenu.classList.remove('open');
+        hamburgerIcon.style.display = '';
+        closeIcon.style.display = 'none';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  /* ==== HEARTBEAT CHART ==== */
+  var points = [];
+  var numPoints = 60;
+  var svgW = 600, svgH = 120;
+  for (var i = 0; i < numPoints; i++) {
+    points.push(svgH * 0.5 + (Math.random() - 0.5) * svgH * 0.4);
+  }
+
+  function drawHeartbeat() {
+    var line = document.getElementById('heartbeat-line');
+    var area = document.getElementById('heartbeat-area');
+    var dot = document.getElementById('heartbeat-dot');
+    if (!line) return;
+
+    var stepX = svgW / (numPoints - 1);
+    var d = 'M0,' + points[0].toFixed(1);
+    for (var i = 1; i < numPoints; i++) {
+      var x = i * stepX;
+      var y = points[i];
+      var px = (i - 1) * stepX;
+      var py = points[i - 1];
+      var cx1 = px + stepX * 0.4;
+      var cx2 = x - stepX * 0.4;
+      d += ' C' + cx1.toFixed(1) + ',' + py.toFixed(1) + ' ' + cx2.toFixed(1) + ',' + y.toFixed(1) + ' ' + x.toFixed(1) + ',' + y.toFixed(1);
+    }
+    line.setAttribute('d', d);
+    area.setAttribute('d', d + ' L' + svgW + ',' + svgH + ' L0,' + svgH + ' Z');
+    var lastX = (numPoints - 1) * stepX;
+    var lastY = points[numPoints - 1];
+    dot.setAttribute('cx', lastX.toFixed(1));
+    dot.setAttribute('cy', lastY.toFixed(1));
+  }
+
+  function updateHeartbeat() {
+    points.shift();
+    var last = points[points.length - 1];
+    var isSpike = Math.random() < 0.08;
+    var newVal;
+    if (isSpike) {
+      newVal = svgH * 0.15 + Math.random() * svgH * 0.2;
+    } else {
+      newVal = last + (Math.random() - 0.5) * 15;
+      newVal = Math.max(svgH * 0.25, Math.min(svgH * 0.85, newVal));
+    }
+    points.push(newVal);
+    drawHeartbeat();
+  }
+  drawHeartbeat();
+  setInterval(updateHeartbeat, 1500);
+
+  /* ==== EVENT FEED ==== */
+  var feedEvents = [
+    { type: 'ok', name: 'schedule:run', msg: 'completed in 842ms' },
+    { type: 'ok', name: 'worker.default', msg: '2 supervisors running' },
+    { type: 'warn', name: 'queue.emails', msg: 'depth 6,413 backpressure' },
+    { type: 'fail', name: 'sync:stripe-webhooks', msg: 'exit 1 retry 3/5' },
+    { type: 'ok', name: 'generate:daily-invoices', msg: 'ok 2m 14s' },
+    { type: 'ok', name: 'agent.support', msg: '12 runs p95 8.2s' },
+    { type: 'warn', name: 'telemetry:roll-up', msg: 'slow 8m 02s' },
+    { type: 'ok', name: 'cleanup:stale-sessions', msg: 'ok 1m 08s' },
+    { type: 'fail', name: 'agent.run.874', msg: '42m 318 tool calls killed' },
+    { type: 'ok', name: 'dunning:send-reminders', msg: 'ok 48s' },
+  ];
+  var feedIdx = 0;
+  var feedEl = document.getElementById('monitor-feed');
+
+  function addFeedEvent() {
+    if (!feedEl) return;
+    var ev = feedEvents[feedIdx % feedEvents.length];
+    feedIdx++;
+    var row = document.createElement('div');
+    row.className = 'feed-row';
+    var dotClass = ev.type === 'ok' ? 'dot-ok' : ev.type === 'fail' ? 'dot-fail' : 'dot-warn';
+    var now = new Date();
+    var time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
+    row.innerHTML = '<span class="dot ' + dotClass + '"></span>' +
+      '<span>' + ev.name + '</span>' +
+      '<span style="color:var(--text-3);margin-left:0.5rem">' + ev.msg + '</span>' +
+      '<span class="feed-time">' + time + '</span>';
+    feedEl.insertBefore(row, feedEl.firstChild);
+    while (feedEl.children.length > 6) {
+      feedEl.removeChild(feedEl.lastChild);
+    }
+  }
+  addFeedEvent();
+  setInterval(addFeedEvent, 2500);
+
+  /* ==== WORKER GRID ==== */
+  var workerNames = ['default', 'invoices', 'emails', 'analytics', 'notifications', 'payments', 'reports', 'webhooks',
+                     'imports', 'exports', 'search', 'cache', 'mailer', 'billing', 'telemetry', 'agent'];
+  var workerStates = ['busy', 'busy', 'busy', 'idle', 'busy', 'busy', 'idle', 'busy',
+                      'paused', 'busy', 'busy', 'idle', 'busy', 'busy', 'idle', 'busy'];
+  var workerGrid = document.getElementById('worker-grid');
+
+  function renderWorkers() {
+    if (!workerGrid) return;
+    workerGrid.innerHTML = '';
+    for (var i = 0; i < 16; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'worker-cell ' + workerStates[i];
+      var dotClass = workerStates[i] === 'busy' ? 'dot-ok' : workerStates[i] === 'paused' ? 'dot-warn' : '';
+      cell.innerHTML = '<span class="dot ' + dotClass + '" style="width:6px;height:6px"></span>' + workerNames[i];
+      workerGrid.appendChild(cell);
+    }
+  }
+
+  function updateWorkers() {
+    for (var i = 0; i < 16; i++) {
+      if (Math.random() < 0.15) {
+        var r = Math.random();
+        workerStates[i] = r < 0.6 ? 'busy' : r < 0.85 ? 'idle' : 'paused';
+      }
+    }
+    renderWorkers();
+  }
+  renderWorkers();
+  setInterval(updateWorkers, 3000);
+
+  /* ==== COUNTER ANIMATION ==== */
+  function animateCounter(el) {
+    var target = parseInt(el.getAttribute('data-count'), 10);
+    var duration = 1500;
+    var start = performance.now();
+    function step(now) {
+      var progress = Math.min((now - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(target * eased);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  var counterObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        animateCounter(entry.target);
+        counterObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.val[data-count]').forEach(function(el) {
+    counterObserver.observe(el);
+  });
+
+  /* ==== SCROLL REVEAL ==== */
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    revealObserver.observe(el);
+  });
+
+  /* ==== SDK TABS ==== */
+  var tabBar = document.getElementById('sdk-tab-bar');
+  if (tabBar) {
+    tabBar.addEventListener('click', function(e) {
+      var tab = e.target.closest('.sdk-tab');
+      if (!tab) return;
+      var target = tab.getAttribute('data-tab');
+      document.querySelectorAll('.sdk-tab').forEach(function(t) { t.classList.remove('sdk-tab-active'); });
+      document.querySelectorAll('.sdk-panel').forEach(function(p) { p.classList.remove('sdk-panel-active'); });
+      tab.classList.add('sdk-tab-active');
+      var panel = document.querySelector('.sdk-panel[data-panel="' + target + '"]');
+      if (panel) panel.classList.add('sdk-panel-active');
+    });
+  }
+
+  /* ==== BILLING TOGGLE ==== */
+  var billingToggle = document.getElementById('billing-toggle');
+  if (billingToggle) {
+    billingToggle.addEventListener('click', function(e) {
+      var btn = e.target.closest('.toggle-btn');
+      if (!btn) return;
+      var period = btn.getAttribute('data-period');
+      billingToggle.querySelectorAll('.toggle-btn').forEach(function(b) { b.classList.remove('toggle-active'); });
+      btn.classList.add('toggle-active');
+      document.querySelectorAll('.price-val').forEach(function(el) {
+        el.textContent = el.getAttribute('data-' + period);
+      });
+    });
+  }
+
+  /* ==== COPY BUTTONS ==== */
+  document.querySelectorAll('.copy-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var text = btn.getAttribute('data-copy');
+      navigator.clipboard.writeText(text).then(function() {
+        var orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = 'var(--accent)';
+        setTimeout(function() {
+          btn.textContent = orig;
+          btn.style.color = '';
+        }, 1500);
+      });
+    });
+  });
+
+  /* ==== SMOOTH SCROLL ==== */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+
+})();
+</script>
+
+</Base>
