@@ -844,6 +844,66 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   </div>
 </footer>
 
+<!-- ============================== TWEAKS PANEL ============================== -->
+<aside class="tweaks" id="tweaks" hidden>
+  <div class="head">
+    <span>Tweaks</span>
+    <button class="close" id="tweaks-close" aria-label="Close">&#215;</button>
+  </div>
+  <div class="body">
+    <div class="tweak-group">
+      <label>Accent color</label>
+      <div class="swatches" id="tw-accent">
+        <button class="swatch" data-accent="green"  style="background:hsl(142 71% 45%)"></button>
+        <button class="swatch" data-accent="blue"   style="background:hsl(212 100% 60%)"></button>
+        <button class="swatch" data-accent="amber"  style="background:hsl(32 95% 55%)"></button>
+        <button class="swatch" data-accent="violet" style="background:hsl(265 83% 66%)"></button>
+        <button class="swatch" data-accent="red"    style="background:hsl(0 84% 60%)"></button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Theme</label>
+      <div class="seg" id="tw-theme">
+        <button data-theme="dark">Dark</button>
+        <button data-theme="light">Light</button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Density</label>
+      <div class="seg" id="tw-density">
+        <button data-density="airy">Airy</button>
+        <button data-density="compact">Compact</button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Hero variant</label>
+      <div class="seg" id="tw-hero">
+        <button data-hero="heartbeat">Heartbeat</button>
+        <button data-hero="minimal">Minimal</button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Headline</label>
+      <textarea id="tw-headline" rows="3"></textarea>
+    </div>
+    <div class="tweak-group">
+      <label>Visible sections</label>
+      <div class="checks" id="tw-sections">
+        <label><input type="checkbox" data-show="showMetrics"/> Metrics</label>
+        <label><input type="checkbox" data-show="showProblem"/> Problem</label>
+        <label><input type="checkbox" data-show="showFeatures"/> Features</label>
+        <label><input type="checkbox" data-show="showHowItWorks"/> How it works</label>
+        <label><input type="checkbox" data-show="showDashboard"/> Dashboard</label>
+        <label><input type="checkbox" data-show="showIntegrations"/> Integrations</label>
+        <label><input type="checkbox" data-show="showPricing"/> Pricing</label>
+        <label><input type="checkbox" data-show="showOssVsSaas"/> OSS vs SaaS</label>
+        <label><input type="checkbox" data-show="showInstall"/> Install</label>
+        <label><input type="checkbox" data-show="showFinalCta"/> Final CTA</label>
+      </div>
+    </div>
+  </div>
+</aside>
+
 <!-- Cookie consent banner -->
 <div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0f0f11;border-top:1px solid var(--border);padding:16px 24px;">
   <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;justify-content:space-between;flex-wrap:wrap;">
@@ -888,6 +948,16 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   })();
 </script>
 
+<script is:inline>
+window.__TWEAKS = {
+  accent: "green", density: "airy", theme: "dark", heroVariant: "heartbeat",
+  headline: "Your cron is lying to you.",
+  sub: "Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.",
+  showMetrics: true, showProblem: true, showFeatures: true, showHowItWorks: true,
+  showDashboard: true, showIntegrations: true, showPricing: true,
+  showOssVsSaas: true, showInstall: true, showFinalCta: true
+};
+</script>
 <script is:inline src="/src/main.js"></script>
 
 </body>
