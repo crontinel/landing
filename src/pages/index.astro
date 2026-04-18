@@ -71,23 +71,43 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
   <link rel="stylesheet" href="/styles/crontinel-tokens.css" />
   <link rel="stylesheet" href="/styles/components.css" />
 
-  <!-- Accessibility: skip link -->
+  <!-- Page-level utilities not in design CSS -->
   <style>
+    /* Skip link */
     .skip-to-main {
-      position: fixed;
-      top: -100%;
-      left: 0.5rem;
-      z-index: 9999;
-      background: var(--accent);
-      color: #000;
-      font-weight: 600;
-      padding: 0.5rem 1rem;
-      border-radius: 0 0 0.375rem 0;
-      text-decoration: none;
-      transition: top 0.15s ease;
+      position: fixed; top: -100%; left: 0.5rem; z-index: 9999;
+      background: var(--accent); color: #000; font-weight: 600;
+      padding: 0.5rem 1rem; border-radius: 0 0 0.375rem 0;
+      text-decoration: none; transition: top 0.15s ease;
     }
     .skip-to-main:focus { top: 0; }
+
+    /* Hero status caption row */
+    .hero-captions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .hero-captions span { display: inline-flex; align-items: center; gap: 7px; }
+
+    /* Problem card icon row */
+    .pico {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
+
+    /* Danger text colour */
     .danger { color: var(--danger); }
+
+    /* Prevent horizontal bleed at small widths */
+    html, body { max-width: 100%; overflow-x: hidden; }
   </style>
 </head>
 
@@ -185,8 +205,8 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
             <span>app.crontinel.com</span>
           </div>
           <div class="stats">
-            <span class="stat">jobs <b id="stat-jobs">1,847</b></span>
-            <span class="stat">latency <b id="stat-lat">42ms</b></span>
+            <span class="stat">jobs<b id="stat-jobs">1,847</b></span>
+            <span class="stat">latency<b id="stat-lat">42ms</b></span>
           </div>
         </div>
 
