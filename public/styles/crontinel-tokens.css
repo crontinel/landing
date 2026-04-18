@@ -1,0 +1,257 @@
+/* ==========================================================================
+   Crontinel Landing — design tokens & base styles
+   ========================================================================== */
+
+:root {
+  --accent-h: 142;
+  --accent-s: 71%;
+  --accent-l: 45%;
+  --accent: hsl(var(--accent-h) var(--accent-s) var(--accent-l));
+  --accent-bright: hsl(var(--accent-h) var(--accent-s) 55%);
+  --accent-dim: hsl(var(--accent-h) var(--accent-s) 35%);
+  --accent-glow: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.22);
+  --accent-wash: hsl(var(--accent-h) var(--accent-s) var(--accent-l) / 0.08);
+
+  --danger: #ef4444;
+  --warn:   #f59e0b;
+
+  --bg:        #000000;
+  --bg-1:      #070707;
+  --bg-2:      #0b0b0c;
+  --bg-card:   #0f0f11;
+  --bg-card-2: #141417;
+  --border:    #1d1d21;
+  --border-2:  #2a2a30;
+  --text:      #ffffff;
+  --text-2:    #b5b5bb;
+  --text-3:    #7a7a82;
+  --text-4:    #4a4a52;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "Geist Mono", "Fira Code", ui-monospace, Menlo, monospace;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius:    10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  --container: 1200px;
+  --pad-section-y: 100px;
+  --pad-section-y-sm: 64px;
+}
+
+[data-accent="blue"]   { --accent-h: 212; --accent-s: 100%; --accent-l: 60%; --accent: hsl(212 100% 60%); --accent-bright: hsl(212 100% 70%); --accent-dim: hsl(212 100% 45%); --accent-glow: hsl(212 100% 60% / 0.22); --accent-wash: hsl(212 100% 60% / 0.08); }
+[data-accent="amber"]  { --accent-h: 32;  --accent-s: 95%;  --accent-l: 55%; --accent: hsl(32 95% 55%);  --accent-bright: hsl(32 95% 65%);  --accent-dim: hsl(32 95% 42%);  --accent-glow: hsl(32 95% 55% / 0.22);  --accent-wash: hsl(32 95% 55% / 0.08); }
+[data-accent="red"]    { --accent-h: 0;   --accent-s: 84%;  --accent-l: 60%; --accent: hsl(0 84% 60%);   --accent-bright: hsl(0 84% 70%);   --accent-dim: hsl(0 84% 48%);   --accent-glow: hsl(0 84% 60% / 0.22);   --accent-wash: hsl(0 84% 60% / 0.08); }
+[data-accent="violet"] { --accent-h: 265; --accent-s: 83%;  --accent-l: 66%; --accent: hsl(265 83% 66%); --accent-bright: hsl(265 83% 76%); --accent-dim: hsl(265 83% 54%); --accent-glow: hsl(265 83% 66% / 0.22); --accent-wash: hsl(265 83% 66% / 0.08); }
+[data-accent="green"]  { --accent-h: 142; --accent-s: 71%;  --accent-l: 45%; --accent: hsl(142 71% 45%); --accent-bright: hsl(142 71% 55%); --accent-dim: hsl(142 71% 35%); --accent-glow: hsl(142 71% 45% / 0.22); --accent-wash: hsl(142 71% 45% / 0.08); }
+
+[data-theme="light"] {
+  --bg:        #fafaf9;
+  --bg-1:      #ffffff;
+  --bg-2:      #f4f4f3;
+  --bg-card:   #ffffff;
+  --bg-card-2: #f7f7f6;
+  --border:    #e7e7e3;
+  --border-2:  #d4d4cf;
+  --text:      #0a0a0a;
+  --text-2:    #3a3a3a;
+  --text-3:    #6a6a6a;
+  --text-4:    #9a9a9a;
+}
+
+[data-density="compact"] {
+  --pad-section-y: 96px;
+  --pad-section-y-sm: 64px;
+}
+
+/* ---------------- Base ---------------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+html { scroll-behavior: smooth; color-scheme: dark; }
+[data-theme="light"] html { color-scheme: light; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "cv11", "ss01", "ss03";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+img, svg { display: block; max-width: 100%; }
+
+::selection { background: var(--accent-glow); color: var(--text); }
+
+/* ---------------- Typography ---------------- */
+.mono { font-family: var(--font-mono); font-feature-settings: "zero", "ss02"; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.eyebrow::before {
+  content: "";
+  width: 24px; height: 1px;
+  background: var(--text-3);
+}
+
+.display {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  margin: 0;
+}
+.h1 { font-size: clamp(44px, 7.8vw, 108px); }
+.h2 { font-size: clamp(36px, 5.2vw, 68px); }
+.h3 { font-size: clamp(22px, 2.4vw, 32px); letter-spacing: -0.03em; }
+
+.body { color: var(--text-2); font-size: 17px; line-height: 1.55; }
+.body-sm { color: var(--text-2); font-size: 15px; line-height: 1.55; }
+
+.accent { color: var(--accent); }
+.danger { color: var(--danger); }
+
+/* ---------------- Layout ---------------- */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 40px);
+}
+
+.section {
+  padding: var(--pad-section-y) 0;
+  position: relative;
+}
+.section + .section {
+  border-top: 1px solid var(--border);
+}
+/* Seamlessly merge the metrics strip into the hero: no hard rule, hero bg bleeds into it */
+.hero + .section-metrics {
+  border-top: none;
+  padding-top: 0;
+  margin-top: -40px;
+  position: relative;
+  z-index: 2;
+  background: transparent;
+}
+/* Soft fade from hero into the first "real" content section after metrics */
+.section-metrics + .section {
+  border-top: none;
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--bg) 60%, transparent), var(--bg) 120px),
+    var(--bg);
+}
+@media (max-width: 720px) {
+  .section { padding: var(--pad-section-y-sm) 0; }
+}
+
+.section-head {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 56px;
+  max-width: 720px;
+}
+
+/* ---------------- Buttons ---------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #00110a;
+  box-shadow: 0 0 0 1px var(--accent), 0 10px 30px -10px var(--accent-glow);
+}
+[data-theme="light"] .btn-primary { color: #fff; }
+.btn-primary:hover { background: var(--accent-bright); transform: translateY(-1px); }
+.btn-ghost {
+  border: 1px solid var(--border-2);
+  color: var(--text);
+  background: transparent;
+}
+.btn-ghost:hover { border-color: var(--text-3); transform: translateY(-1px); }
+.btn .arrow { transition: transform 0.15s ease; }
+.btn:hover .arrow { transform: translate(2px, -1px); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-2);
+}
+.chip .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* ---------------- Cards ---------------- */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+.card:hover {
+  border-color: var(--border-2);
+  transform: translateY(-2px);
+}
+
+/* ---------------- Patterns ---------------- */
+.dot-grid {
+  background-image: radial-gradient(circle, color-mix(in oklab, var(--border-2) 85%, transparent) 1px, transparent 1.5px);
+  background-size: 28px 28px;
+}
+.grid-lines {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--border) 100%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--border) 100%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ---------------- Reveal ---------------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+/* ---------------- Scrollbar ---------------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 10px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: var(--text-3); }

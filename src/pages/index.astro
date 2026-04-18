@@ -1,879 +1,984 @@
 ---
-import Base from '../layouts/Base.astro';
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
+export const prerender = true;
+
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? '';
+const canonicalURL = new URL('/', 'https://crontinel.com').toString();
+const title = 'Crontinel // See your cron before it screams';
+const description = 'Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.';
 ---
 
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Crontinel",
-  "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "Laravel",
-  "description": "Cron, scheduler, and background job health monitoring for Laravel applications. Detects failures, late runs, and queue issues that generic uptime tools miss.",
-  "url": "https://crontinel.com",
-  "offers": {
-    "@type": "Offer",
-    "price": "0",
-    "priceCurrency": "USD",
-    "description": "Free plan with 1 app, 5 monitors, 7-day history"
-  },
-  "featureList": [
-    "Cron job health monitoring",
-    "Laravel Horizon queue monitoring",
-    "Background job failure detection",
-    "Slack, email, PagerDuty, and webhook alerts",
-    "Public status pages",
-    "14-day alert history",
-    "REST API access",
-    "Self-hosted MIT option"
-  ],
-  "provider": { "@type": "Organization", "@id": "https://crontinel.com/#organization" }
-}
-</script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="generator" content="Astro" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <link rel="canonical" href={canonicalURL} />
 
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" }]
-}
-</script>
+  <title>{title}</title>
+  <meta name="description" content={description} />
 
-<Base
-  title="Crontinel - Cron, Scheduler & Background Job Monitoring for Laravel"
-  description="Know when your cron jobs, schedulers, and background jobs stop working — before your customers do. Health monitoring that generic uptime tools miss."
->
-  <Nav />
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content="https://crontinel.com/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Crontinel" />
 
-  <main id="main-content">
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@HarunRRayhan" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="https://crontinel.com/og-default.png" />
 
-    <!-- ========================================
-         HERO
-    ======================================== -->
-    <section class="relative overflow-hidden pt-24 pb-20 md:pt-32 md:pb-28">
-      <!-- Background layers -->
-      <div class="absolute inset-0 dot-grid opacity-40"></div>
-      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full"
-           style="background: radial-gradient(ellipse at center, rgba(34,197,94,0.08) 0%, transparent 70%); animation: heroGlow 8s ease-in-out infinite;"></div>
-      <div class="absolute top-20 right-1/4 w-[300px] h-[300px] rounded-full opacity-20"
-           style="background: radial-gradient(ellipse, rgba(34,197,94,0.06) 0%, transparent 70%); animation: heroFloat 12s ease-in-out infinite;"></div>
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://crontinel.com/#organization",
+        "name": "Crontinel",
+        "url": "https://crontinel.com",
+        "logo": { "@type": "ImageObject", "url": "https://crontinel.com/favicon.svg" },
+        "sameAs": ["https://github.com/crontinel", "https://x.com/HarunRRayhan"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://crontinel.com/#website",
+        "url": "https://crontinel.com",
+        "name": "Crontinel",
+        "description": "Cron, Scheduler & Background Job Monitoring",
+        "publisher": { "@id": "https://crontinel.com/#organization" }
+      }
+    ]
+  })} />
 
-      <div class="relative max-w-5xl mx-auto px-4 sm:px-6 text-center">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-        <!-- Badge -->
-        <div class="reveal inline-flex items-center gap-2 text-xs font-medium px-3 py-1 rounded-full mb-8"
-             style="background:rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2); color: #22c55e;">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-                  style="background:#22c55e; animation-duration: 2s;"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2" style="background:#22c55e;"></span>
-          </span>
-          Built for Laravel — Open source + hosted
-        </div>
+  <!-- Design system -->
+  <link rel="stylesheet" href="/styles/crontinel-tokens.css" />
+  <link rel="stylesheet" href="/styles/components.css" />
 
-        <!-- Headline -->
-        <h1 class="reveal reveal-delay-1 text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6">
-          Never miss a<br class="hidden sm:block" />
-          <span class="gradient-accent">failed cron</span><br class="hidden sm:block" />
-          again.
-        </h1>
-
-        <!-- Subheadline -->
-        <p class="reveal reveal-delay-2 text-lg md:text-xl text-[#a3a3a3] max-w-2xl mx-auto mb-10 leading-relaxed">
-          Crontinel monitors your cron jobs, schedulers, and background queues —
-          the things uptime tools simply can't see.
-        </p>
-
-        <!-- CTAs -->
-        <div class="reveal reveal-delay-3 flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-          <a href="https://app.crontinel.com/register"
-             class="w-full sm:w-auto text-center text-sm font-semibold px-6 py-3 rounded-lg transition-all duration-200"
-             style="background:#22c55e; color:#000;"
-             onmouseover="this.style.background='#16a34a'"
-             onmouseout="this.style.background='#22c55e'">
-            Start monitoring free
-          </a>
-          <a href="https://github.com/crontinel/crontinel"
-             target="_blank" rel="noopener"
-             class="w-full sm:w-auto text-center text-sm font-medium px-6 py-3 rounded-lg transition-all duration-200 border"
-             style="border-color:#2a2a2a; color:#a3a3a3;"
-             onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-             onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-            <span class="flex items-center justify-center gap-2">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-              View on GitHub
-            </span>
-          </a>
-        </div>
-
-        <!-- Trust strip -->
-        <p class="reveal reveal-delay-4 text-xs text-[#525252] flex items-center justify-center gap-3 flex-wrap">
-          <span>Free plan forever</span>
-          <span style="width:1px;height:10px;background:#2a2a2a;display:inline-block;"></span>
-          <span>No credit card required</span>
-          <span style="width:1px;height:10px;background:#2a2a2a;display:inline-block;"></span>
-          <span>MIT open-source package</span>
-          <span style="width:1px;height:10px;background:#2a2a2a;display:inline-block;"></span>
-          <span>14-day Pro trial included</span>
-        </p>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         METRICS STRIP
-    ======================================== -->
-    <section class="border-y" style="border-color:#1c1c1c; background:#0c0c0c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <div class="grid grid-cols-3 divide-x text-center" style="divide-color:#1c1c1c;">
-          {[
-            { value: 'Laravel', label: 'Built exclusively for' },
-            { value: '1 app · 5 monitors', label: 'Free plan includes' },
-            { value: '14-day', label: 'Pro trial, no card needed' },
-          ].map((m, i) => (
-            <div class={`reveal reveal-delay-${i + 1} px-4`}>
-              <div class="text-lg md:text-xl font-bold text-white mb-0.5">{m.value}</div>
-              <div class="text-xs text-[#525252]">{m.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         PROBLEM
-    ======================================== -->
-    <section class="py-24 md:py-28">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-14">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">The Problem</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            Your uptime monitor says <span class="text-[#ef4444]">green</span>.<br />
-            Your queue has been dead for hours.
-          </h2>
-          <p class="reveal reveal-delay-2 text-[#a3a3a3] mt-4 max-w-xl mx-auto">
-            Ping-based monitors confirm a process started — not that it worked, or that your workers are still alive.
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
-              title: 'Silent cron failures',
-              desc: 'Your send-invoices job has been failing silently for 3 days. The generic monitor shows green because the cron process started — even though the command inside it crashed.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
-              title: 'Queue backlog accumulation',
-              desc: 'The emails queue has 8,000 jobs pending. Nobody knows until customers start complaining that they didn\'t receive their order confirmations.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
-              title: 'Worker process crashes',
-              desc: 'A Horizon supervisor died. Your queue shows "running" because one worker is still up. Your invoice queue is completely stuck with no alerts firing.',
-            },
-          ].map((card, i) => (
-            <div class={`reveal reveal-delay-${i + 1} card p-7`}>
-              <div class="mb-4 p-2 w-fit rounded-lg" style="background: rgba(239,68,68,0.06);">
-                <Fragment set:html={card.icon} />
-              </div>
-              <h3 class="text-base font-semibold text-white mb-2">{card.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed">{card.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         FEATURES — BENTO GRID
-    ======================================== -->
-    <section class="py-24 md:py-28" style="background:#0c0c0c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-14">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">Everything You Need</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            Monitor what uptime tools <span class="gradient-accent">miss</span>
-          </h2>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- Large feature cards (span 2 cols) -->
-          {[
-            {
-              icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
-              title: 'Deep queue internals, not just pings',
-              desc: 'Crontinel reads worker state directly from Redis — which supervisors are running, failed job rate, queue depths, whether Horizon is paused. Uptime monitors can\'t see this.',
-              badge: 'Unique to Crontinel',
-              large: true,
-            },
-            {
-              icon: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
-              title: 'Queue depth & age alerts',
-              desc: 'Get notified when your queue depth exceeds a threshold, when jobs are older than expected, or when the failed job count spikes. Configurable per queue.',
-              large: true,
-            },
-          ].map((f, i) => (
-            <div class={`reveal reveal-delay-${i + 1} card p-7 ${f.large ? 'md:col-span-2' : ''}`}
-                 style={f.large ? 'border-top: 2px solid rgba(34,197,94,0.4);' : ''}>
-              {f.badge && (
-                <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-3"
-                      style="background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); color:#22c55e;">
-                  {f.badge}
-                </span>
-              )}
-              <div class="mb-3">
-                <Fragment set:html={f.icon} />
-              </div>
-              <h3 class="text-base font-semibold text-white mb-2">{f.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-
-          <!-- Regular feature cards -->
-          {[
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,
-              title: 'Cron run history with output',
-              desc: 'Every scheduled command run is recorded with exit code, duration, and output. Know exactly what ran, when, and if it succeeded.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
-              title: 'Multi-app dashboard',
-              desc: 'One view for all your Laravel apps. See health summaries across your fleet and drill into any app in one click.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`,
-              title: 'Slack, PagerDuty & webhooks',
-              desc: 'Alerts go where your team works. Plus automatic "resolved" notifications when issues clear — so you know it\'s actually fixed.',
-            },
-            {
-              icon: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
-              title: 'REST API + MCP server',
-              desc: 'Query cron status from your AI assistant. Ask "Did my invoice job run today?" and get a real answer, not a redirect to a dashboard.',
-              badge: 'At launch',
-            },
-          ].map((f, i) => (
-            <div class={`reveal reveal-delay-${i + 2} card p-6`}>
-              {f.badge && (
-                <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-3"
-                      style="background:rgba(34,197,94,0.08); border:1px solid rgba(34,197,94,0.15); color:#22c55e;">
-                  {f.badge}
-                </span>
-              )}
-              <div class="mb-3">
-                <Fragment set:html={f.icon} />
-              </div>
-              <h3 class="text-sm font-semibold text-white mb-1.5">{f.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         HOW IT WORKS
-    ======================================== -->
-    <section class="py-24 md:py-28">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-14">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">How It Works</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            Up and running in minutes
-          </h2>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-8 relative">
-          <!-- Connector line (desktop only) -->
-          <div class="absolute top-6 left-1/3 w-[calc(33.333%-2rem)] h-px hidden md:block" style="background: linear-gradient(to right, #1c1c1c, #22c55e44, #1c1c1c);"></div>
-          <div class="absolute top-6 right-1/3 w-[calc(33.333%-2rem)] h-px hidden md:block" style="background: linear-gradient(to right, #1c1c1c, #22c55e44, #1c1c1c);"></div>
-
-          {[
-            {
-              step: '01',
-              title: 'Install the package',
-              desc: 'Add the Crontinel package to your Laravel app with one Composer command. No infrastructure changes needed.',
-              code: 'composer require crontinel/laravel',
-            },
-            {
-              step: '02',
-              title: 'Connect your app',
-              desc: 'Point Crontinel at your Laravel app. It reads queue state, cron history, and worker health directly from Redis and your scheduler.',
-              code: null,
-            },
-            {
-              step: '03',
-              title: 'Get alerted on failures',
-              desc: 'Configure alerts in Slack, email, PagerDuty, or any webhook. Crontinel sends real alerts — not "process is up" pings.',
-              code: null,
-            },
-          ].map((step, i) => (
-            <div class={`reveal reveal-delay-${i + 1} text-center`}>
-              <div class="inline-flex items-center justify-center w-12 h-12 rounded-full mb-5 font-mono text-sm font-bold relative z-10"
-                   style="background:#111; border: 1px solid #22c55e; color:#22c55e; box-shadow: 0 0 20px rgba(34,197,94,0.15);">
-                {step.step}
-              </div>
-              <h3 class="text-base font-semibold text-white mb-2">{step.title}</h3>
-              <p class="text-sm text-[#a3a3a3] leading-relaxed mb-4">{step.desc}</p>
-              {step.code && (
-                <code class="block text-xs text-[#22c55e] font-mono px-3 py-2 rounded"
-                      style="background:#080808; border: 1px solid #1c1c1c;">
-                  {step.code}
-                </code>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         DASHBOARD PREVIEW
-    ======================================== -->
-    <section class="py-24 md:py-28" style="background:#0c0c0c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-12">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">The Dashboard</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white leading-tight">
-            See everything at a glance
-          </h2>
-        </div>
-
-        <!-- Terminal mockup -->
-        <div class="reveal reveal-delay-2 rounded-xl overflow-hidden"
-             style="border: 1px solid #1c1c1c; box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(34,197,94,0.05);">
-          <!-- Title bar -->
-          <div class="flex items-center gap-2 px-4 py-3"
-               style="background:#0a0a0a; border-bottom: 1px solid #1c1c1c;">
-            <span class="w-3 h-3 rounded-full" style="background:#ef4444;"></span>
-            <span class="w-3 h-3 rounded-full" style="background:#f59e0b;"></span>
-            <span class="w-3 h-3 rounded-full" style="background:#22c55e;"></span>
-            <span class="ml-3 text-xs font-mono" style="color:#525252;">app.crontinel.com/apps/my-laravel-app</span>
-          </div>
-          <!-- Content -->
-          <div class="p-6 font-mono text-sm" style="background:#080808;">
-            <!-- Horizon status -->
-            <div class="mb-6">
-              <div class="flex items-center justify-between mb-3">
-                <span class="text-xs uppercase tracking-widest" style="color:#525252;">Horizon</span>
-                <span class="text-xs" style="color:#22c55e;">● running</span>
-              </div>
-              <div class="grid grid-cols-3 gap-3">
-                {[
-                  { label: 'Status', value: 'running', color: '#22c55e' },
-                  { label: 'Supervisors', value: '2 active', color: '#fff' },
-                  { label: 'Failed / min', value: '0.0', color: '#fff' },
-                ].map(s => (
-                  <div class="rounded p-3" style="background:#0c0c0c; border: 1px solid #1c1c1c;">
-                    <div class="text-xs mb-1" style="color:#525252;">{s.label}</div>
-                    <div style={`color:${s.color}; font-weight:500;`}>{s.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <!-- Queue table -->
-            <div class="mb-6">
-              <div class="text-xs uppercase tracking-widest mb-3" style="color:#525252;">Queues</div>
-              <table class="w-full text-xs" style="color:#a3a3a3;">
-                <thead>
-                  <tr style="color:#525252;">
-                    <th class="text-left pb-2">Queue</th>
-                    <th class="text-right pb-2">Depth</th>
-                    <th class="text-right pb-2">Failed</th>
-                    <th class="text-right pb-2">Oldest</th>
-                    <th class="text-right pb-2">Health</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-top: 1px solid #1c1c1c;">
-                    <td class="py-2">default</td>
-                    <td class="text-right">5</td>
-                    <td class="text-right">0</td>
-                    <td class="text-right">12s</td>
-                    <td class="text-right" style="color:#22c55e;">✓ ok</td>
-                  </tr>
-                  <tr style="border-top: 1px solid #1c1c1c; background:rgba(239,68,68,0.05);">
-                    <td class="py-2">emails</td>
-                    <td class="text-right" style="color:#ef4444;">1,204</td>
-                    <td class="text-right" style="color:#ef4444;">3</td>
-                    <td class="text-right" style="color:#ef4444;">8m 32s</td>
-                    <td class="text-right" style="color:#ef4444;">✗ alert</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Crons table -->
-            <div>
-              <div class="text-xs uppercase tracking-widest mb-3" style="color:#525252;">Scheduled Commands</div>
-              <table class="w-full text-xs" style="color:#a3a3a3;">
-                <thead>
-                  <tr style="color:#525252;">
-                    <th class="text-left pb-2">Command</th>
-                    <th class="text-right pb-2">Last run</th>
-                    <th class="text-right pb-2">Duration</th>
-                    <th class="text-right pb-2">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="border-top: 1px solid #1c1c1c;">
-                    <td class="py-2">inspire</td>
-                    <td class="text-right">6h ago</td>
-                    <td class="text-right">124ms</td>
-                    <td class="text-right" style="color:#22c55e;">✓ ok</td>
-                  </tr>
-                  <tr style="border-top: 1px solid #1c1c1c;">
-                    <td class="py-2">send-invoices</td>
-                    <td class="text-right">5d ago</td>
-                    <td class="text-right">2.1s</td>
-                    <td class="text-right" style="color:#22c55e;">✓ ok</td>
-                  </tr>
-                  <tr style="border-top: 1px solid #1c1c1c; background:rgba(245,158,11,0.04);">
-                    <td class="py-2">cleanup-old-logs</td>
-                    <td class="text-right">23h ago</td>
-                    <td class="text-right">–</td>
-                    <td class="text-right" style="color:#f59e0b;">⚠ late</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         INTEGRATIONS
-    ======================================== -->
-    <section class="py-20">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 text-center">
-        <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">Integrations</p>
-        <h2 class="reveal reveal-delay-1 text-2xl md:text-3xl font-bold text-white mb-10">
-          Works where you work
-        </h2>
-        <div class="reveal reveal-delay-2 flex flex-wrap justify-center gap-3">
-          {[
-            { name: 'Laravel Horizon', native: true },
-            { name: 'Redis', native: true },
-            { name: 'Slack', native: true },
-            { name: 'PagerDuty', native: true },
-            { name: 'Webhooks', native: true },
-            { name: 'REST API', native: true },
-            { name: 'MCP Server', native: true },
-            { name: 'Status Pages', native: true },
-            { name: 'Email', native: true },
-            { name: 'GitHub Actions', native: false },
-          ].map(integration => (
-            <div class={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-              integration.native
-                ? 'border-[#22c55e]/20 text-[#a3a3a3] hover:border-[#22c55e]/40'
-                : 'border-[#1c1c1c] text-[#525252]'
-            }`}
-                 style={integration.native ? 'background: rgba(34,197,94,0.04);' : 'background:#0c0c0c;'}>
-              {integration.name}
-              {integration.native && (
-                <span class="text-xs" style="color:#22c55e;">native</span>
-              )}
-              {!integration.native && (
-                <span class="text-xs" style="color:#525252;">soon</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         PRICING
-    ======================================== -->
-    <section id="pricing" class="py-24 md:py-28" style="background:#0c0c0c; border-top: 1px solid #1c1c1c; border-bottom: 1px solid #1c1c1c;">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-12">
-          <p class="reveal text-xs font-semibold tracking-[0.15em] uppercase text-[#525252] mb-4">Pricing</p>
-          <h2 class="reveal reveal-delay-1 text-3xl md:text-4xl font-bold tracking-tight text-white mb-3">
-            Start free. Scale as you grow.
-          </h2>
-          <p class="reveal reveal-delay-2 text-[#a3a3a3] text-sm">
-            14-day Pro trial included. No credit card required.
-          </p>
-
-          <!-- Billing toggle -->
-          <div class="reveal reveal-delay-3 flex justify-center mt-8">
-            <div class="inline-flex items-center gap-1 p-1 rounded-full"
-                 style="background:#111; border: 1px solid #1c1c1c;">
-              <button id="toggle-monthly"
-                      class="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 pricing-btn-active">
-                Monthly
-              </button>
-              <button id="toggle-yearly"
-                      class="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200 pricing-btn-inactive">
-                Yearly <span style="color:#22c55e; font-size:0.75em;">−20%</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid md:grid-cols-3 gap-6">
-          <!-- Free -->
-          <div class="reveal card p-7 flex flex-col">
-            <div class="mb-6">
-              <div class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Free</div>
-              <div class="text-4xl font-bold text-white">$0</div>
-              <div class="text-sm mt-1" style="color:#525252;">forever</div>
-            </div>
-            <ul class="space-y-2.5 text-sm flex-1 mb-8">
-              {[
-                '1 app',
-                '5 monitors per app',
-                '7-day history',
-                'Status page (1)',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-              {['Alerts', 'API access', 'Team members'].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#525252;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a href="https://app.crontinel.com/register"
-               class="block text-center text-sm font-medium py-2.5 rounded-lg transition-colors border w-full"
-               style="border-color:#2a2a2a; color:#a3a3a3;"
-               onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-               onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-              Start free
-            </a>
-          </div>
-
-          <!-- Pro (highlighted) -->
-          <div class="reveal reveal-delay-1 card p-7 flex flex-col relative"
-               style="border-color: rgba(34,197,94,0.35); box-shadow: 0 0 40px rgba(34,197,94,0.06);">
-            <div class="absolute -top-3.5 left-1/2 -translate-x-1/2 text-xs font-semibold px-3 py-1 rounded-full"
-                 style="background:#22c55e; color:#000;">
-              Most popular
-            </div>
-            <div class="mb-6">
-              <div class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Pro</div>
-              <div class="flex items-baseline gap-1">
-                <span id="pro-price" class="text-4xl font-bold text-white">$8</span>
-                <span class="text-lg font-normal" style="color:#525252;">/mo</span>
-              </div>
-              <div id="pro-note" class="text-xs mt-1 h-4" style="color:#22c55e;"></div>
-            </div>
-            <ul class="space-y-2.5 text-sm flex-1 mb-8">
-              {[
-                '5 apps',
-                'Unlimited monitors',
-                '90-day history',
-                'Slack, email, PagerDuty alerts',
-                'REST API access',
-                'Status page (1 per app)',
-                '3 team members',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a href="https://app.crontinel.com/register"
-               class="block text-center text-sm font-semibold py-2.5 rounded-lg transition-all duration-200 w-full"
-               style="background:#22c55e; color:#000;"
-               onmouseover="this.style.background='#16a34a'"
-               onmouseout="this.style.background='#22c55e'">
-              Start 14-day trial
-            </a>
-          </div>
-
-          <!-- Team -->
-          <div class="reveal reveal-delay-2 card p-7 flex flex-col">
-            <div class="mb-6">
-              <div class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Team</div>
-              <div class="flex items-baseline gap-1">
-                <span id="team-price" class="text-4xl font-bold text-white">$29</span>
-                <span class="text-lg font-normal" style="color:#525252;">/mo</span>
-              </div>
-              <div id="team-note" class="text-xs mt-1 h-4" style="color:#22c55e;"></div>
-            </div>
-            <ul class="space-y-2.5 text-sm flex-1 mb-8">
-              {[
-                'Unlimited apps',
-                'Unlimited monitors',
-                '1-year history',
-                'Unlimited team members',
-                'Unlimited status pages',
-                'Custom alert rules',
-                'Priority support',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <a href="https://app.crontinel.com/register"
-               class="block text-center text-sm font-medium py-2.5 rounded-lg transition-colors border w-full"
-               style="border-color:#2a2a2a; color:#a3a3a3;"
-               onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-               onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-              Start 14-day trial
-            </a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         OSS VS SAAS
-    ======================================== -->
-    <section class="py-24 md:py-28">
-      <div class="max-w-5xl mx-auto px-4 sm:px-6">
-        <div class="text-center mb-12">
-          <h2 class="reveal text-3xl md:text-4xl font-bold tracking-tight text-white">
-            Self-hosted or fully managed?
-          </h2>
-          <p class="reveal reveal-delay-1 text-[#a3a3a3] mt-3 max-w-xl mx-auto text-sm">
-            The open-source package is free forever. The SaaS adds everything you'd have to build yourself.
-          </p>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          <!-- Self-hosted -->
-          <div class="reveal card p-7">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#525252;">Self-hosted</p>
-                <p class="text-xs" style="color:#525252;">MIT License — free forever</p>
-              </div>
-              <span class="text-xs font-mono px-2 py-1 rounded" style="background:#111; border:1px solid #1c1c1c; color:#525252;">
-                composer require
-              </span>
-            </div>
-            <ul class="space-y-2 text-sm">
-              {[
-                { ok: true, text: 'Full queue and cron visibility' },
-                { ok: true, text: 'Blade dashboard on your own server' },
-                { ok: true, text: 'Slack alerts built in' },
-                { ok: true, text: 'Your data, your infra' },
-                { ok: false, text: 'No hosted dashboard' },
-                { ok: false, text: 'No team access or roles' },
-                { ok: false, text: '7-day history max' },
-                { ok: false, text: 'You manage the server' },
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style={f.ok ? 'color:#a3a3a3' : 'color:#525252'}>
-                  {f.ok
-                    ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#525252" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                  }
-                  {f.text}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <!-- SaaS -->
-          <div class="reveal reveal-delay-1 card p-7 relative"
-               style="border-top: 2px solid rgba(34,197,94,0.4);">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <p class="text-xs font-semibold uppercase tracking-widest mb-1" style="color:#22c55e;">Crontinel SaaS</p>
-                <p class="text-xs" style="color:#525252;">Zero server management</p>
-              </div>
-            </div>
-            <ul class="space-y-2 text-sm">
-              {[
-                'Everything in the open-source package',
-                'Hosted dashboard at app.crontinel.com',
-                'Team access with roles',
-                'Up to 1-year run history',
-                'Multi-app overview in one place',
-                'PagerDuty, webhooks, status pages',
-                'REST API and MCP server access',
-                'Always up-to-date, zero maintenance',
-              ].map(f => (
-                <li class="flex items-center gap-2.5" style="color:#a3a3a3;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================
-         FINAL CTA
-    ======================================== -->
-    <section class="py-24 md:py-28" style="background:#0c0c0c; border-top: 1px solid #1c1c1c;">
-      <div class="max-w-2xl mx-auto px-4 sm:px-6 text-center">
-        <h2 class="reveal text-3xl md:text-4xl font-bold tracking-tight text-white mb-4">
-          Ready to monitor what matters?
-        </h2>
-        <p class="reveal reveal-delay-1 text-[#a3a3a3] mb-8">
-          Join thousands of Laravel developers who use Crontinel to catch job failures before customers notice.
-        </p>
-
-        <!-- CTA buttons -->
-        <div class="reveal reveal-delay-2 flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
-          <a href="https://app.crontinel.com/register"
-             class="w-full sm:w-auto text-center text-sm font-semibold px-6 py-3 rounded-lg transition-all duration-200"
-             style="background:#22c55e; color:#000;"
-             onmouseover="this.style.background='#16a34a'"
-             onmouseout="this.style.background='#22c55e'">
-            Start monitoring free
-          </a>
-          <a href="https://docs.crontinel.com"
-             class="w-full sm:w-auto text-center text-sm font-medium px-6 py-3 rounded-lg transition-colors border"
-             style="border-color:#2a2a2a; color:#a3a3a3;"
-             onmouseover="this.style.borderColor='#525252'; this.style.color='#fff'"
-             onmouseout="this.style.borderColor='#2a2a2a'; this.style.color='#a3a3a3'">
-            Read the docs →
-          </a>
-        </div>
-
-        <!-- Install command -->
-        <div class="reveal reveal-delay-3">
-          <p class="text-xs font-medium mb-3" style="color:#525252;">Or install the open-source package:</p>
-          <div class="relative inline-block w-full max-w-sm mx-auto">
-            <code id="install-cmd"
-                  class="block text-sm text-[#22c55e] font-mono text-left px-4 py-3 rounded-lg overflow-x-auto"
-                  style="background:#080808; border: 1px solid #1c1c1c;">
-              composer require crontinel/laravel
-            </code>
-            <button id="copy-btn"
-                    aria-label="Copy install command"
-                    class="absolute top-2.5 right-2.5 p-1.5 rounded transition-colors"
-                    style="background:#111; border:1px solid #1c1c1c; color:#525252;"
-                    onmouseover="this.style.color='#a3a3a3'; this.style.borderColor='#2a2a2a'"
-                    onmouseout="this.style.color='#525252'; this.style.borderColor='#1c1c1c'">
-              <svg id="copy-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <svg id="check-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="hidden"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <Footer />
-</Base>
-
-
-<!-- ========================================
-     CLIENT-SIDE INTERACTIVITY
-======================================== -->
-<script>
-  // ---- Scroll Reveal ----
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-        }
-      });
-    },
-    { threshold: 0.08, rootMargin: '0px 0px -40px 0px' }
-  );
-  reveals.forEach((el) => observer.observe(el));
-
-  // ---- Nav scroll effect ----
-  const nav = document.querySelector('header') as HTMLElement | null;
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 50) {
-      nav?.classList.add('nav-scrolled');
-    } else {
-      nav?.classList.remove('nav-scrolled');
+  <!-- Page-level utilities not in design CSS -->
+  <style>
+    /* Skip link */
+    .skip-to-main {
+      position: fixed; top: -100%; left: 0.5rem; z-index: 9999;
+      background: var(--accent); color: #000; font-weight: 600;
+      padding: 0.5rem 1rem; border-radius: 0 0 0.375rem 0;
+      text-decoration: none; transition: top 0.15s ease;
     }
-  }, { passive: true });
+    .skip-to-main:focus { top: 0; }
 
-  // ---- Pricing toggle ----
-  const monthlyBtn = document.getElementById('toggle-monthly') as HTMLButtonElement;
-  const yearlyBtn  = document.getElementById('toggle-yearly')  as HTMLButtonElement;
-  const proPrice   = document.getElementById('pro-price')      as HTMLElement;
-  const teamPrice  = document.getElementById('team-price')     as HTMLElement;
-  const proNote    = document.getElementById('pro-note')       as HTMLElement;
-  const teamNote   = document.getElementById('team-note')      as HTMLElement;
+    /* Hero status caption row */
+    .hero-captions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      margin-top: 14px;
+      font-size: 12px;
+      color: var(--text-3);
+    }
+    .hero-captions span { display: inline-flex; align-items: center; gap: 7px; }
 
-  const pricingData = {
-    monthly: { pro: '$8',  team: '$29', proNote: '',        teamNote: '' },
-    yearly:  { pro: '$6',  team: '$23', proNote: 'Billed $72/year', teamNote: 'Billed $276/year' },
-  };
+    /* Problem card icon row */
+    .pico {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--text-3);
+    }
 
-  function setActive(btn: HTMLButtonElement, other: HTMLButtonElement) {
-    btn.classList.remove('pricing-btn-inactive');
-    btn.classList.add('pricing-btn-active');
-    other.classList.remove('pricing-btn-active');
-    other.classList.add('pricing-btn-inactive');
-  }
+    /* Danger text colour */
+    .danger { color: var(--danger); }
 
-  monthlyBtn?.addEventListener('click', () => {
-    const d = pricingData.monthly;
-    proPrice.textContent = d.pro; teamPrice.textContent = d.team;
-    proNote.textContent  = d.proNote; teamNote.textContent = d.teamNote;
-    setActive(monthlyBtn, yearlyBtn);
-  });
+    /* Prevent horizontal bleed at small widths */
+    html, body { max-width: 100%; overflow-x: hidden; }
+  </style>
+</head>
 
-  yearlyBtn?.addEventListener('click', () => {
-    const d = pricingData.yearly;
-    proPrice.textContent = d.pro; teamPrice.textContent = d.team;
-    proNote.textContent  = d.proNote; teamNote.textContent = d.teamNote;
-    setActive(yearlyBtn, monthlyBtn);
-  });
+<body>
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
 
-  // Init active state
-  monthlyBtn?.classList.add('pricing-btn-active');
-  yearlyBtn?.classList.add('pricing-btn-inactive');
+<!-- ============================== NAV ============================== -->
+<nav class="nav" id="nav">
+  <div class="container inner">
+    <a href="#top" class="brand">
+      <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <defs><linearGradient id="crl-bg-nav" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a5b4fc"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="30" fill="url(#crl-bg-nav)"/>
+        <circle cx="32" cy="32" r="18" stroke="#1e1b4b" stroke-width="4"/>
+        <line x1="32" y1="32" x2="32" y2="19" stroke="#1e1b4b" stroke-width="4" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="41" y2="38" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="3" fill="#1e1b4b"/>
+        <circle cx="46" cy="14" r="6" fill="#22c55e"/>
+      </svg>
+      <span>crontinel</span>
+    </a>
+    <div class="links" id="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#pricing">Pricing</a>
+      <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a>
+    </div>
+    <div class="right">
+      <a class="btn btn-ghost btn-sm nav-github" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener" aria-label="GitHub">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        <span>1.2k</span>
+      </a>
+      <a class="btn btn-primary btn-sm" href="#signup">Start free <span class="arrow-i">&#8599;</span></a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
 
-  // ---- Copy install command ----
-  const copyBtn   = document.getElementById('copy-btn');
-  const copyIcon  = document.getElementById('copy-icon');
-  const checkIcon = document.getElementById('check-icon');
-  const installCmd = document.getElementById('install-cmd');
+<!-- ============================== HERO ============================== -->
+<main id="main-content">
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="grid"></div>
+    <div class="glow"></div>
+    <div class="scanline"></div>
+  </div>
+  <div class="container hero-inner">
+    <div class="hero-left">
+      <span class="hero-status">
+        <span class="ping"></span>
+        <span class="mono">all.systems.operational</span>
+        <span class="sep">·</span>
+        <span class="mono" id="hero-uptime">99.987% last 30d</span>
+      </span>
 
-  copyBtn?.addEventListener('click', async () => {
-    const text = installCmd?.textContent?.trim() ?? '';
-    await navigator.clipboard.writeText(text);
-    copyIcon?.classList.add('hidden');
-    checkIcon?.classList.remove('hidden');
-    setTimeout(() => {
-      copyIcon?.classList.remove('hidden');
-      checkIcon?.classList.add('hidden');
-    }, 1500);
-  });
+      <h1 class="display h1" id="headline">
+        Your cron<br/>
+        is <span class="accent">lying</span><br/>
+        to you.<span class="cursor"></span>
+      </h1>
+
+      <p class="hero-sub" id="sub">
+        Crontinel watches the jobs, queues, workers, models and agents behind your app,
+        so you hear about the failure <em>before</em> your users do.
+      </p>
+
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free <span class="arrow-i">&#8599;</span></a>
+        <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          View on GitHub
+        </a>
+      </div>
+
+      <div class="hero-trust mono">
+        <span>node · python · go · php · cli</span>
+        <span class="sep">·</span>
+        <span>MIT licensed</span>
+        <span class="sep">·</span>
+        <span>free tier, no card</span>
+      </div>
+    </div>
+
+    <!-- HEARTBEAT MONITOR -->
+    <div class="hero-right">
+      <div class="monitor" id="monitor">
+        <div class="monitor-head">
+          <div class="label">
+            <span class="dot"></span>
+            <span>live.monitor</span>
+            <span class="sep">·</span>
+            <span>app.crontinel.com</span>
+          </div>
+          <div class="stats">
+            <span class="stat">jobs<b id="stat-jobs">1,847</b></span>
+            <span class="stat">latency<b id="stat-lat">42ms</b></span>
+          </div>
+        </div>
+
+        <div class="monitor-graph">
+          <div class="grid-faint"></div>
+          <svg viewBox="0 0 600 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="hb-fill" d="" fill="url(#g1)"/>
+            <path id="hb-line" d="" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle id="hb-dot" r="4" fill="var(--accent)">
+              <animate attributeName="r" values="4;7;4" dur="1.2s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+
+        <div class="monitor-feed" id="feed">
+          <!-- JS populates -->
+        </div>
+      </div>
+
+      <div class="hero-captions mono">
+        <span><span class="status-dot ok"></span>heartbeat · every 60s</span>
+        <span><span class="status-dot fail"></span>failure · detected in <b>&lt; 60s</b></span>
+        <span><span class="status-dot warn"></span>drift · scheduler out of sync</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== METRICS ============================== -->
+<section class="section section-metrics" id="sec-metrics">
+  <div class="container">
+    <div class="metrics reveal">
+      <div class="metric">
+        <div class="n" data-count="62"><span class="val">0</span><span class="unit">s</span></div>
+        <div class="l">avg time to detect<br/>a silent cron failure</div>
+      </div>
+      <div class="metric">
+        <div class="n" data-count="14"><span class="val">0</span><span class="unit">%</span></div>
+        <div class="l">of production apps<br/>run a silently broken job</div>
+      </div>
+      <div class="metric">
+        <div class="n"><span>2</span><span class="unit"> cmds</span></div>
+        <div class="l">to monitor jobs,<br/>queues, workers &amp; agents</div>
+      </div>
+      <div class="metric">
+        <div class="n">$<span class="val" data-count="19">0</span><span class="unit">/mo</span></div>
+        <div class="l">starts at, or<br/>self-host for free</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PROBLEM ============================== -->
+<section class="section" id="sec-problem">
+  <div class="container">
+    <div class="section-head reveal section-head--split">
+      <div class="section-head-copy">
+        <span class="eyebrow">The gap</span>
+        <h2 class="display h2">Your uptime monitor says <span class="ok-green">green</span>.<br/>Your queue disagrees.</h2>
+        <p class="body">
+          A URL responding 200 doesn't mean your cron ran. It doesn't mean your workers are draining.
+          It doesn't mean your <span class="mono accent">invoices</span> queue isn't 6,000 deep, or that your agent isn't looping on a broken tool call.
+          Generic monitors can't tell you any of that.
+        </p>
+      </div>
+      <aside class="section-head-aside">
+        <div class="gap-wall" aria-hidden="true">
+          <div class="gap-col">
+            <div class="gap-col-h"><span class="mono t-mute">uptime.check</span><span class="pill pill-ok">all green</span></div>
+            <ul class="gap-list">
+              <li><span class="dot ok"></span> <span class="mono">GET /health</span> <span class="t-mute">200</span></li>
+              <li><span class="dot ok"></span> <span class="mono">GET /api/v1</span> <span class="t-mute">200</span></li>
+              <li><span class="dot ok"></span> <span class="mono">GET /login</span> <span class="t-mute">200</span></li>
+              <li><span class="dot ok"></span> <span class="mono">TLS</span> <span class="t-mute">valid</span></li>
+            </ul>
+          </div>
+          <div class="gap-divider"><span>vs</span></div>
+          <div class="gap-col gap-col--truth">
+            <div class="gap-col-h"><span class="mono t-mute">crontinel</span><span class="pill pill-bad">3 silent failures</span></div>
+            <ul class="gap-list">
+              <li><span class="dot fail"></span> <span class="mono">schedule:run</span> <span class="t-mute">17h late</span></li>
+              <li><span class="dot fail"></span> <span class="mono">agent.run.874</span> <span class="t-mute">42m loop</span></li>
+              <li><span class="dot warn"></span> <span class="mono">queue:invoices</span> <span class="t-mute">6.2k deep</span></li>
+              <li><span class="dot ok"></span> <span class="mono">worker.main</span> <span class="t-mute">ok</span></li>
+            </ul>
+          </div>
+        </div>
+      </aside>
+    </div>
+    <div class="problem-grid">
+      <article class="card problem reveal">
+        <div class="pico"><span class="dot warn"></span> <span class="mono">scheduled.task</span></div>
+        <h3>Scheduler stops. Site stays up.</h3>
+        <p class="body-sm">A deploy clobbers your cron entry. The app responds 200. No one fires the scheduler. Your nightly emails stop.</p>
+        <pre class="mock"><span class="good">GET /health         200 ok</span>
+<span class="bad">schedule:run        · 17h ago</span></pre>
+      </article>
+      <article class="card problem reveal">
+        <div class="pico"><span class="dot fail"></span> <span class="mono">agent.loop</span></div>
+        <h3>The agent loops. The bill climbs.</h3>
+        <p class="body-sm">A model retry storm or a tool-call loop runs for 40 minutes. The endpoint returns 200 for every request. You find out from billing.</p>
+        <pre class="mock"><span class="good">api.status          200 ok</span>
+<span class="bad">agent.run.874       42m · 318 tool calls</span></pre>
+      </article>
+      <article class="card problem reveal">
+        <div class="pico"><span class="dot warn"></span> <span class="mono">queue.backpressure</span></div>
+        <h3>A downstream API throttles.</h3>
+        <p class="body-sm">Your <span class="mono">invoices</span> queue is backing up silently. No alert fires because no job has failed. Customers are just waiting.</p>
+        <pre class="mock"><span class="good">invoices.depth      127 → 6,413</span>
+<span class="bad">oldest_job          12m 04s</span></pre>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== FEATURES BENTO ============================== -->
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Everything uptime tools miss</span>
+      <h2 class="display h2">Paranoid monitoring,<br/>without the instrumentation.</h2>
+      <p class="body">One SDK hooks into your scheduler, queue driver and agent runner. It watches job runs, queue depth, worker state, model latency and agent tool calls, end to end. No endpoint pings. No per-task wrapping. No missed instrumentation.</p>
+    </div>
+
+    <div class="bento">
+      <article class="card b b-lg b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Workers &amp; supervisors</span>
+          <h3 class="b-title">See the worker, not just the URL.</h3>
+          <p class="b-desc">Per-worker status, paused detection, queue sparklines, failed job rate. Horizon, Sidekiq, Celery, BullMQ, RQ, Temporal. The moment one blinks, you know.</p>
+        </div>
+        <div class="horizon-grid" id="workers-grid">
+          <!-- JS populates cells -->
+        </div>
+      </article>
+
+      <article class="card b b-md b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Heartbeat</span>
+          <h3 class="b-title">60-second detection.</h3>
+          <p class="b-desc">Every scheduled task registers a run attempt, exit code, and duration. Missed runs trip an alert before the next cron tick.</p>
+        </div>
+        <div class="viz-ping">
+          <span>pulse</span>
+          <div class="wave"></div>
+          <span class="accent mono">60s</span>
+        </div>
+      </article>
+
+      <article class="card b b-sm b-text reveal">
+        <span class="b-eyebrow">Zero wrap</span>
+        <h3 class="b-title">No per-task instrumentation.</h3>
+        <p class="b-desc">Hooks into your framework's events, not your code.</p>
+      </article>
+
+      <article class="card b b-sm b-text reveal">
+        <span class="b-eyebrow">Self-hosted</span>
+        <h3 class="b-title">Works offline. MIT.</h3>
+        <p class="b-desc">OSS first. Local dashboard, CLI, no SaaS needed.</p>
+      </article>
+
+      <article class="card b b-md b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Alerts</span>
+          <h3 class="b-title">Route once, quiet forever.</h3>
+          <p class="b-desc">One alert fans out to the channels your team actually watches — per-service routing, quiet hours, auto-resolve.</p>
+        </div>
+        <div class="viz-channels">
+          <span class="pill"><span class="dot"></span>Slack</span>
+          <span class="pill"><span class="dot"></span>PagerDuty</span>
+          <span class="pill"><span class="dot"></span>Webhook</span>
+          <span class="pill"><span class="dot"></span>Email</span>
+        </div>
+      </article>
+
+      <article class="card b b-md b-viz reveal">
+        <div>
+          <span class="b-eyebrow">CI/CD</span>
+          <h3 class="b-title">crontinel:check in your deploy hook.</h3>
+          <p class="b-desc">One command verifies scheduler, supervisors and queues after each deploy. Zero-downtime monitoring that fails loud.</p>
+        </div>
+        <pre class="viz-log"><span class="kw">$</span> crontinel check
+<span class="ok">✓</span> scheduler           last run 00:00:12 ago
+<span class="ok">✓</span> workers.default     2 supervisors · running
+<span class="ok">✓</span> queue.invoices      127 pending · 2m oldest
+<span class="ok">✓</span> agents.support      12 runs · p95 8.2s
+<span class="bad">✗</span> queue.emails        backpressure · 6,413 pending</pre>
+      </article>
+
+      <article class="card b b-wide b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Agents &amp; models</span>
+          <h3 class="b-title">Monitor the agent like any other worker.</h3>
+          <p class="b-desc">Track runs, tool calls, token spend, model latency and loop detection. Ask via MCP, so your own agent can answer "are any queues or agents backing up?" with real data.</p>
+        </div>
+        <div class="viz-mcp">
+          <div class="q">&#x203A; are any queues backing up?</div>
+          <div class="a">Yes · <b>emails</b> is at 6,413 and rising. Oldest job 12m 04s. <b>invoices</b> is healthy.</div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== HOW IT WORKS ============================== -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2 class="display h2">Two commands.<br/>One source of truth.</h2>
+    </div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="n">01 · INSTALL</div>
+        <h3>One SDK, your stack</h3>
+        <p>Drop the SDK in. No scheduler wrapping. No per-job decorators. No changes to existing jobs.</p>
+        <pre><span class="cmt"># pick your runtime</span>
+<span class="ok">$</span> npm i @crontinel/node
+<span class="ok">$</span> pip install crontinel
+<span class="ok">$</span> go get github.com/crontinel/go</pre>
+      </div>
+      <div class="step">
+        <div class="n">02 · ROUTE ALERTS</div>
+        <h3>Pick a channel</h3>
+        <p>Slack, PagerDuty, email, webhook. HMAC-signed payloads. Quiet hours. Route once, in .env.</p>
+        <pre><span class="cmt"># .env</span>
+CRONTINEL_ALERT_CHANNEL=<span class="ok">slack</span>
+CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
+      </div>
+      <div class="step">
+        <div class="n">03 · SLEEP</div>
+        <h3>Listen instead of watch</h3>
+        <p>We read scheduler events, worker state, queue internals and agent traces. When something drifts, you hear from us, not a user.</p>
+        <pre><span class="cmt"># ci/cd deploy hook</span>
+<span class="ok">$</span> crontinel check
+<span class="ok">✓ 47 jobs · 3 workers · 2 queues · 4 agents</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== DASHBOARD ============================== -->
+<section class="section" id="dashboard">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">The dashboard</span>
+      <h2 class="display h2">Not a heartbeat ping chart.<br/>The inside of your queue.</h2>
+      <p class="body">Every scheduled task with its last run, duration and exit code. Every worker with its state. Every queue with depth, oldest job, and failure rate. Every agent run with its tool calls and token spend.</p>
+    </div>
+
+    <div class="dashboard reveal">
+      <div class="db-top">
+        <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="url mono">app.crontinel.com/invoice-processor</div>
+        <div class="db-actions mono">
+          <span>&#8984;K</span>
+        </div>
+      </div>
+      <div class="db-body">
+        <aside class="db-side">
+          <div class="mono section-title">Apps</div>
+          <div class="app"><span class="dot"></span><span>customer-portal</span></div>
+          <div class="app active"><span class="dot"></span><span>invoice-processor</span></div>
+          <div class="app fail"><span class="dot"></span><span>notifications</span><span class="mono" style="margin-left:auto;color:var(--danger)">2</span></div>
+          <div class="app"><span class="dot"></span><span>analytics-etl</span></div>
+          <div class="app"><span class="dot"></span><span>billing-webhooks</span></div>
+
+          <div class="mono section-title">Filter</div>
+          <div class="app"><span class="dot"></span><span>status: all</span></div>
+          <div class="app"><span class="dot" style="background:var(--warn)"></span><span>alerts only</span></div>
+        </aside>
+
+        <div class="db-main">
+          <div class="db-title">
+            <h3>invoice-processor</h3>
+            <span class="badge">production · eu-west-1</span>
+            <span class="badge fail">1 alert</span>
+          </div>
+
+          <div class="kpis">
+            <div class="kpi"><div class="l">schedule runs / 24h</div><div class="v">1,447</div><div class="delta">+2.1% vs yesterday</div></div>
+            <div class="kpi"><div class="l">avg run time</div><div class="v">842ms</div><div class="delta">&#8722;120ms vs p50</div></div>
+            <div class="kpi"><div class="l">queue depth · total</div><div class="v">241</div><div class="delta">healthy</div></div>
+            <div class="kpi fail"><div class="l">failed last 1h</div><div class="v">12</div><div class="delta">+12 vs 0</div></div>
+          </div>
+
+          <div class="db-panels">
+            <div class="db-panel">
+              <div class="h"><span>Scheduled tasks</span><span style="color:var(--text-3)">14 tasks</span></div>
+              <table class="table">
+                <thead><tr><th>Task</th><th>Last run</th><th>Duration</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="status-dot ok"></span>generate:daily-invoices</td><td class="mono">2m ago</td><td class="mono">1.82s</td><td class="mono">ok</td></tr>
+                  <tr><td><span class="status-dot ok"></span>dunning:send-reminders</td><td class="mono">14m ago</td><td class="mono">940ms</td><td class="mono">ok</td></tr>
+                  <tr class="fail"><td><span class="status-dot fail"></span>sync:stripe-webhooks</td><td class="mono danger">17m ago</td><td class="mono">...</td><td class="mono danger">exit 1</td></tr>
+                  <tr><td><span class="status-dot ok"></span>export:accounting-feed</td><td class="mono">29m ago</td><td class="mono">4.1s</td><td class="mono">ok</td></tr>
+                  <tr><td><span class="status-dot warn"></span>telemetry:roll-up</td><td class="mono">1h 02m ago</td><td class="mono">12.4s</td><td class="mono">slow</td></tr>
+                  <tr><td><span class="status-dot ok"></span>cleanup:stale-sessions</td><td class="mono">3h ago</td><td class="mono">220ms</td><td class="mono">ok</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="db-panel">
+              <div class="h"><span>Workers · 3 supervisors</span><span style="color:var(--accent)">running</span></div>
+              <table class="table">
+                <thead><tr><th>Queue</th><th>Depth</th><th>Oldest</th><th>Trend</th></tr></thead>
+                <tbody>
+                  <tr><td>default</td><td class="mono">12</td><td class="mono">200ms</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,18 10,14 20,20 30,12 40,16 50,10 60,14 70,8 80,12 90,10 100,14"/></svg>
+                  </td></tr>
+                  <tr><td>invoices</td><td class="mono">127</td><td class="mono">2m 04s</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,20 10,18 20,16 30,18 40,14 50,14 60,16 70,10 80,14 90,12 100,14"/></svg>
+                  </td></tr>
+                  <tr class="fail"><td>emails</td><td class="mono danger">6,413</td><td class="mono danger">12m 04s</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--danger)" stroke-width="1.5" points="0,22 10,22 20,20 30,18 40,14 50,10 60,6 70,4 80,3 90,2 100,1"/></svg>
+                  </td></tr>
+                  <tr><td>analytics</td><td class="mono">88</td><td class="mono">400ms</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,14 10,16 20,12 30,10 40,12 50,16 60,14 70,10 80,8 90,12 100,10"/></svg>
+                  </td></tr>
+                  <tr><td>notifications</td><td class="mono">3</td><td class="mono">80ms</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,16 10,14 20,18 30,12 40,14 50,12 60,14 70,10 80,12 90,14 100,12"/></svg>
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== INTEGRATIONS ============================== -->
+<section class="section" id="sec-integrations">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Routed, not noisy</span>
+      <h2 class="display h2">Alerts go where you listen.</h2>
+    </div>
+    <div class="integrations">
+      <div class="card int-group reveal">
+        <h4>Native · shipping</h4>
+        <div class="int-pills">
+          <span class="int-pill">Slack</span>
+          <span class="int-pill">PagerDuty</span>
+          <span class="int-pill">Email / SES</span>
+          <span class="int-pill">Webhook · HMAC</span>
+          <span class="int-pill">Telegram</span>
+          <span class="int-pill">MCP · any agent</span>
+        </div>
+      </div>
+      <div class="card int-group reveal">
+        <h4>Coming soon</h4>
+        <div class="int-pills">
+          <span class="int-pill soon">Discord</span>
+          <span class="int-pill soon">Opsgenie</span>
+          <span class="int-pill soon">Linear</span>
+          <span class="int-pill soon">Zapier</span>
+          <span class="int-pill soon">Microsoft Teams</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== PRICING ============================== -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Pricing</span>
+      <h2 class="display h2">Free for one app.<br/>Generous for teams.</h2>
+      <div class="billing-toggle" role="tablist" aria-label="Billing period">
+        <button type="button" class="on" data-bill="monthly">Monthly</button>
+        <button type="button" data-bill="yearly">Yearly<span class="save">&#8722;20%</span></button>
+      </div>
+    </div>
+
+    <div class="pricing">
+      <article class="card price reveal">
+        <h3>Free</h3>
+        <p class="tag">For one app. Forever.</p>
+        <div class="cost"><span class="amt">$0</span><span class="per">/mo</span></div>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 connected app</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 7 days of run history</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> All alert channels</li>
+          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Team access</li>
+          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Audit log</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://app.crontinel.com">Start free</a>
+      </article>
+
+      <article class="card price pro reveal" style="position:relative">
+        <span class="badge">most teams</span>
+        <h3>Pro</h3>
+        <p class="tag">For the team with real pagers.</p>
+        <div class="cost"><span class="amt" data-monthly="19" data-yearly="15">$19</span><span class="per">/mo</span></div>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 5 connected apps</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 90 days of history</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> PagerDuty, Slack, webhook</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Quiet hours &amp; routing</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> MCP server access</li>
+        </ul>
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start Pro trial</a>
+      </article>
+
+      <article class="card price reveal">
+        <h3>Team</h3>
+        <p class="tag">Unlimited apps, teammates, history.</p>
+        <div class="cost"><span class="amt" data-monthly="49" data-yearly="39">$49</span><span class="per">/mo</span></div>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited apps</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 year of history</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited teammates</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Audit log, SSO (soon)</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://app.crontinel.com">Start Team trial</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== OSS VS SAAS ============================== -->
+<section class="section" id="sec-oss">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Open by default</span>
+      <h2 class="display h2">A family of open-source packages.</h2>
+      <p class="body">Crontinel is SDKs and a CLI, not a vendor lock-in. Every runtime has its own MIT-licensed package that works against your own database. The cloud dashboard is an <em>option</em> layered on top, not a dependency.</p>
+    </div>
+
+    <div class="pkg-grid reveal">
+      <a class="pkg" href="https://github.com/crontinel/node" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-node">TS</span><span class="pkg-meta mono">TypeScript</span></div>
+        <div class="pkg-name mono">crontinel/node</div>
+        <p class="pkg-desc">Node &amp; TypeScript. BullMQ, Agenda, node-cron, workers.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/python" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-py">PY</span><span class="pkg-meta mono">Python</span></div>
+        <div class="pkg-name mono">crontinel/python</div>
+        <p class="pkg-desc">Celery, RQ, Huey, APScheduler, Prefect, Dramatiq.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/go" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-go">GO</span><span class="pkg-meta mono">Go</span></div>
+        <div class="pkg-name mono">crontinel/go</div>
+        <p class="pkg-desc">Asynq, Machinery, Temporal, gocron, native tickers.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/rust" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · MIT</span></div>
+        <div class="pkg-name mono">crontinel/rust</div>
+        <p class="pkg-desc">Tokio, async-std, apalis, tokio-cron-scheduler.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/php" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-php">PHP</span><span class="pkg-meta mono">PHP · MIT</span></div>
+        <div class="pkg-name mono">crontinel/php</div>
+        <p class="pkg-desc">Framework-agnostic PHP library. Symfony Messenger + plain cron.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-php">LA</span><span class="pkg-meta mono">PHP · MIT</span></div>
+        <div class="pkg-name mono">crontinel/laravel</div>
+        <p class="pkg-desc">Laravel Horizon &amp; scheduler. Auto-detect, zero wrap.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · core</span></div>
+        <div class="pkg-name mono">crontinel/crontinel</div>
+        <p class="pkg-desc">Rust core. The recorder, agent and shared wire format.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/cli" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-cli">SH</span><span class="pkg-meta mono">Go</span></div>
+        <div class="pkg-name mono">crontinel/cli</div>
+        <p class="pkg-desc">Language-agnostic. Wrap any cron, Docker job, K8s CronJob.</p>
+      </a>
+      <a class="pkg" href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-ai">AI</span><span class="pkg-meta mono">TypeScript · MIT</span></div>
+        <div class="pkg-name mono">@crontinel/mcp-server</div>
+        <p class="pkg-desc">MCP server. Let your agent query jobs, queues and runs.</p>
+      </a>
+    </div>
+
+    <div class="oss-cloud reveal">
+      <div class="oss-cloud-copy">
+        <span class="chip"><span class="dot"></span>Hosted · app.crontinel.com</span>
+        <h3>Crontinel Cloud</h3>
+        <p>Everything the OSS packages do, plus multi-app dashboards, team access, long-horizon history, an MCP server, and routing rules. You keep the self-hosted SDKs; we handle the rest.</p>
+      </div>
+      <ul class="oss-cloud-list">
+        <li><span class="ok-mark">&#10003;</span> Multi-app view &amp; search</li>
+        <li><span class="ok-mark">&#10003;</span> History retention (90d &#8594; 1y)</li>
+        <li><span class="ok-mark">&#10003;</span> Team access, audit log, SSO (soon)</li>
+        <li><span class="ok-mark">&#10003;</span> MCP server for agents</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== INSTALL ============================== -->
+<section class="section" id="sec-install">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Install</span>
+      <h2 class="display h2">Two commands. No pings.</h2>
+    </div>
+    <div class="sdk-tabs reveal" id="sdk-tabs">
+      <div class="sdk-tablist" role="tablist">
+        <button class="sdk-tab on" data-sdk="node">Node</button>
+        <button class="sdk-tab" data-sdk="python">Python</button>
+        <button class="sdk-tab" data-sdk="go">Go</button>
+        <button class="sdk-tab" data-sdk="rust">Rust</button>
+        <button class="sdk-tab" data-sdk="php">PHP</button>
+        <button class="sdk-tab" data-sdk="cli">CLI / Docker</button>
+      </div>
+
+      <div class="sdk-panel" data-for="node">
+        <div class="install-cmd"><span><span class="prompt">$</span> npm i @crontinel/node</span><button class="copy" data-copy="npm i @crontinel/node">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel init</span><button class="copy" data-copy="npx crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="npx crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="python" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> pip install crontinel</span><button class="copy" data-copy="pip install crontinel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel init</span><button class="copy" data-copy="crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="go" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> go get github.com/crontinel/go</span><button class="copy" data-copy="go get github.com/crontinel/go">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> go run github.com/crontinel/go/cmd/crontinel init</span><button class="copy" data-copy="go run github.com/crontinel/go/cmd/crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="rust" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> cargo add crontinel-rust</span><button class="copy" data-copy="cargo add crontinel-rust">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> cargo install crontinel-cli</span><button class="copy" data-copy="cargo install crontinel-cli">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="php" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/php</span><button class="copy" data-copy="composer require crontinel/php">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/laravel   <span style="color:var(--text-3)"># or for Laravel</span></span><button class="copy" data-copy="composer require crontinel/laravel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> vendor/bin/crontinel check</span><button class="copy" data-copy="vendor/bin/crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="cli" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> brew install crontinel</span><button class="copy" data-copy="brew install crontinel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> docker run crontinel/agent init</span><button class="copy" data-copy="docker run crontinel/agent init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== FINAL CTA ============================== -->
+<section class="section" id="signup">
+  <div class="container">
+    <div class="final reveal">
+      <span class="eyebrow" style="justify-content:center">Ready?</span>
+      <h2 class="display h2">Stop finding out<br/>from your users.</h2>
+      <p class="body">Free plan, no credit card. Two commands to install. Slack alert in under five minutes.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free <span class="arrow-i">&#8599;</span></a>
+        <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">Read the source</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-top">
+      <div class="footer-lead">
+        <a class="brand" href="#top">
+          <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <defs><linearGradient id="crl-bg-ft" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a5b4fc"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs>
+            <circle cx="32" cy="32" r="30" fill="url(#crl-bg-ft)"/>
+            <circle cx="32" cy="32" r="18" stroke="#1e1b4b" stroke-width="4"/>
+            <line x1="32" y1="32" x2="32" y2="19" stroke="#1e1b4b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="32" y1="32" x2="41" y2="38" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="3" fill="#1e1b4b"/>
+            <circle cx="46" cy="14" r="6" fill="#22c55e"/>
+          </svg>
+          <span>crontinel</span>
+        </a>
+        <p class="footer-tag">Know when jobs, queues, workers and agents drift, before your users do.</p>
+        <div class="footer-status mono">
+          <span class="ping"></span>
+          <span>all.systems.operational</span>
+          <span class="sep">·</span>
+          <a href="https://status.crontinel.com">status.crontinel.com</a>
+        </div>
+        <div class="footer-social">
+          <a href="https://github.com/crontinel" aria-label="GitHub" class="soc">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          </a>
+          <a href="https://x.com/HarunRRayhan" aria-label="X / Twitter" class="soc">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-cols">
+        <div>
+          <h5>Packages</h5>
+          <ul>
+            <li><a href="https://github.com/crontinel/node">@crontinel/node</a></li>
+            <li><a href="https://github.com/crontinel/python">crontinel/python</a></li>
+            <li><a href="https://github.com/crontinel/go">crontinel/go</a></li>
+            <li><a href="https://github.com/crontinel/rust">crontinel/rust</a></li>
+            <li><a href="https://github.com/crontinel/php">crontinel/php</a></li>
+            <li><a href="https://github.com/crontinel/laravel">crontinel/laravel</a></li>
+            <li><a href="https://github.com/crontinel/cli">crontinel/cli</a></li>
+            <li><a href="https://github.com/crontinel/mcp-server">@crontinel/mcp-server</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Product</h5>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#sec-oss">Open source</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="/blog">Blog</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Resources</h5>
+          <ul>
+            <li><a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a></li>
+            <li><a href="https://github.com/crontinel" target="_blank" rel="noopener">GitHub org</a></li>
+            <li><a href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">MCP server</a></li>
+            <li><a href="https://status.crontinel.com">Status</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Company</h5>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/legal/privacy">Privacy</a></li>
+            <li><a href="/legal/terms">Terms</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-wordmark" aria-hidden="true">crontinel</div>
+
+    <div class="footer-bottom">
+      <span>&#169; 2026 Crontinel · MIT-licensed packages</span>
+      <span class="mono">uptime: 99.987% · last 30d</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================== TWEAKS PANEL ============================== -->
+<aside class="tweaks" id="tweaks" hidden>
+  <div class="head">
+    <span>Tweaks</span>
+    <button class="close" id="tweaks-close" aria-label="Close">&#215;</button>
+  </div>
+  <div class="body">
+    <div class="tweak-group">
+      <label>Accent color</label>
+      <div class="swatches" id="tw-accent">
+        <button class="swatch" data-accent="green"  style="background:hsl(142 71% 45%)"></button>
+        <button class="swatch" data-accent="blue"   style="background:hsl(212 100% 60%)"></button>
+        <button class="swatch" data-accent="amber"  style="background:hsl(32 95% 55%)"></button>
+        <button class="swatch" data-accent="violet" style="background:hsl(265 83% 66%)"></button>
+        <button class="swatch" data-accent="red"    style="background:hsl(0 84% 60%)"></button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Theme</label>
+      <div class="seg" id="tw-theme">
+        <button data-theme="dark">Dark</button>
+        <button data-theme="light">Light</button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Density</label>
+      <div class="seg" id="tw-density">
+        <button data-density="airy">Airy</button>
+        <button data-density="compact">Compact</button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Hero variant</label>
+      <div class="seg" id="tw-hero">
+        <button data-hero="heartbeat">Heartbeat</button>
+        <button data-hero="minimal">Minimal</button>
+      </div>
+    </div>
+    <div class="tweak-group">
+      <label>Headline</label>
+      <textarea id="tw-headline" rows="3"></textarea>
+    </div>
+    <div class="tweak-group">
+      <label>Visible sections</label>
+      <div class="checks" id="tw-sections">
+        <label><input type="checkbox" data-show="showMetrics"/> Metrics</label>
+        <label><input type="checkbox" data-show="showProblem"/> Problem</label>
+        <label><input type="checkbox" data-show="showFeatures"/> Features</label>
+        <label><input type="checkbox" data-show="showHowItWorks"/> How it works</label>
+        <label><input type="checkbox" data-show="showDashboard"/> Dashboard</label>
+        <label><input type="checkbox" data-show="showIntegrations"/> Integrations</label>
+        <label><input type="checkbox" data-show="showPricing"/> Pricing</label>
+        <label><input type="checkbox" data-show="showOssVsSaas"/> OSS vs SaaS</label>
+        <label><input type="checkbox" data-show="showInstall"/> Install</label>
+        <label><input type="checkbox" data-show="showFinalCta"/> Final CTA</label>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Cookie consent banner -->
+<div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0f0f11;border-top:1px solid var(--border);padding:16px 24px;">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;justify-content:space-between;flex-wrap:wrap;">
+    <p style="margin:0;font-size:13px;color:var(--text-2)">
+      We use cookies to understand how visitors use our site.
+      <a href="/legal/privacy" style="color:var(--text);text-decoration:underline">Privacy Policy</a>
+    </p>
+    <div style="display:flex;gap:10px;flex-shrink:0;">
+      <button id="cookie-decline" style="font-size:13px;color:var(--text-3);padding:6px 12px;cursor:pointer;background:none;border:none;">Decline</button>
+      <button id="cookie-accept" style="font-size:13px;background:var(--accent);color:#001a0d;font-weight:600;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;">Accept</button>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ gaId }}>
+  (function() {
+    var consent = localStorage.getItem('cookie_consent');
+    if (!consent) document.getElementById('cookie-banner').style.display = '';
+
+    function loadGA() {
+      if (!gaId || document.getElementById('ga-script')) return;
+      var s = document.createElement('script');
+      s.id = 'ga-script'; s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date()); gtag('config', gaId);
+    }
+
+    if (localStorage.getItem('cookie_consent') === 'accepted') loadGA();
+
+    document.getElementById('cookie-accept')?.addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', 'accepted');
+      document.getElementById('cookie-banner').style.display = 'none';
+      loadGA();
+    });
+    document.getElementById('cookie-decline')?.addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', 'declined');
+      document.getElementById('cookie-banner').style.display = 'none';
+    });
+  })();
 </script>
 
-<style>
-  .pricing-btn-active {
-    background: #22c55e;
-    color: #000;
-  }
-  .pricing-btn-inactive {
-    background: transparent;
-    color: #525252;
-  }
-  .pricing-btn-inactive:hover {
-    color: #a3a3a3;
-  }
-</style>
+<script is:inline>
+window.__TWEAKS = {
+  accent: "green", density: "airy", theme: "dark", heroVariant: "heartbeat",
+  headline: "Your cron is lying to you.",
+  sub: "Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.",
+  showMetrics: true, showProblem: true, showFeatures: true, showHowItWorks: true,
+  showDashboard: true, showIntegrations: true, showPricing: true,
+  showOssVsSaas: true, showInstall: true, showFinalCta: true
+};
+</script>
+<script is:inline src="/src/main.js"></script>
 
-<!-- trigger -->
+</body>
+</html>
