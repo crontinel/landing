@@ -1,377 +1,520 @@
 ---
-import Base from '../layouts/Base.astro';
+export const prerender = true;
+
+const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? '';
+const canonicalURL = new URL('/', 'https://crontinel.com').toString();
+const title = 'Crontinel // See your cron before it screams';
+const description = 'Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.';
 ---
 
-<Base title="Crontinel — Your cron is lying to you" description="Know when your cron jobs, schedulers, queues, workers, and AI agents stop working — before your users do. Open-source monitoring that generic uptime tools miss.">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="generator" content="Astro" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/favicon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+  <link rel="canonical" href={canonicalURL} />
 
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
 
-<!-- NAV -->
-<nav class="nav" id="top">
-  <div class="container nav-inner">
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalURL} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content="https://crontinel.com/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="Crontinel" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@HarunRRayhan" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content="https://crontinel.com/og-default.png" />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://crontinel.com/#organization",
+        "name": "Crontinel",
+        "url": "https://crontinel.com",
+        "logo": { "@type": "ImageObject", "url": "https://crontinel.com/favicon.svg" },
+        "sameAs": ["https://github.com/crontinel", "https://x.com/HarunRRayhan"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://crontinel.com/#website",
+        "url": "https://crontinel.com",
+        "name": "Crontinel",
+        "description": "Cron, Scheduler & Background Job Monitoring",
+        "publisher": { "@id": "https://crontinel.com/#organization" }
+      }
+    ]
+  })} />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Design system -->
+  <link rel="stylesheet" href="/styles/crontinel-tokens.css" />
+  <link rel="stylesheet" href="/styles/components.css" />
+
+  <!-- Accessibility: skip link -->
+  <style>
+    .skip-to-main {
+      position: fixed;
+      top: -100%;
+      left: 0.5rem;
+      z-index: 9999;
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      padding: 0.5rem 1rem;
+      border-radius: 0 0 0.375rem 0;
+      text-decoration: none;
+      transition: top 0.15s ease;
+    }
+    .skip-to-main:focus { top: 0; }
+    .danger { color: var(--danger); }
+  </style>
+</head>
+
+<body>
+<a href="#main-content" class="skip-to-main">Skip to main content</a>
+
+<!-- ============================== NAV ============================== -->
+<nav class="nav" id="nav">
+  <div class="container inner">
     <a href="#top" class="brand">
-      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-        <circle cx="14" cy="14" r="13" stroke="#6366f1" stroke-width="2" fill="none"/>
-        <line x1="14" y1="6" x2="14" y2="14" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
-        <line x1="14" y1="14" x2="19" y2="18" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="22" cy="6" r="3" fill="#22c55e"/>
+      <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+        <defs><linearGradient id="crl-bg-nav" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a5b4fc"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs>
+        <circle cx="32" cy="32" r="30" fill="url(#crl-bg-nav)"/>
+        <circle cx="32" cy="32" r="18" stroke="#1e1b4b" stroke-width="4"/>
+        <line x1="32" y1="32" x2="32" y2="19" stroke="#1e1b4b" stroke-width="4" stroke-linecap="round"/>
+        <line x1="32" y1="32" x2="41" y2="38" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="3" fill="#1e1b4b"/>
+        <circle cx="46" cy="14" r="6" fill="#22c55e"/>
       </svg>
       <span>crontinel</span>
     </a>
-    <div class="nav-links">
+    <div class="links" id="nav-links">
       <a href="#features">Features</a>
       <a href="#how">How it works</a>
       <a href="#dashboard">Dashboard</a>
       <a href="#pricing">Pricing</a>
       <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a>
     </div>
-    <div class="nav-right">
-      <a class="btn btn-ghost btn-sm" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        1.2k
+    <div class="right">
+      <a class="btn btn-ghost btn-sm nav-github" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener" aria-label="GitHub">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        <span>1.2k</span>
       </a>
-      <a class="btn btn-primary btn-sm" href="https://app.crontinel.com">Start free &#8599;</a>
-      <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
-        <svg class="hamburger-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        <svg class="close-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      <a class="btn btn-primary btn-sm" href="#signup">Start free <span class="arrow-i">&#8599;</span></a>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
+        <span></span><span></span><span></span>
       </button>
-    </div>
-  </div>
-  <div class="nav-mobile" id="nav-mobile">
-    <a href="#features">Features</a>
-    <a href="#how">How it works</a>
-    <a href="#dashboard">Dashboard</a>
-    <a href="#pricing">Pricing</a>
-    <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a>
-    <div class="nav-mobile-ctas">
-      <a class="btn btn-ghost btn-sm" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn btn-primary btn-sm" href="https://app.crontinel.com">Start free &#8599;</a>
     </div>
   </div>
 </nav>
 
-<!-- HERO -->
-<header class="hero">
-  <div class="hero-bg">
-    <div class="hero-grid"></div>
-    <div class="hero-glow"></div>
-    <div class="hero-scanline"></div>
+<!-- ============================== HERO ============================== -->
+<main id="main-content">
+<header class="hero" id="top">
+  <div class="hero-bg" aria-hidden="true">
+    <div class="grid"></div>
+    <div class="glow"></div>
+    <div class="scanline"></div>
   </div>
-  <div class="container hero-content">
+  <div class="container hero-inner">
     <div class="hero-left">
-      <span class="hero-status mono">
-        <span class="dot dot-ok pulse"></span>
-        all.systems.operational &middot; 99.987% last 30d
+      <span class="hero-status">
+        <span class="ping"></span>
+        <span class="mono">all.systems.operational</span>
+        <span class="sep">·</span>
+        <span class="mono" id="hero-uptime">99.987% last 30d</span>
       </span>
-      <h1>Your cron<br/>is <span class="accent">lying</span><br/>to you<span class="cursor">|</span></h1>
-      <p class="hero-sub">Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure <em>before</em> your users do.</p>
+
+      <h1 class="display h1" id="headline">
+        Your cron<br/>
+        is <span class="accent">lying</span><br/>
+        to you.<span class="cursor"></span>
+      </h1>
+
+      <p class="hero-sub" id="sub">
+        Crontinel watches the jobs, queues, workers, models and agents behind your app,
+        so you hear about the failure <em>before</em> your users do.
+      </p>
+
       <div class="hero-ctas">
-        <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free &#8599;</a>
-        <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">View on GitHub</a>
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free <span class="arrow-i">&#8599;</span></a>
+        <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          View on GitHub
+        </a>
       </div>
-      <div class="hero-trust mono">node &middot; python &middot; go &middot; php &middot; cli &middot; MIT licensed &middot; free tier, no card</div>
+
+      <div class="hero-trust mono">
+        <span>node · python · go · php · cli</span>
+        <span class="sep">·</span>
+        <span>MIT licensed</span>
+        <span class="sep">·</span>
+        <span>free tier, no card</span>
+      </div>
     </div>
+
+    <!-- HEARTBEAT MONITOR -->
     <div class="hero-right">
-      <div class="monitor">
-        <div class="monitor-head mono">
-          <span>live.monitor &middot; app.crontinel.com</span>
-          <span class="monitor-stats">jobs: 1,847 &middot; latency: 42ms</span>
+      <div class="monitor" id="monitor">
+        <div class="monitor-head">
+          <div class="label">
+            <span class="dot"></span>
+            <span>live.monitor</span>
+            <span class="sep">·</span>
+            <span>app.crontinel.com</span>
+          </div>
+          <div class="stats">
+            <span class="stat">jobs <b id="stat-jobs">1,847</b></span>
+            <span class="stat">latency <b id="stat-lat">42ms</b></span>
+          </div>
         </div>
+
         <div class="monitor-graph">
-          <svg id="heartbeat-svg" viewBox="0 0 600 120" preserveAspectRatio="none">
+          <div class="grid-faint"></div>
+          <svg viewBox="0 0 600 220" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.1"/>
-                <stop offset="100%" stop-color="#22c55e" stop-opacity="1"/>
-              </linearGradient>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#22c55e" stop-opacity="0.15"/>
-                <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+              <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
               </linearGradient>
             </defs>
-            <path id="heartbeat-area" fill="url(#areaGrad)" d=""/>
-            <path id="heartbeat-line" fill="none" stroke="url(#lineGrad)" stroke-width="2" d=""/>
-            <circle id="heartbeat-dot" r="4" fill="#22c55e" cx="0" cy="0">
-              <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite"/>
+            <path id="hb-fill" d="" fill="url(#g1)"/>
+            <path id="hb-line" d="" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+            <circle id="hb-dot" r="4" fill="var(--accent)">
+              <animate attributeName="r" values="4;7;4" dur="1.2s" repeatCount="indefinite"/>
             </circle>
           </svg>
         </div>
-        <div class="monitor-feed" id="monitor-feed"></div>
+
+        <div class="monitor-feed" id="feed">
+          <!-- JS populates -->
+        </div>
       </div>
+
       <div class="hero-captions mono">
-        <span><span class="dot dot-ok"></span> heartbeat &middot; every 60s</span>
-        <span><span class="dot dot-fail"></span> failure &middot; detected in &lt; 60s</span>
-        <span><span class="dot dot-warn"></span> drift &middot; scheduler out of sync</span>
+        <span><span class="status-dot ok"></span>heartbeat · every 60s</span>
+        <span><span class="status-dot fail"></span>failure · detected in <b>&lt; 60s</b></span>
+        <span><span class="status-dot warn"></span>drift · scheduler out of sync</span>
       </div>
     </div>
   </div>
 </header>
 
-<!-- METRICS -->
-<section class="section-metrics reveal">
+<!-- ============================== METRICS ============================== -->
+<section class="section section-metrics" id="sec-metrics">
   <div class="container">
-    <div class="metrics">
+    <div class="metrics reveal">
       <div class="metric">
-        <div class="metric-n"><span class="val" data-count="62">0</span><span class="unit">s</span></div>
-        <div class="metric-l">avg time to detect a silent cron failure</div>
+        <div class="n" data-count="62"><span class="val">0</span><span class="unit">s</span></div>
+        <div class="l">avg time to detect<br/>a silent cron failure</div>
       </div>
       <div class="metric">
-        <div class="metric-n"><span class="val" data-count="14">0</span><span class="unit">%</span></div>
-        <div class="metric-l">of production apps run a silently broken job</div>
+        <div class="n" data-count="14"><span class="val">0</span><span class="unit">%</span></div>
+        <div class="l">of production apps<br/>run a silently broken job</div>
       </div>
       <div class="metric">
-        <div class="metric-n"><span class="val" data-count="2">0</span><span class="unit"> cmds</span></div>
-        <div class="metric-l">to monitor jobs, queues, workers &amp; agents</div>
+        <div class="n"><span>2</span><span class="unit"> cmds</span></div>
+        <div class="l">to monitor jobs,<br/>queues, workers &amp; agents</div>
       </div>
       <div class="metric">
-        <div class="metric-n">$<span class="val" data-count="19">0</span><span class="unit">/mo</span></div>
-        <div class="metric-l">starts at, or self-host for free</div>
+        <div class="n">$<span class="val" data-count="19">0</span><span class="unit">/mo</span></div>
+        <div class="l">starts at, or<br/>self-host for free</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- PROBLEM -->
-<section id="sec-problem" class="section">
+<!-- ============================== PROBLEM ============================== -->
+<section class="section" id="sec-problem">
   <div class="container">
-    <div class="section-head-split reveal">
+    <div class="section-head reveal section-head--split">
       <div class="section-head-copy">
         <span class="eyebrow">The gap</span>
-        <h2>Your uptime monitor says <span class="ok-green">green</span>.<br/>Your queue disagrees.</h2>
-        <p>A URL responding 200 doesn't mean your cron ran. It doesn't mean your workers are draining. It doesn't mean your <span class="mono accent">invoices</span> queue isn't 6,000 deep, or that your agent isn't looping on a broken tool call. Generic monitors can't tell you any of that.</p>
+        <h2 class="display h2">Your uptime monitor says <span class="ok-green">green</span>.<br/>Your queue disagrees.</h2>
+        <p class="body">
+          A URL responding 200 doesn't mean your cron ran. It doesn't mean your workers are draining.
+          It doesn't mean your <span class="mono accent">invoices</span> queue isn't 6,000 deep, or that your agent isn't looping on a broken tool call.
+          Generic monitors can't tell you any of that.
+        </p>
       </div>
       <aside class="section-head-aside">
-        <div class="gap-wall">
+        <div class="gap-wall" aria-hidden="true">
           <div class="gap-col">
-            <div class="gap-label mono">uptime.check</div>
-            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">GET /health</span><span class="gap-val ok-green">200</span></div>
-            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">GET /api/v1</span><span class="gap-val ok-green">200</span></div>
-            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">GET /login</span><span class="gap-val ok-green">200</span></div>
-            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">TLS valid</span><span class="gap-val ok-green">&#10003;</span></div>
+            <div class="gap-col-h"><span class="mono t-mute">uptime.check</span><span class="pill pill-ok">all green</span></div>
+            <ul class="gap-list">
+              <li><span class="dot ok"></span> <span class="mono">GET /health</span> <span class="t-mute">200</span></li>
+              <li><span class="dot ok"></span> <span class="mono">GET /api/v1</span> <span class="t-mute">200</span></li>
+              <li><span class="dot ok"></span> <span class="mono">GET /login</span> <span class="t-mute">200</span></li>
+              <li><span class="dot ok"></span> <span class="mono">TLS</span> <span class="t-mute">valid</span></li>
+            </ul>
           </div>
-          <div class="gap-divider">vs</div>
-          <div class="gap-col gap-col-truth">
-            <div class="gap-label mono">crontinel</div>
-            <div class="gap-item gap-bad"><span class="dot dot-fail"></span><span class="mono">schedule:run</span><span class="gap-val danger">17h late</span></div>
-            <div class="gap-item gap-bad"><span class="dot dot-fail"></span><span class="mono">agent.run.874</span><span class="gap-val danger">42m loop</span></div>
-            <div class="gap-item gap-bad"><span class="dot dot-warn"></span><span class="mono">queue:invoices</span><span class="gap-val warn">6.2k deep</span></div>
-            <div class="gap-item gap-ok"><span class="dot dot-ok"></span><span class="mono">worker.main</span><span class="gap-val ok-green">ok</span></div>
+          <div class="gap-divider"><span>vs</span></div>
+          <div class="gap-col gap-col--truth">
+            <div class="gap-col-h"><span class="mono t-mute">crontinel</span><span class="pill pill-bad">3 silent failures</span></div>
+            <ul class="gap-list">
+              <li><span class="dot fail"></span> <span class="mono">schedule:run</span> <span class="t-mute">17h late</span></li>
+              <li><span class="dot fail"></span> <span class="mono">agent.run.874</span> <span class="t-mute">42m loop</span></li>
+              <li><span class="dot warn"></span> <span class="mono">queue:invoices</span> <span class="t-mute">6.2k deep</span></li>
+              <li><span class="dot ok"></span> <span class="mono">worker.main</span> <span class="t-mute">ok</span></li>
+            </ul>
           </div>
         </div>
       </aside>
     </div>
     <div class="problem-grid">
       <article class="card problem reveal">
-        <div class="pico"><span class="dot dot-warn"></span><span class="mono">scheduled.task</span></div>
+        <div class="pico"><span class="dot warn"></span> <span class="mono">scheduled.task</span></div>
         <h3>Scheduler stops. Site stays up.</h3>
-        <p>A deploy clobbers your cron entry. The app responds 200. No one fires the scheduler. Your nightly emails stop.</p>
-        <pre class="mono">GET /health         200 ok
-schedule:run        &middot; 17h ago</pre>
+        <p class="body-sm">A deploy clobbers your cron entry. The app responds 200. No one fires the scheduler. Your nightly emails stop.</p>
+        <pre class="mock"><span class="good">GET /health         200 ok</span>
+<span class="bad">schedule:run        · 17h ago</span></pre>
       </article>
-      <article class="card problem reveal reveal-delay-1">
-        <div class="pico"><span class="dot dot-fail"></span><span class="mono">agent.loop</span></div>
+      <article class="card problem reveal">
+        <div class="pico"><span class="dot fail"></span> <span class="mono">agent.loop</span></div>
         <h3>The agent loops. The bill climbs.</h3>
-        <p>A model retry storm or a tool-call loop runs for 40 minutes. The endpoint returns 200 for every request. You find out from billing.</p>
-        <pre class="mono">api.status          200 ok
-agent.run.874       42m &middot; 318 tool calls</pre>
+        <p class="body-sm">A model retry storm or a tool-call loop runs for 40 minutes. The endpoint returns 200 for every request. You find out from billing.</p>
+        <pre class="mock"><span class="good">api.status          200 ok</span>
+<span class="bad">agent.run.874       42m · 318 tool calls</span></pre>
       </article>
-      <article class="card problem reveal reveal-delay-2">
-        <div class="pico"><span class="dot dot-warn"></span><span class="mono">queue.backpressure</span></div>
+      <article class="card problem reveal">
+        <div class="pico"><span class="dot warn"></span> <span class="mono">queue.backpressure</span></div>
         <h3>A downstream API throttles.</h3>
-        <p>Your invoices queue is backing up silently. No alert fires because no job has failed. Customers are just waiting.</p>
-        <pre class="mono">invoices.depth      127 &rarr; 6,413
-oldest_job          12m 04s</pre>
+        <p class="body-sm">Your <span class="mono">invoices</span> queue is backing up silently. No alert fires because no job has failed. Customers are just waiting.</p>
+        <pre class="mock"><span class="good">invoices.depth      127 → 6,413</span>
+<span class="bad">oldest_job          12m 04s</span></pre>
       </article>
     </div>
   </div>
 </section>
 
-<!-- FEATURES BENTO -->
-<section id="features" class="section">
+<!-- ============================== FEATURES BENTO ============================== -->
+<section class="section" id="features">
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow">Everything uptime tools miss</span>
-      <h2>Paranoid monitoring,<br/>without the instrumentation.</h2>
-      <p>One SDK hooks into your scheduler, queue driver and agent runner. It watches job runs, queue depth, worker state, model latency and agent tool calls, end to end. No endpoint pings. No per-task wrapping. No missed instrumentation.</p>
+      <h2 class="display h2">Paranoid monitoring,<br/>without the instrumentation.</h2>
+      <p class="body">One SDK hooks into your scheduler, queue driver and agent runner. It watches job runs, queue depth, worker state, model latency and agent tool calls, end to end. No endpoint pings. No per-task wrapping. No missed instrumentation.</p>
     </div>
+
     <div class="bento">
-      <!-- Large: Workers -->
-      <article class="card b b-lg reveal">
-        <h3>See the worker, not just the URL.</h3>
-        <p>Per-worker status, paused detection, queue sparklines. Horizon, Sidekiq, Celery, BullMQ. The moment one blinks, you know.</p>
-        <div class="horizon-grid" id="worker-grid"></div>
+      <article class="card b b-lg b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Workers &amp; supervisors</span>
+          <h3 class="b-title">See the worker, not just the URL.</h3>
+          <p class="b-desc">Per-worker status, paused detection, queue sparklines, failed job rate. Horizon, Sidekiq, Celery, BullMQ, RQ, Temporal. The moment one blinks, you know.</p>
+        </div>
+        <div class="horizon-grid" id="workers-grid">
+          <!-- JS populates cells -->
+        </div>
       </article>
-      <!-- Medium: Heartbeat -->
-      <article class="card b b-md reveal reveal-delay-1">
-        <h3>60-second detection.</h3>
-        <p>Every scheduled task registers a run attempt, exit code, and duration. Missed runs trip an alert before the next cron tick.</p>
+
+      <article class="card b b-md b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Heartbeat</span>
+          <h3 class="b-title">60-second detection.</h3>
+          <p class="b-desc">Every scheduled task registers a run attempt, exit code, and duration. Missed runs trip an alert before the next cron tick.</p>
+        </div>
         <div class="viz-ping">
-          <span class="mono">pulse</span>
-          <div class="wave">
-            <span class="wave-ring"></span>
-            <span class="wave-ring wave-ring-2"></span>
-            <span class="wave-ring wave-ring-3"></span>
-          </div>
+          <span>pulse</span>
+          <div class="wave"></div>
           <span class="accent mono">60s</span>
         </div>
       </article>
-      <!-- Small: Zero wrap -->
-      <article class="card b b-sm reveal reveal-delay-2">
-        <h3>No per-task instrumentation.</h3>
-        <p>Hooks into your framework's events, not your code.</p>
+
+      <article class="card b b-sm b-text reveal">
+        <span class="b-eyebrow">Zero wrap</span>
+        <h3 class="b-title">No per-task instrumentation.</h3>
+        <p class="b-desc">Hooks into your framework's events, not your code.</p>
       </article>
-      <!-- Small: Self-hosted -->
-      <article class="card b b-sm reveal reveal-delay-3">
-        <h3>Works offline. MIT.</h3>
-        <p>OSS first. Local dashboard, CLI, no SaaS needed.</p>
+
+      <article class="card b b-sm b-text reveal">
+        <span class="b-eyebrow">Self-hosted</span>
+        <h3 class="b-title">Works offline. MIT.</h3>
+        <p class="b-desc">OSS first. Local dashboard, CLI, no SaaS needed.</p>
       </article>
-      <!-- Medium: Alert channels -->
-      <article class="card b b-md reveal">
-        <h3>Route once, quiet forever.</h3>
-        <p>One alert fans out to the channels your team watches — per-service routing, quiet hours, auto-resolve.</p>
+
+      <article class="card b b-md b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Alerts</span>
+          <h3 class="b-title">Route once, quiet forever.</h3>
+          <p class="b-desc">One alert fans out to the channels your team actually watches — per-service routing, quiet hours, auto-resolve.</p>
+        </div>
         <div class="viz-channels">
-          <span class="channel-pill">Slack</span>
-          <span class="channel-pill">PagerDuty</span>
-          <span class="channel-pill">Webhook</span>
-          <span class="channel-pill">Email</span>
+          <span class="pill"><span class="dot"></span>Slack</span>
+          <span class="pill"><span class="dot"></span>PagerDuty</span>
+          <span class="pill"><span class="dot"></span>Webhook</span>
+          <span class="pill"><span class="dot"></span>Email</span>
         </div>
       </article>
-      <!-- Medium: CI/CD check -->
-      <article class="card b b-md reveal reveal-delay-1">
-        <h3>crontinel:check in your deploy hook.</h3>
-        <p>One command verifies scheduler, supervisors and queues after each deploy.</p>
-        <pre class="mono code-snippet">$ crontinel check
-<span class="ok-green">&#10003;</span> scheduler           last run 00:00:12 ago
-<span class="ok-green">&#10003;</span> workers.default     2 supervisors &middot; running
-<span class="ok-green">&#10003;</span> queue.invoices      127 pending &middot; 2m oldest
-<span class="ok-green">&#10003;</span> agents.support      12 runs &middot; p95 8.2s
-<span class="danger">&#10007;</span> queue.emails        backpressure &middot; 6,413 pending</pre>
+
+      <article class="card b b-md b-viz reveal">
+        <div>
+          <span class="b-eyebrow">CI/CD</span>
+          <h3 class="b-title">crontinel:check in your deploy hook.</h3>
+          <p class="b-desc">One command verifies scheduler, supervisors and queues after each deploy. Zero-downtime monitoring that fails loud.</p>
+        </div>
+        <pre class="viz-log"><span class="kw">$</span> crontinel check
+<span class="ok">✓</span> scheduler           last run 00:00:12 ago
+<span class="ok">✓</span> workers.default     2 supervisors · running
+<span class="ok">✓</span> queue.invoices      127 pending · 2m oldest
+<span class="ok">✓</span> agents.support      12 runs · p95 8.2s
+<span class="bad">✗</span> queue.emails        backpressure · 6,413 pending</pre>
       </article>
-      <!-- Wide: Agents & MCP -->
-      <article class="card b b-wide reveal">
-        <h3>Monitor the agent like any other worker.</h3>
-        <p>Track runs, tool calls, token spend, model latency and loop detection. Ask via MCP.</p>
+
+      <article class="card b b-wide b-viz reveal">
+        <div>
+          <span class="b-eyebrow">Agents &amp; models</span>
+          <h3 class="b-title">Monitor the agent like any other worker.</h3>
+          <p class="b-desc">Track runs, tool calls, token spend, model latency and loop detection. Ask via MCP, so your own agent can answer "are any queues or agents backing up?" with real data.</p>
+        </div>
         <div class="viz-mcp">
-          <div class="mcp-q mono"><span class="accent">&#8250;</span> are any queues backing up?</div>
-          <div class="mcp-a mono">Yes &middot; <span class="danger">emails</span> is at 6,413 and rising. Oldest job 12m 04s. <span class="ok-green">invoices</span> is healthy.</div>
+          <div class="q">&#x203A; are any queues backing up?</div>
+          <div class="a">Yes · <b>emails</b> is at 6,413 and rising. Oldest job 12m 04s. <b>invoices</b> is healthy.</div>
         </div>
       </article>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section id="how" class="section">
+<!-- ============================== HOW IT WORKS ============================== -->
+<section class="section" id="how">
   <div class="container">
     <div class="section-head reveal">
-      <h2>Two commands.<br/>One source of truth.</h2>
+      <span class="eyebrow">How it works</span>
+      <h2 class="display h2">Two commands.<br/>One source of truth.</h2>
     </div>
-    <div class="steps">
-      <div class="step reveal">
-        <div class="step-n mono">01 &middot; INSTALL</div>
+    <div class="steps reveal">
+      <div class="step">
+        <div class="n">01 · INSTALL</div>
         <h3>One SDK, your stack</h3>
-        <p>Drop the SDK in. No scheduler wrapping. No per-job decorators.</p>
-        <pre class="mono code-snippet"><span class="text-3"># pick your runtime</span>
-$ npm i @crontinel/node
-$ pip install crontinel
-$ go get github.com/crontinel/go</pre>
+        <p>Drop the SDK in. No scheduler wrapping. No per-job decorators. No changes to existing jobs.</p>
+        <pre><span class="cmt"># pick your runtime</span>
+<span class="ok">$</span> npm i @crontinel/node
+<span class="ok">$</span> pip install crontinel
+<span class="ok">$</span> go get github.com/crontinel/go</pre>
       </div>
-      <div class="step reveal reveal-delay-1">
-        <div class="step-n mono">02 &middot; ROUTE ALERTS</div>
+      <div class="step">
+        <div class="n">02 · ROUTE ALERTS</div>
         <h3>Pick a channel</h3>
-        <p>Slack, PagerDuty, email, webhook. HMAC-signed. Quiet hours.</p>
-        <pre class="mono code-snippet"><span class="text-3"># .env</span>
-CRONTINEL_ALERT_CHANNEL=slack
-CRONTINEL_SLACK_WEBHOOK=...</pre>
+        <p>Slack, PagerDuty, email, webhook. HMAC-signed payloads. Quiet hours. Route once, in .env.</p>
+        <pre><span class="cmt"># .env</span>
+CRONTINEL_ALERT_CHANNEL=<span class="ok">slack</span>
+CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       </div>
-      <div class="step reveal reveal-delay-2">
-        <div class="step-n mono">03 &middot; SLEEP</div>
+      <div class="step">
+        <div class="n">03 · SLEEP</div>
         <h3>Listen instead of watch</h3>
-        <p>When something drifts, you hear from us, not a user.</p>
-        <pre class="mono code-snippet"><span class="text-3"># ci/cd deploy hook</span>
-$ crontinel check
-<span class="ok-green">&#10003;</span> 47 jobs &middot; 3 workers &middot; 2 queues &middot; 4 agents</pre>
+        <p>We read scheduler events, worker state, queue internals and agent traces. When something drifts, you hear from us, not a user.</p>
+        <pre><span class="cmt"># ci/cd deploy hook</span>
+<span class="ok">$</span> crontinel check
+<span class="ok">✓ 47 jobs · 3 workers · 2 queues · 4 agents</span></pre>
       </div>
     </div>
   </div>
 </section>
 
-<!-- DASHBOARD MOCKUP -->
-<section id="dashboard" class="section">
+<!-- ============================== DASHBOARD ============================== -->
+<section class="section" id="dashboard">
   <div class="container">
     <div class="section-head reveal">
-      <h2>Not a heartbeat ping chart.<br/>The inside of your queue.</h2>
-      <p>Every scheduled task with its last run, duration and exit code. Every worker with its state. Every queue with depth, oldest job, and failure rate.</p>
+      <span class="eyebrow">The dashboard</span>
+      <h2 class="display h2">Not a heartbeat ping chart.<br/>The inside of your queue.</h2>
+      <p class="body">Every scheduled task with its last run, duration and exit code. Every worker with its state. Every queue with depth, oldest job, and failure rate. Every agent run with its tool calls and token spend.</p>
     </div>
+
     <div class="dashboard reveal">
       <div class="db-top">
-        <div class="db-lights"><span class="db-dot db-dot-r"></span><span class="db-dot db-dot-y"></span><span class="db-dot db-dot-g"></span></div>
-        <div class="db-url mono">app.crontinel.com/invoice-processor</div>
-        <div class="db-actions mono">&#8984;K</div>
+        <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+        <div class="url mono">app.crontinel.com/invoice-processor</div>
+        <div class="db-actions mono">
+          <span>&#8984;K</span>
+        </div>
       </div>
       <div class="db-body">
         <aside class="db-side">
-          <div class="db-side-label mono">APPS</div>
-          <div class="db-app">customer-portal</div>
-          <div class="db-app db-app-active">invoice-processor</div>
-          <div class="db-app db-app-alert">notifications <span class="db-badge-warn">2</span></div>
-          <div class="db-app">analytics-etl</div>
-          <div class="db-app">billing-webhooks</div>
-          <div class="db-side-divider"></div>
-          <div class="db-side-label mono">FILTER</div>
-          <div class="db-filter db-filter-active">All statuses</div>
-          <div class="db-filter">Alerts only</div>
+          <div class="mono section-title">Apps</div>
+          <div class="app"><span class="dot"></span><span>customer-portal</span></div>
+          <div class="app active"><span class="dot"></span><span>invoice-processor</span></div>
+          <div class="app fail"><span class="dot"></span><span>notifications</span><span class="mono" style="margin-left:auto;color:var(--danger)">2</span></div>
+          <div class="app"><span class="dot"></span><span>analytics-etl</span></div>
+          <div class="app"><span class="dot"></span><span>billing-webhooks</span></div>
+
+          <div class="mono section-title">Filter</div>
+          <div class="app"><span class="dot"></span><span>status: all</span></div>
+          <div class="app"><span class="dot" style="background:var(--warn)"></span><span>alerts only</span></div>
         </aside>
+
         <div class="db-main">
           <div class="db-title">
-            invoice-processor
-            <span class="db-env-badge">production &middot; eu-west-1</span>
-            <span class="db-alert-badge">1 alert</span>
+            <h3>invoice-processor</h3>
+            <span class="badge">production · eu-west-1</span>
+            <span class="badge fail">1 alert</span>
           </div>
-          <div class="db-kpis">
-            <div class="db-kpi">
-              <div class="db-kpi-label mono">schedule runs/24h</div>
-              <div class="db-kpi-val">1,447 <span class="ok-green">+2.1%</span></div>
-            </div>
-            <div class="db-kpi">
-              <div class="db-kpi-label mono">avg run time</div>
-              <div class="db-kpi-val">842ms <span class="ok-green">&minus;120ms</span></div>
-            </div>
-            <div class="db-kpi">
-              <div class="db-kpi-label mono">queue depth</div>
-              <div class="db-kpi-val">241 <span class="ok-green">healthy</span></div>
-            </div>
-            <div class="db-kpi">
-              <div class="db-kpi-label mono">failed last 1h</div>
-              <div class="db-kpi-val">12 <span class="danger">+12 vs 0</span></div>
-            </div>
+
+          <div class="kpis">
+            <div class="kpi"><div class="l">schedule runs / 24h</div><div class="v">1,447</div><div class="delta">+2.1% vs yesterday</div></div>
+            <div class="kpi"><div class="l">avg run time</div><div class="v">842ms</div><div class="delta">&#8722;120ms vs p50</div></div>
+            <div class="kpi"><div class="l">queue depth · total</div><div class="v">241</div><div class="delta">healthy</div></div>
+            <div class="kpi fail"><div class="l">failed last 1h</div><div class="v">12</div><div class="delta">+12 vs 0</div></div>
           </div>
+
           <div class="db-panels">
             <div class="db-panel">
-              <div class="db-panel-head mono">Scheduled tasks</div>
-              <table class="db-table">
+              <div class="h"><span>Scheduled tasks</span><span style="color:var(--text-3)">14 tasks</span></div>
+              <table class="table">
+                <thead><tr><th>Task</th><th>Last run</th><th>Duration</th><th>Status</th></tr></thead>
                 <tbody>
-                  <tr><td class="mono">generate:daily-invoices</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">2m 14s</td></tr>
-                  <tr><td class="mono">dunning:send-reminders</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">48s</td></tr>
-                  <tr class="db-row-fail"><td class="mono">sync:stripe-webhooks</td><td><span class="dot dot-fail"></span> exit 1</td><td class="mono text-3">12s</td></tr>
-                  <tr><td class="mono">export:accounting-feed</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">3m 41s</td></tr>
-                  <tr class="db-row-warn"><td class="mono">telemetry:roll-up</td><td><span class="dot dot-warn"></span> slow</td><td class="mono text-3">8m 02s</td></tr>
-                  <tr><td class="mono">cleanup:stale-sessions</td><td><span class="dot dot-ok"></span> ok</td><td class="mono text-3">1m 08s</td></tr>
+                  <tr><td><span class="status-dot ok"></span>generate:daily-invoices</td><td class="mono">2m ago</td><td class="mono">1.82s</td><td class="mono">ok</td></tr>
+                  <tr><td><span class="status-dot ok"></span>dunning:send-reminders</td><td class="mono">14m ago</td><td class="mono">940ms</td><td class="mono">ok</td></tr>
+                  <tr class="fail"><td><span class="status-dot fail"></span>sync:stripe-webhooks</td><td class="mono danger">17m ago</td><td class="mono">...</td><td class="mono danger">exit 1</td></tr>
+                  <tr><td><span class="status-dot ok"></span>export:accounting-feed</td><td class="mono">29m ago</td><td class="mono">4.1s</td><td class="mono">ok</td></tr>
+                  <tr><td><span class="status-dot warn"></span>telemetry:roll-up</td><td class="mono">1h 02m ago</td><td class="mono">12.4s</td><td class="mono">slow</td></tr>
+                  <tr><td><span class="status-dot ok"></span>cleanup:stale-sessions</td><td class="mono">3h ago</td><td class="mono">220ms</td><td class="mono">ok</td></tr>
                 </tbody>
               </table>
             </div>
+
             <div class="db-panel">
-              <div class="db-panel-head mono">Workers &amp; queues</div>
-              <table class="db-table">
+              <div class="h"><span>Workers · 3 supervisors</span><span style="color:var(--accent)">running</span></div>
+              <table class="table">
+                <thead><tr><th>Queue</th><th>Depth</th><th>Oldest</th><th>Trend</th></tr></thead>
                 <tbody>
-                  <tr><td class="mono">default</td><td class="mono">12</td><td><div class="sparkline-placeholder"></div></td></tr>
-                  <tr><td class="mono">invoices</td><td class="mono">127</td><td><div class="sparkline-placeholder"></div></td></tr>
-                  <tr class="db-row-fail"><td class="mono">emails</td><td class="mono danger">6,413</td><td><div class="sparkline-placeholder sparkline-red"></div></td></tr>
-                  <tr><td class="mono">analytics</td><td class="mono">88</td><td><div class="sparkline-placeholder"></div></td></tr>
-                  <tr><td class="mono">notifications</td><td class="mono">3</td><td><div class="sparkline-placeholder"></div></td></tr>
+                  <tr><td>default</td><td class="mono">12</td><td class="mono">200ms</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,18 10,14 20,20 30,12 40,16 50,10 60,14 70,8 80,12 90,10 100,14"/></svg>
+                  </td></tr>
+                  <tr><td>invoices</td><td class="mono">127</td><td class="mono">2m 04s</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,20 10,18 20,16 30,18 40,14 50,14 60,16 70,10 80,14 90,12 100,14"/></svg>
+                  </td></tr>
+                  <tr class="fail"><td>emails</td><td class="mono danger">6,413</td><td class="mono danger">12m 04s</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--danger)" stroke-width="1.5" points="0,22 10,22 20,20 30,18 40,14 50,10 60,6 70,4 80,3 90,2 100,1"/></svg>
+                  </td></tr>
+                  <tr><td>analytics</td><td class="mono">88</td><td class="mono">400ms</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,14 10,16 20,12 30,10 40,12 50,16 60,14 70,10 80,8 90,12 100,10"/></svg>
+                  </td></tr>
+                  <tr><td>notifications</td><td class="mono">3</td><td class="mono">80ms</td><td>
+                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,16 10,14 20,18 30,12 40,14 50,12 60,14 70,10 80,12 90,14 100,12"/></svg>
+                  </td></tr>
                 </tbody>
               </table>
             </div>
@@ -382,1964 +525,370 @@ $ crontinel check
   </div>
 </section>
 
-<!-- INTEGRATIONS -->
-<section id="sec-integrations" class="section">
+<!-- ============================== INTEGRATIONS ============================== -->
+<section class="section" id="sec-integrations">
   <div class="container">
     <div class="section-head reveal">
-      <h2>Alerts go where you listen.</h2>
+      <span class="eyebrow">Routed, not noisy</span>
+      <h2 class="display h2">Alerts go where you listen.</h2>
     </div>
-    <div class="integrations reveal">
-      <div class="card int-group">
-        <h4>Native &middot; shipping</h4>
+    <div class="integrations">
+      <div class="card int-group reveal">
+        <h4>Native · shipping</h4>
         <div class="int-pills">
           <span class="int-pill">Slack</span>
           <span class="int-pill">PagerDuty</span>
           <span class="int-pill">Email / SES</span>
-          <span class="int-pill">Webhook &middot; HMAC</span>
+          <span class="int-pill">Webhook · HMAC</span>
           <span class="int-pill">Telegram</span>
-          <span class="int-pill">MCP &middot; any agent</span>
+          <span class="int-pill">MCP · any agent</span>
         </div>
       </div>
-      <div class="card int-group">
+      <div class="card int-group reveal">
         <h4>Coming soon</h4>
         <div class="int-pills">
-          <span class="int-pill int-pill-muted">Discord</span>
-          <span class="int-pill int-pill-muted">Opsgenie</span>
-          <span class="int-pill int-pill-muted">Linear</span>
-          <span class="int-pill int-pill-muted">Zapier</span>
-          <span class="int-pill int-pill-muted">Microsoft Teams</span>
+          <span class="int-pill soon">Discord</span>
+          <span class="int-pill soon">Opsgenie</span>
+          <span class="int-pill soon">Linear</span>
+          <span class="int-pill soon">Zapier</span>
+          <span class="int-pill soon">Microsoft Teams</span>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- PRICING -->
-<section id="pricing" class="section">
+<!-- ============================== PRICING ============================== -->
+<section class="section" id="pricing">
   <div class="container">
     <div class="section-head reveal">
-      <h2>Free for one app.<br/>Generous for teams.</h2>
-      <div class="billing-toggle" id="billing-toggle">
-        <button class="toggle-btn toggle-active" data-period="monthly">Monthly</button>
-        <button class="toggle-btn" data-period="yearly">Yearly <span class="toggle-save">&minus;20%</span></button>
+      <span class="eyebrow">Pricing</span>
+      <h2 class="display h2">Free for one app.<br/>Generous for teams.</h2>
+      <div class="billing-toggle" role="tablist" aria-label="Billing period">
+        <button type="button" class="on" data-bill="monthly">Monthly</button>
+        <button type="button" data-bill="yearly">Yearly<span class="save">&#8722;20%</span></button>
       </div>
     </div>
-    <div class="pricing reveal">
-      <div class="card pricing-card">
-        <div class="pricing-name">Free</div>
-        <div class="pricing-price">$<span class="price-val" data-monthly="0" data-yearly="0">0</span><span class="pricing-period">/mo</span></div>
-        <ul class="pricing-features">
-          <li>1 app</li>
-          <li>7-day history</li>
-          <li>All alert channels</li>
-          <li class="pricing-no">No team access</li>
-          <li class="pricing-no">No audit log</li>
+
+    <div class="pricing">
+      <article class="card price reveal">
+        <h3>Free</h3>
+        <p class="tag">For one app. Forever.</p>
+        <div class="cost"><span class="amt">$0</span><span class="per">/mo</span></div>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 connected app</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 7 days of run history</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> All alert channels</li>
+          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Team access</li>
+          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Audit log</li>
         </ul>
         <a class="btn btn-ghost" href="https://app.crontinel.com">Start free</a>
-      </div>
-      <div class="card pricing-card pricing-card-featured">
-        <div class="pricing-badge">most teams</div>
-        <div class="pricing-name">Pro</div>
-        <div class="pricing-price">$<span class="price-val" data-monthly="19" data-yearly="15">19</span><span class="pricing-period">/mo</span></div>
-        <ul class="pricing-features">
-          <li>5 apps</li>
-          <li>90-day history</li>
-          <li>PagerDuty / Slack / webhook</li>
-          <li>Quiet hours</li>
-          <li>MCP server</li>
+      </article>
+
+      <article class="card price pro reveal" style="position:relative">
+        <span class="badge">most teams</span>
+        <h3>Pro</h3>
+        <p class="tag">For the team with real pagers.</p>
+        <div class="cost"><span class="amt" data-monthly="19" data-yearly="15">$19</span><span class="per">/mo</span></div>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 5 connected apps</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 90 days of history</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> PagerDuty, Slack, webhook</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Quiet hours &amp; routing</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> MCP server access</li>
         </ul>
-        <a class="btn btn-primary" href="https://app.crontinel.com">Start with Pro</a>
-      </div>
-      <div class="card pricing-card">
-        <div class="pricing-name">Team</div>
-        <div class="pricing-price">$<span class="price-val" data-monthly="49" data-yearly="39">49</span><span class="pricing-period">/mo</span></div>
-        <ul class="pricing-features">
-          <li>Unlimited apps</li>
-          <li>1-year history</li>
-          <li>Unlimited teammates</li>
-          <li>Audit log / SSO <span class="coming-soon">soon</span></li>
-          <li>Priority support</li>
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start Pro trial</a>
+      </article>
+
+      <article class="card price reveal">
+        <h3>Team</h3>
+        <p class="tag">Unlimited apps, teammates, history.</p>
+        <div class="cost"><span class="amt" data-monthly="49" data-yearly="39">$49</span><span class="per">/mo</span></div>
+        <ul>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited apps</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 year of history</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited teammates</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Audit log, SSO (soon)</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
         </ul>
-        <a class="btn btn-ghost" href="https://app.crontinel.com">Start with Team</a>
-      </div>
+        <a class="btn btn-ghost" href="https://app.crontinel.com">Start Team trial</a>
+      </article>
     </div>
   </div>
 </section>
 
-<!-- OSS PACKAGES -->
-<section id="sec-oss" class="section">
+<!-- ============================== OSS VS SAAS ============================== -->
+<section class="section" id="sec-oss">
   <div class="container">
     <div class="section-head reveal">
-      <h2>A family of open-source packages.</h2>
-      <p>MIT-licensed. Works against your own database. The cloud dashboard is an option, not a dependency.</p>
+      <span class="eyebrow">Open by default</span>
+      <h2 class="display h2">A family of open-source packages.</h2>
+      <p class="body">Crontinel is SDKs and a CLI, not a vendor lock-in. Every runtime has its own MIT-licensed package that works against your own database. The cloud dashboard is an <em>option</em> layered on top, not a dependency.</p>
     </div>
+
     <div class="pkg-grid reveal">
-      <a class="card pkg" href="https://github.com/crontinel/node" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-ts">TS</span>
-        <div><strong>crontinel/node</strong><br/><span class="text-2">Node &amp; TypeScript. BullMQ, Agenda, node-cron, workers.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/node" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-node">TS</span><span class="pkg-meta mono">TypeScript</span></div>
+        <div class="pkg-name mono">crontinel/node</div>
+        <p class="pkg-desc">Node &amp; TypeScript. BullMQ, Agenda, node-cron, workers.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/python" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-py">PY</span>
-        <div><strong>crontinel/python</strong><br/><span class="text-2">Celery, RQ, Huey, APScheduler, Prefect, Dramatiq.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/python" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-py">PY</span><span class="pkg-meta mono">Python</span></div>
+        <div class="pkg-name mono">crontinel/python</div>
+        <p class="pkg-desc">Celery, RQ, Huey, APScheduler, Prefect, Dramatiq.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/go" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-go">GO</span>
-        <div><strong>crontinel/go</strong><br/><span class="text-2">Asynq, Machinery, Temporal, gocron.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/go" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-go">GO</span><span class="pkg-meta mono">Go</span></div>
+        <div class="pkg-name mono">crontinel/go</div>
+        <p class="pkg-desc">Asynq, Machinery, Temporal, gocron, native tickers.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/rust" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-rs">RS</span>
-        <div><strong>crontinel/rust</strong><br/><span class="text-2">Tokio, async-std, apalis, tokio-cron-scheduler.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/rust" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · MIT</span></div>
+        <div class="pkg-name mono">crontinel/rust</div>
+        <p class="pkg-desc">Tokio, async-std, apalis, tokio-cron-scheduler.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/php" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-php">PHP</span>
-        <div><strong>crontinel/php</strong><br/><span class="text-2">Framework-agnostic. Symfony Messenger + plain cron.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/php" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-php">PHP</span><span class="pkg-meta mono">PHP · MIT</span></div>
+        <div class="pkg-name mono">crontinel/php</div>
+        <p class="pkg-desc">Framework-agnostic PHP library. Symfony Messenger + plain cron.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-la">LA</span>
-        <div><strong>crontinel/laravel</strong><br/><span class="text-2">Laravel Horizon &amp; scheduler. Auto-detect, zero wrap.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-php">LA</span><span class="pkg-meta mono">PHP · MIT</span></div>
+        <div class="pkg-name mono">crontinel/laravel</div>
+        <p class="pkg-desc">Laravel Horizon &amp; scheduler. Auto-detect, zero wrap.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-rs">RS</span>
-        <div><strong>crontinel/crontinel</strong><br/><span class="text-2">Rust core. Recorder, agent, shared wire format.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · core</span></div>
+        <div class="pkg-name mono">crontinel/crontinel</div>
+        <p class="pkg-desc">Rust core. The recorder, agent and shared wire format.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/cli" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-sh">SH</span>
-        <div><strong>crontinel/cli</strong><br/><span class="text-2">Language-agnostic. Wrap any cron, Docker job, K8s CronJob.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/cli" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-cli">SH</span><span class="pkg-meta mono">Go</span></div>
+        <div class="pkg-name mono">crontinel/cli</div>
+        <p class="pkg-desc">Language-agnostic. Wrap any cron, Docker job, K8s CronJob.</p>
       </a>
-      <a class="card pkg" href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">
-        <span class="pkg-lang pkg-ai">AI</span>
-        <div><strong>@crontinel/mcp-server</strong><br/><span class="text-2">MCP server. Let your agent query jobs, queues and runs.</span></div>
+      <a class="pkg" href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">
+        <div class="pkg-top"><span class="lang lang-ai">AI</span><span class="pkg-meta mono">TypeScript · MIT</span></div>
+        <div class="pkg-name mono">@crontinel/mcp-server</div>
+        <p class="pkg-desc">MCP server. Let your agent query jobs, queues and runs.</p>
       </a>
     </div>
+
     <div class="oss-cloud reveal">
-      <div class="oss-cloud-inner">
-        <div class="oss-cloud-copy">
-          <h3>Crontinel Cloud</h3>
-          <p class="text-2">Hosted: Multi-app dashboards, team access, long history, MCP server, routing rules.</p>
-        </div>
-        <div class="oss-cloud-features">
-          <span>&#10003; Multi-app view &amp; search</span>
-          <span>&#10003; History retention (90d &rarr; 1y)</span>
-          <span>&#10003; Team access, audit log</span>
-          <span>&#10003; MCP server for agents</span>
-        </div>
-        <a class="btn btn-primary" href="https://app.crontinel.com">Try Cloud free &#8599;</a>
+      <div class="oss-cloud-copy">
+        <span class="chip"><span class="dot"></span>Hosted · app.crontinel.com</span>
+        <h3>Crontinel Cloud</h3>
+        <p>Everything the OSS packages do, plus multi-app dashboards, team access, long-horizon history, an MCP server, and routing rules. You keep the self-hosted SDKs; we handle the rest.</p>
       </div>
+      <ul class="oss-cloud-list">
+        <li><span class="ok-mark">&#10003;</span> Multi-app view &amp; search</li>
+        <li><span class="ok-mark">&#10003;</span> History retention (90d &#8594; 1y)</li>
+        <li><span class="ok-mark">&#10003;</span> Team access, audit log, SSO (soon)</li>
+        <li><span class="ok-mark">&#10003;</span> MCP server for agents</li>
+      </ul>
     </div>
   </div>
 </section>
 
-<!-- INSTALL TABS -->
-<section id="sec-install" class="section">
+<!-- ============================== INSTALL ============================== -->
+<section class="section" id="sec-install">
   <div class="container">
     <div class="section-head reveal">
-      <h2>Two commands. No pings.</h2>
+      <span class="eyebrow">Install</span>
+      <h2 class="display h2">Two commands. No pings.</h2>
     </div>
-    <div class="sdk-tabs reveal">
-      <div class="sdk-tab-bar" id="sdk-tab-bar">
-        <button class="sdk-tab sdk-tab-active" data-tab="node">Node</button>
-        <button class="sdk-tab" data-tab="python">Python</button>
-        <button class="sdk-tab" data-tab="go">Go</button>
-        <button class="sdk-tab" data-tab="rust">Rust</button>
-        <button class="sdk-tab" data-tab="php">PHP</button>
-        <button class="sdk-tab" data-tab="cli">CLI / Docker</button>
+    <div class="sdk-tabs reveal" id="sdk-tabs">
+      <div class="sdk-tablist" role="tablist">
+        <button class="sdk-tab on" data-sdk="node">Node</button>
+        <button class="sdk-tab" data-sdk="python">Python</button>
+        <button class="sdk-tab" data-sdk="go">Go</button>
+        <button class="sdk-tab" data-sdk="rust">Rust</button>
+        <button class="sdk-tab" data-sdk="php">PHP</button>
+        <button class="sdk-tab" data-sdk="cli">CLI / Docker</button>
       </div>
-      <div class="sdk-panels">
-        <div class="sdk-panel sdk-panel-active" data-panel="node">
-          <div class="sdk-cmd"><code class="mono">npm install @crontinel/node</code><button class="copy-btn" data-copy="npm install @crontinel/node">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">npx crontinel check</code><button class="copy-btn" data-copy="npx crontinel check">Copy</button></div>
-        </div>
-        <div class="sdk-panel" data-panel="python">
-          <div class="sdk-cmd"><code class="mono">pip install crontinel</code><button class="copy-btn" data-copy="pip install crontinel">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
-        </div>
-        <div class="sdk-panel" data-panel="go">
-          <div class="sdk-cmd"><code class="mono">go get github.com/crontinel/go</code><button class="copy-btn" data-copy="go get github.com/crontinel/go">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
-        </div>
-        <div class="sdk-panel" data-panel="rust">
-          <div class="sdk-cmd"><code class="mono">cargo add crontinel</code><button class="copy-btn" data-copy="cargo add crontinel">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
-        </div>
-        <div class="sdk-panel" data-panel="php">
-          <div class="sdk-cmd"><code class="mono">composer require crontinel/php</code><button class="copy-btn" data-copy="composer require crontinel/php">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="CRONTINEL_TOKEN=your-token">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">php artisan crontinel:check</code><button class="copy-btn" data-copy="php artisan crontinel:check">Copy</button></div>
-        </div>
-        <div class="sdk-panel" data-panel="cli">
-          <div class="sdk-cmd"><code class="mono">curl -fsSL https://get.crontinel.com | sh</code><button class="copy-btn" data-copy="curl -fsSL https://get.crontinel.com | sh">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">export CRONTINEL_TOKEN=your-token</code><button class="copy-btn" data-copy="export CRONTINEL_TOKEN=your-token">Copy</button></div>
-          <div class="sdk-cmd"><code class="mono">crontinel check</code><button class="copy-btn" data-copy="crontinel check">Copy</button></div>
-        </div>
+
+      <div class="sdk-panel" data-for="node">
+        <div class="install-cmd"><span><span class="prompt">$</span> npm i @crontinel/node</span><button class="copy" data-copy="npm i @crontinel/node">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel init</span><button class="copy" data-copy="npx crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="npx crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="python" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> pip install crontinel</span><button class="copy" data-copy="pip install crontinel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel init</span><button class="copy" data-copy="crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="go" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> go get github.com/crontinel/go</span><button class="copy" data-copy="go get github.com/crontinel/go">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> go run github.com/crontinel/go/cmd/crontinel init</span><button class="copy" data-copy="go run github.com/crontinel/go/cmd/crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="rust" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> cargo add crontinel-rust</span><button class="copy" data-copy="cargo add crontinel-rust">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> cargo install crontinel-cli</span><button class="copy" data-copy="cargo install crontinel-cli">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="php" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/php</span><button class="copy" data-copy="composer require crontinel/php">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/laravel   <span style="color:var(--text-3)"># or for Laravel</span></span><button class="copy" data-copy="composer require crontinel/laravel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> vendor/bin/crontinel check</span><button class="copy" data-copy="vendor/bin/crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="cli" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> brew install crontinel</span><button class="copy" data-copy="brew install crontinel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> docker run crontinel/agent init</span><button class="copy" data-copy="docker run crontinel/agent init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FINAL CTA -->
-<section id="signup" class="section section-cta">
+<!-- ============================== FINAL CTA ============================== -->
+<section class="section" id="signup">
   <div class="container">
     <div class="final reveal">
-      <h2>Stop finding out<br/>from your users.</h2>
-      <p>Free plan, no credit card. Two commands to install. Slack alert in under five minutes.</p>
-      <div class="final-ctas">
-        <a class="btn btn-primary btn-lg" href="https://app.crontinel.com">Start monitoring free &#8599;</a>
-        <a class="btn btn-ghost btn-lg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">Read the source</a>
+      <span class="eyebrow" style="justify-content:center">Ready?</span>
+      <h2 class="display h2">Stop finding out<br/>from your users.</h2>
+      <p class="body">Free plan, no credit card. Two commands to install. Slack alert in under five minutes.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free <span class="arrow-i">&#8599;</span></a>
+        <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">Read the source</a>
       </div>
     </div>
   </div>
 </section>
+</main>
 
-<!-- FOOTER -->
-<footer class="site-footer">
+<!-- ============================== FOOTER ============================== -->
+<footer class="footer">
   <div class="container">
     <div class="footer-top">
-      <div class="footer-brand">
-        <a href="#top" class="brand">
-          <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
-            <circle cx="14" cy="14" r="13" stroke="#6366f1" stroke-width="2" fill="none"/>
-            <line x1="14" y1="6" x2="14" y2="14" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
-            <line x1="14" y1="14" x2="19" y2="18" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="22" cy="6" r="3" fill="#22c55e"/>
+      <div class="footer-lead">
+        <a class="brand" href="#top">
+          <svg class="mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <defs><linearGradient id="crl-bg-ft" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#a5b4fc"/><stop offset="100%" stop-color="#818cf8"/></linearGradient></defs>
+            <circle cx="32" cy="32" r="30" fill="url(#crl-bg-ft)"/>
+            <circle cx="32" cy="32" r="18" stroke="#1e1b4b" stroke-width="4"/>
+            <line x1="32" y1="32" x2="32" y2="19" stroke="#1e1b4b" stroke-width="4" stroke-linecap="round"/>
+            <line x1="32" y1="32" x2="41" y2="38" stroke="#1e1b4b" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="32" cy="32" r="3" fill="#1e1b4b"/>
+            <circle cx="46" cy="14" r="6" fill="#22c55e"/>
           </svg>
           <span>crontinel</span>
         </a>
-        <p class="text-3">Cron, scheduler &amp; background job monitoring.</p>
+        <p class="footer-tag">Know when jobs, queues, workers and agents drift, before your users do.</p>
         <div class="footer-status mono">
-          <span class="dot dot-ok pulse"></span> uptime: 99.987% &middot; last 30d
+          <span class="ping"></span>
+          <span>all.systems.operational</span>
+          <span class="sep">·</span>
+          <a href="https://status.crontinel.com">status.crontinel.com</a>
         </div>
         <div class="footer-social">
-          <a href="https://github.com/crontinel" target="_blank" rel="noopener" aria-label="GitHub">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          <a href="https://github.com/crontinel" aria-label="GitHub" class="soc">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
           </a>
-          <a href="https://x.com/crontinel" target="_blank" rel="noopener" aria-label="X (Twitter)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.746l7.73-8.835L1.254 2.25H8.08l4.259 5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          <a href="https://x.com/HarunRRayhan" aria-label="X / Twitter" class="soc">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </a>
         </div>
       </div>
-      <div class="footer-col">
-        <h4 class="footer-heading">Packages</h4>
-        <a href="https://github.com/crontinel/node" target="_blank" rel="noopener">Node / TypeScript</a>
-        <a href="https://github.com/crontinel/python" target="_blank" rel="noopener">Python</a>
-        <a href="https://github.com/crontinel/go" target="_blank" rel="noopener">Go</a>
-        <a href="https://github.com/crontinel/rust" target="_blank" rel="noopener">Rust</a>
-        <a href="https://github.com/crontinel/php" target="_blank" rel="noopener">PHP</a>
-        <a href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">Laravel</a>
-        <a href="https://github.com/crontinel/cli" target="_blank" rel="noopener">CLI</a>
-      </div>
-      <div class="footer-col">
-        <h4 class="footer-heading">Product</h4>
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#dashboard">Dashboard</a>
-        <a href="https://app.crontinel.com" target="_blank" rel="noopener">Sign in</a>
-        <a href="https://status.crontinel.com" target="_blank" rel="noopener">Status</a>
-      </div>
-      <div class="footer-col">
-        <h4 class="footer-heading">Resources</h4>
-        <a href="https://docs.crontinel.com" target="_blank" rel="noopener">Documentation</a>
-        <a href="/blog">Blog</a>
-        <a href="/changelog">Changelog</a>
-        <a href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">GitHub</a>
-      </div>
-      <div class="footer-col">
-        <h4 class="footer-heading">Company</h4>
-        <a href="/about">About</a>
-        <a href="/faq">FAQ</a>
-        <a href="/security">Security</a>
-        <a href="/legal/privacy">Privacy</a>
-        <a href="/legal/terms">Terms</a>
+
+      <div class="footer-cols">
+        <div>
+          <h5>Packages</h5>
+          <ul>
+            <li><a href="https://github.com/crontinel/node">@crontinel/node</a></li>
+            <li><a href="https://github.com/crontinel/python">crontinel/python</a></li>
+            <li><a href="https://github.com/crontinel/go">crontinel/go</a></li>
+            <li><a href="https://github.com/crontinel/rust">crontinel/rust</a></li>
+            <li><a href="https://github.com/crontinel/php">crontinel/php</a></li>
+            <li><a href="https://github.com/crontinel/laravel">crontinel/laravel</a></li>
+            <li><a href="https://github.com/crontinel/cli">crontinel/cli</a></li>
+            <li><a href="https://github.com/crontinel/mcp-server">@crontinel/mcp-server</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Product</h5>
+          <ul>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#dashboard">Dashboard</a></li>
+            <li><a href="#sec-oss">Open source</a></li>
+            <li><a href="#pricing">Pricing</a></li>
+            <li><a href="/blog">Blog</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Resources</h5>
+          <ul>
+            <li><a href="https://docs.crontinel.com" target="_blank" rel="noopener">Docs</a></li>
+            <li><a href="https://github.com/crontinel" target="_blank" rel="noopener">GitHub org</a></li>
+            <li><a href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">MCP server</a></li>
+            <li><a href="https://status.crontinel.com">Status</a></li>
+          </ul>
+        </div>
+        <div>
+          <h5>Company</h5>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/legal/privacy">Privacy</a></li>
+            <li><a href="/legal/terms">Terms</a></li>
+          </ul>
+        </div>
       </div>
     </div>
+
     <div class="footer-wordmark" aria-hidden="true">crontinel</div>
+
     <div class="footer-bottom">
-      <span>&copy; 2026 Crontinel &middot; MIT-licensed packages</span>
-      <span class="mono">uptime: 99.987% &middot; last 30d</span>
+      <span>&#169; 2026 Crontinel · MIT-licensed packages</span>
+      <span class="mono">uptime: 99.987% · last 30d</span>
     </div>
   </div>
 </footer>
 
-<style>
-  /* ============================================
-     DESIGN TOKENS
-     ============================================ */
-  :root {
-    --accent: #22c55e;
-    --accent-dim: rgba(34,197,94,0.15);
-    --bg: #09090b;
-    --bg-2: #0f0f12;
-    --text: #f8fafc;
-    --text-2: #94a3b8;
-    --text-3: #475569;
-    --border: rgba(148,163,184,0.1);
-    --danger: #ef4444;
-    --warn: #f59e0b;
-    --radius: 12px;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  }
+<!-- Cookie consent banner -->
+<div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0f0f11;border-top:1px solid var(--border);padding:16px 24px;">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;justify-content:space-between;flex-wrap:wrap;">
+    <p style="margin:0;font-size:13px;color:var(--text-2)">
+      We use cookies to understand how visitors use our site.
+      <a href="/legal/privacy" style="color:var(--text);text-decoration:underline">Privacy Policy</a>
+    </p>
+    <div style="display:flex;gap:10px;flex-shrink:0;">
+      <button id="cookie-decline" style="font-size:13px;color:var(--text-3);padding:6px 12px;cursor:pointer;background:none;border:none;">Decline</button>
+      <button id="cookie-accept" style="font-size:13px;background:var(--accent);color:#001a0d;font-weight:600;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;">Accept</button>
+    </div>
+  </div>
+</div>
 
-  /* ============================================
-     RESET / BASE
-     ============================================ */
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<script is:inline define:vars={{ gaId }}>
+  (function() {
+    var consent = localStorage.getItem('cookie_consent');
+    if (!consent) document.getElementById('cookie-banner').style.display = '';
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-sans);
-    line-height: 1.6;
-    overflow-x: hidden;
-  }
-
-  .container {
-    max-width: 72rem;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-  }
-
-  .mono { font-family: var(--font-mono); }
-  .accent { color: var(--accent); }
-  .ok-green { color: var(--accent); }
-  .danger { color: var(--danger); }
-  .warn { color: var(--warn); }
-  .text-2 { color: var(--text-2); }
-  .text-3 { color: var(--text-3); }
-
-  a { color: inherit; text-decoration: none; }
-  img { max-width: 100%; }
-
-  /* ============================================
-     DOTS
-     ============================================ */
-  .dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    vertical-align: middle;
-    margin-right: 6px;
-    flex-shrink: 0;
-  }
-  .dot-ok { background: var(--accent); }
-  .dot-fail { background: var(--danger); }
-  .dot-warn { background: var(--warn); }
-  .pulse {
-    animation: pulse-anim 2s ease-in-out infinite;
-  }
-  @keyframes pulse-anim {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
-    50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
-  }
-
-  /* ============================================
-     BUTTONS
-     ============================================ */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-family: var(--font-sans);
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.65rem 1.4rem;
-    border-radius: 0.5rem;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #000;
-  }
-  .btn-primary:hover {
-    background: #16a34a;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 20px rgba(34,197,94,0.3);
-  }
-  .btn-ghost {
-    background: transparent;
-    color: var(--text-2);
-    border: 1px solid rgba(148,163,184,0.2);
-  }
-  .btn-ghost:hover {
-    border-color: rgba(148,163,184,0.4);
-    color: var(--text);
-  }
-  .btn-sm {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.9rem;
-  }
-  .btn-lg {
-    font-size: 1rem;
-    padding: 0.8rem 2rem;
-  }
-
-  /* ============================================
-     EYEBROW
-     ============================================ */
-  .eyebrow {
-    display: inline-block;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    color: var(--accent);
-    margin-bottom: 1rem;
-    font-family: var(--font-mono);
-  }
-
-  /* ============================================
-     SECTION
-     ============================================ */
-  .section {
-    padding: 6rem 0;
-  }
-  .section-head {
-    text-align: center;
-    max-width: 42rem;
-    margin: 0 auto 3.5rem;
-  }
-  .section-head h2 {
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    font-weight: 800;
-    line-height: 1.15;
-    color: var(--text);
-    margin-bottom: 1rem;
-  }
-  .section-head p {
-    color: var(--text-2);
-    font-size: 1.05rem;
-    line-height: 1.7;
-    max-width: 36rem;
-    margin: 0 auto;
-  }
-
-  /* ============================================
-     CARD
-     ============================================ */
-  .card {
-    background: var(--bg-2);
-    border: 1px solid rgba(148,163,184,0.08);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-  }
-  .card:hover {
-    border-color: rgba(148,163,184,0.18);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-  .card h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  .card p {
-    color: var(--text-2);
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
-
-  /* ============================================
-     NAV
-     ============================================ */
-  .nav {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    transition: background 0.3s, backdrop-filter 0.3s, border-color 0.3s;
-    border-bottom: 1px solid transparent;
-  }
-  .nav.scrolled {
-    background: rgba(9,9,11,0.82);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-bottom-color: var(--border);
-  }
-  .nav-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 3.5rem;
-  }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 1rem;
-    color: var(--text);
-  }
-  .nav-links {
-    display: flex;
-    gap: 1.8rem;
-  }
-  .nav-links a {
-    font-size: 0.85rem;
-    color: var(--text-2);
-    transition: color 0.2s;
-  }
-  .nav-links a:hover { color: var(--text); }
-  .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .nav-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: var(--text-2);
-    cursor: pointer;
-    padding: 0.25rem;
-  }
-  .nav-mobile {
-    display: none;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 1rem 1.5rem 1.5rem;
-    border-top: 1px solid var(--border);
-    background: var(--bg);
-  }
-  .nav-mobile a {
-    display: block;
-    padding: 0.6rem 0;
-    color: var(--text-2);
-    font-size: 0.95rem;
-    transition: color 0.2s;
-  }
-  .nav-mobile a:hover { color: var(--text); }
-  .nav-mobile-ctas {
-    display: flex;
-    gap: 0.75rem;
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-  }
-
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .nav-right .btn { display: none; }
-    .nav-toggle { display: block; }
-    .nav-mobile.open {
-      display: flex;
+    function loadGA() {
+      if (!gaId || document.getElementById('ga-script')) return;
+      var s = document.createElement('script');
+      s.id = 'ga-script'; s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date()); gtag('config', gaId);
     }
-  }
 
-  /* ============================================
-     HERO
-     ============================================ */
-  .hero {
-    position: relative;
-    padding: 7rem 0 4rem;
-    overflow: hidden;
-    min-height: 80vh;
-    display: flex;
-    align-items: center;
-  }
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    overflow: hidden;
-  }
-  .hero-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(148,163,184,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148,163,184,0.04) 1px, transparent 1px);
-    background-size: 60px 60px;
-  }
-  .hero-glow {
-    position: absolute;
-    top: -20%;
-    left: 30%;
-    width: 60%;
-    height: 80%;
-    background: radial-gradient(ellipse at center, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.08) 40%, transparent 70%);
-    filter: blur(60px);
-    animation: heroGlowAnim 8s ease-in-out infinite;
-  }
-  @keyframes heroGlowAnim {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.08); }
-  }
-  .hero-scanline {
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.03) 2px,
-      rgba(0,0,0,0.03) 4px
-    );
-    pointer-events: none;
-  }
-  .hero-content {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-  }
-  .hero-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    color: var(--text-2);
-    padding: 0.35rem 0.8rem;
-    background: rgba(34,197,94,0.08);
-    border: 1px solid rgba(34,197,94,0.15);
-    border-radius: 999px;
-    margin-bottom: 1.5rem;
-  }
-  .hero h1 {
-    font-size: clamp(2.5rem, 5.5vw, 4rem);
-    font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
-  }
-  .cursor {
-    color: var(--accent);
-    animation: blink 1s steps(1) infinite;
-  }
-  @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-  }
-  .hero-sub {
-    color: var(--text-2);
-    font-size: 1.1rem;
-    line-height: 1.7;
-    margin-bottom: 2rem;
-    max-width: 30rem;
-  }
-  .hero-sub em { color: var(--text); font-style: normal; font-weight: 600; }
-  .hero-ctas {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.5rem;
-  }
-  .hero-trust {
-    font-size: 0.72rem;
-    color: var(--text-3);
-    letter-spacing: 0.02em;
-  }
+    if (localStorage.getItem('cookie_consent') === 'accepted') loadGA();
 
-  /* Monitor widget */
-  .monitor {
-    background: rgba(15,15,18,0.9);
-    border: 1px solid rgba(148,163,184,0.1);
-    border-radius: var(--radius);
-    overflow: hidden;
-  }
-  .monitor-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.6rem 1rem;
-    font-size: 0.7rem;
-    color: var(--text-3);
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,0,0,0.3);
-  }
-  .monitor-stats {
-    color: var(--text-2);
-  }
-  .monitor-graph {
-    padding: 1rem;
-    height: 140px;
-  }
-  .monitor-graph svg {
-    width: 100%;
-    height: 100%;
-  }
-  .monitor-feed {
-    padding: 0.5rem 1rem;
-    border-top: 1px solid var(--border);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    max-height: 120px;
-    overflow: hidden;
-  }
-  .feed-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.3rem 0;
-    color: var(--text-2);
-    animation: feedSlide 0.3s ease-out;
-  }
-  @keyframes feedSlide {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .feed-row .feed-time { color: var(--text-3); margin-left: auto; }
-
-  .hero-captions {
-    display: flex;
-    gap: 1.5rem;
-    margin-top: 1rem;
-    font-size: 0.72rem;
-    color: var(--text-3);
-  }
-  .hero-captions span {
-    display: flex;
-    align-items: center;
-  }
-
-  @media (max-width: 900px) {
-    .hero-content {
-      grid-template-columns: 1fr;
-      gap: 3rem;
-    }
-    .hero { min-height: auto; padding: 5rem 0 3rem; }
-    .hero-captions { flex-wrap: wrap; gap: 0.75rem; }
-  }
-
-  /* ============================================
-     METRICS
-     ============================================ */
-  .section-metrics {
-    padding: 3rem 0;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-  }
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
-  }
-  .metric {
-    text-align: center;
-  }
-  .metric-n {
-    font-size: clamp(2rem, 4vw, 3rem);
-    font-weight: 800;
-    color: var(--text);
-    font-family: var(--font-mono);
-    line-height: 1;
-    margin-bottom: 0.5rem;
-  }
-  .metric-n .unit {
-    font-size: 0.5em;
-    color: var(--text-2);
-    font-weight: 500;
-  }
-  .metric-l {
-    font-size: 0.85rem;
-    color: var(--text-3);
-    max-width: 14rem;
-    margin: 0 auto;
-  }
-
-  @media (max-width: 640px) {
-    .metrics { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  /* ============================================
-     PROBLEM
-     ============================================ */
-  .section-head-split {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: start;
-    margin-bottom: 3rem;
-  }
-  .section-head-copy .eyebrow { margin-bottom: 0.75rem; }
-  .section-head-copy h2 {
-    font-size: clamp(1.6rem, 3.5vw, 2.5rem);
-    font-weight: 800;
-    line-height: 1.15;
-    margin-bottom: 1rem;
-  }
-  .section-head-copy p {
-    color: var(--text-2);
-    line-height: 1.7;
-    font-size: 0.95rem;
-  }
-
-  .gap-wall {
-    display: flex;
-    gap: 0;
-    background: var(--bg-2);
-    border: 1px solid rgba(148,163,184,0.08);
-    border-radius: var(--radius);
-    overflow: hidden;
-    font-size: 0.8rem;
-  }
-  .gap-col {
-    flex: 1;
-    padding: 1rem;
-  }
-  .gap-col-truth { background: rgba(34,197,94,0.03); }
-  .gap-label {
-    font-size: 0.7rem;
-    color: var(--text-3);
-    margin-bottom: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .gap-item {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.35rem 0;
-    font-size: 0.75rem;
-  }
-  .gap-val {
-    margin-left: auto;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    font-weight: 600;
-  }
-  .gap-divider {
-    display: flex;
-    align-items: center;
-    padding: 0 0.75rem;
-    font-size: 0.7rem;
-    color: var(--text-3);
-    font-family: var(--font-mono);
-    border-left: 1px solid var(--border);
-    border-right: 1px solid var(--border);
-    background: rgba(0,0,0,0.3);
-  }
-
-  .problem-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-  }
-  .problem .pico {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    color: var(--text-3);
-    margin-bottom: 0.75rem;
-  }
-  .problem h3 { margin-bottom: 0.5rem; }
-  .problem pre {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    font-size: 0.72rem;
-    color: var(--text-2);
-    overflow-x: auto;
-    line-height: 1.6;
-  }
-
-  @media (max-width: 900px) {
-    .section-head-split { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 768px) {
-    .problem-grid { grid-template-columns: 1fr; }
-  }
-
-  /* ============================================
-     BENTO GRID
-     ============================================ */
-  .bento {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
-  }
-  .b { padding: 1.5rem; }
-  .b-lg { grid-column: span 2; }
-  .b-md { grid-column: span 2; }
-  .b-sm { grid-column: span 1; }
-  .b-wide { grid-column: span 4; }
-
-  @media (max-width: 768px) {
-    .bento { grid-template-columns: 1fr; }
-    .b-lg, .b-md, .b-sm, .b-wide { grid-column: span 1; }
-  }
-
-  /* Worker grid viz */
-  .horizon-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.5rem;
-    margin-top: 1.25rem;
-  }
-  .worker-cell {
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--text-2);
-    transition: border-color 0.3s, background 0.3s;
-  }
-  .worker-cell.busy {
-    border-color: rgba(34,197,94,0.2);
-    background: rgba(34,197,94,0.04);
-  }
-  .worker-cell.paused {
-    border-color: rgba(245,158,11,0.2);
-    background: rgba(245,158,11,0.04);
-  }
-  .worker-cell.idle {
-    border-color: var(--border);
-  }
-
-  /* Heartbeat pulse viz */
-  .viz-ping {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
-    padding: 1rem 0;
-  }
-  .wave {
-    position: relative;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .wave::before {
-    content: '';
-    width: 12px; height: 12px;
-    background: var(--accent);
-    border-radius: 50%;
-    position: relative;
-    z-index: 1;
-  }
-  .wave-ring {
-    position: absolute;
-    inset: 0;
-    border: 1px solid var(--accent);
-    border-radius: 50%;
-    opacity: 0;
-    animation: waveExpand 2s ease-out infinite;
-  }
-  .wave-ring-2 { animation-delay: 0.5s; }
-  .wave-ring-3 { animation-delay: 1s; }
-  @keyframes waveExpand {
-    0% { transform: scale(0.3); opacity: 0.6; }
-    100% { transform: scale(1); opacity: 0; }
-  }
-
-  /* Alert channels viz */
-  .viz-channels {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-  .channel-pill {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid rgba(148,163,184,0.15);
-    border-radius: 999px;
-    color: var(--text-2);
-    background: rgba(0,0,0,0.3);
-  }
-
-  /* Code snippet */
-  .code-snippet {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: rgba(0,0,0,0.5);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    font-size: 0.72rem;
-    color: var(--text-2);
-    line-height: 1.8;
-    overflow-x: auto;
-    white-space: pre;
-  }
-
-  /* MCP chat */
-  .viz-mcp {
-    margin-top: 1.25rem;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 1rem;
-  }
-  .mcp-q {
-    font-size: 0.82rem;
-    color: var(--text-2);
-    margin-bottom: 0.75rem;
-  }
-  .mcp-a {
-    font-size: 0.82rem;
-    color: var(--text);
-    padding-left: 1rem;
-    border-left: 2px solid var(--accent);
-  }
-
-  /* ============================================
-     HOW IT WORKS
-     ============================================ */
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-  }
-  .step-n {
-    font-size: 0.72rem;
-    color: var(--accent);
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-  }
-  .step h3 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  .step p {
-    color: var(--text-2);
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
-
-  @media (max-width: 768px) {
-    .steps { grid-template-columns: 1fr; }
-  }
-
-  /* ============================================
-     DASHBOARD MOCKUP
-     ============================================ */
-  .dashboard {
-    background: var(--bg-2);
-    border: 1px solid rgba(148,163,184,0.1);
-    border-radius: var(--radius);
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  .db-top {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.75rem 1rem;
-    background: rgba(0,0,0,0.4);
-    border-bottom: 1px solid var(--border);
-  }
-  .db-lights { display: flex; gap: 6px; }
-  .db-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-  }
-  .db-dot-r { background: #ef4444; }
-  .db-dot-y { background: #f59e0b; }
-  .db-dot-g { background: #22c55e; }
-  .db-url {
-    flex: 1;
-    text-align: center;
-    font-size: 0.72rem;
-    color: var(--text-3);
-  }
-  .db-actions {
-    font-size: 0.72rem;
-    color: var(--text-3);
-    padding: 0.2rem 0.5rem;
-    border: 1px solid var(--border);
-    border-radius: 0.25rem;
-  }
-  .db-body {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    min-height: 350px;
-  }
-  .db-side {
-    padding: 1rem;
-    border-right: 1px solid var(--border);
-    background: rgba(0,0,0,0.2);
-  }
-  .db-side-label {
-    font-size: 0.6rem;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 0.5rem;
-    margin-top: 0.25rem;
-  }
-  .db-app {
-    font-size: 0.78rem;
-    padding: 0.4rem 0.6rem;
-    border-radius: 0.35rem;
-    color: var(--text-2);
-    cursor: default;
-    margin-bottom: 0.15rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .db-app-active {
-    background: rgba(34,197,94,0.08);
-    color: var(--text);
-    border: 1px solid rgba(34,197,94,0.15);
-  }
-  .db-app-alert {
-    color: var(--warn);
-  }
-  .db-badge-warn {
-    font-size: 0.6rem;
-    background: rgba(245,158,11,0.15);
-    color: var(--warn);
-    padding: 0.1rem 0.35rem;
-    border-radius: 999px;
-    margin-left: 0.25rem;
-  }
-  .db-side-divider {
-    height: 1px;
-    background: var(--border);
-    margin: 0.75rem 0;
-  }
-  .db-filter {
-    font-size: 0.75rem;
-    padding: 0.35rem 0.6rem;
-    border-radius: 0.35rem;
-    color: var(--text-3);
-    cursor: default;
-    margin-bottom: 0.15rem;
-  }
-  .db-filter-active { color: var(--text-2); background: rgba(148,163,184,0.06); }
-
-  .db-main { padding: 1.25rem; }
-  .db-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 1.25rem;
-  }
-  .db-env-badge {
-    font-size: 0.65rem;
-    font-family: var(--font-mono);
-    padding: 0.2rem 0.5rem;
-    background: rgba(148,163,184,0.06);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    color: var(--text-3);
-    font-weight: 400;
-  }
-  .db-alert-badge {
-    font-size: 0.65rem;
-    font-family: var(--font-mono);
-    padding: 0.2rem 0.5rem;
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.2);
-    border-radius: 999px;
-    color: var(--danger);
-    font-weight: 600;
-  }
-  .db-kpis {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  .db-kpi {
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
-  }
-  .db-kpi-label {
-    font-size: 0.6rem;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.35rem;
-  }
-  .db-kpi-val {
-    font-size: 1rem;
-    font-weight: 700;
-  }
-  .db-kpi-val span { font-size: 0.72rem; font-weight: 500; }
-  .db-panels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  .db-panel {
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    overflow: hidden;
-  }
-  .db-panel-head {
-    font-size: 0.65rem;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 0.6rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,0,0,0.2);
-  }
-  .db-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.75rem;
-  }
-  .db-table td {
-    padding: 0.5rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--text-2);
-  }
-  .db-table td:first-child { color: var(--text); }
-  .db-table td:last-child { text-align: right; }
-  .db-row-fail td { background: rgba(239,68,68,0.04); }
-  .db-row-warn td { background: rgba(245,158,11,0.04); }
-
-  .sparkline-placeholder {
-    width: 60px;
-    height: 16px;
-    background: linear-gradient(90deg, rgba(34,197,94,0.1), rgba(34,197,94,0.3));
-    border-radius: 2px;
-    display: inline-block;
-    vertical-align: middle;
-    float: right;
-  }
-  .sparkline-red {
-    background: linear-gradient(90deg, rgba(239,68,68,0.1), rgba(239,68,68,0.4));
-  }
-
-  @media (max-width: 768px) {
-    .db-body { grid-template-columns: 1fr; }
-    .db-side { display: none; }
-    .db-kpis { grid-template-columns: repeat(2, 1fr); }
-    .db-panels { grid-template-columns: 1fr; }
-  }
-
-  /* ============================================
-     INTEGRATIONS
-     ============================================ */
-  .integrations {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    max-width: 48rem;
-    margin: 0 auto;
-  }
-  .int-group h4 {
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: var(--text);
-  }
-  .int-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-  .int-pill {
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid rgba(148,163,184,0.15);
-    border-radius: 999px;
-    color: var(--text-2);
-    background: rgba(0,0,0,0.3);
-  }
-  .int-pill-muted {
-    color: var(--text-3);
-    border-color: rgba(148,163,184,0.08);
-  }
-  @media (max-width: 640px) {
-    .integrations { grid-template-columns: 1fr; }
-  }
-
-  /* ============================================
-     PRICING
-     ============================================ */
-  .billing-toggle {
-    display: inline-flex;
-    margin-top: 1.25rem;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.2rem;
-  }
-  .toggle-btn {
-    font-family: var(--font-sans);
-    font-size: 0.82rem;
-    font-weight: 500;
-    padding: 0.4rem 1rem;
-    border: none;
-    border-radius: 0.35rem;
-    background: transparent;
-    color: var(--text-3);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .toggle-active {
-    background: rgba(148,163,184,0.1);
-    color: var(--text);
-  }
-  .toggle-save {
-    font-size: 0.7rem;
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .pricing {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    max-width: 56rem;
-    margin: 0 auto;
-  }
-  .pricing-card {
-    display: flex;
-    flex-direction: column;
-    padding: 2rem;
-    position: relative;
-  }
-  .pricing-card-featured {
-    border-color: rgba(34,197,94,0.3);
-    background: linear-gradient(180deg, rgba(34,197,94,0.04) 0%, var(--bg-2) 40%);
-  }
-  .pricing-badge {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    font-weight: 600;
-    padding: 0.2rem 0.75rem;
-    background: var(--accent);
-    color: #000;
-    border-radius: 999px;
-    white-space: nowrap;
-  }
-  .pricing-name {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  .pricing-price {
-    font-size: 2.5rem;
-    font-weight: 800;
-    font-family: var(--font-mono);
-    margin-bottom: 1.5rem;
-    line-height: 1;
-  }
-  .pricing-period {
-    font-size: 0.9rem;
-    color: var(--text-3);
-    font-weight: 400;
-  }
-  .pricing-features {
-    list-style: none;
-    flex: 1;
-    margin-bottom: 1.5rem;
-  }
-  .pricing-features li {
-    font-size: 0.88rem;
-    color: var(--text-2);
-    padding: 0.35rem 0;
-    padding-left: 1.2rem;
-    position: relative;
-  }
-  .pricing-features li::before {
-    content: '\2713';
-    position: absolute;
-    left: 0;
-    color: var(--accent);
-    font-size: 0.8rem;
-  }
-  .pricing-no {
-    color: var(--text-3) !important;
-  }
-  .pricing-no::before {
-    content: '\2014' !important;
-    color: var(--text-3) !important;
-  }
-  .coming-soon {
-    font-size: 0.6rem;
-    font-family: var(--font-mono);
-    color: var(--text-3);
-    background: rgba(148,163,184,0.06);
-    padding: 0.1rem 0.4rem;
-    border-radius: 999px;
-    vertical-align: middle;
-    margin-left: 0.25rem;
-  }
-  .pricing-card .btn { width: 100%; justify-content: center; }
-
-  @media (max-width: 768px) {
-    .pricing { grid-template-columns: 1fr; max-width: 24rem; }
-  }
-
-  /* ============================================
-     OSS PACKAGES
-     ============================================ */
-  .pkg-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    margin-bottom: 2rem;
-  }
-  .pkg {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem;
-    cursor: pointer;
-  }
-  .pkg strong {
-    font-size: 0.88rem;
-    display: block;
-    margin-bottom: 0.15rem;
-  }
-  .pkg .text-2 {
-    font-size: 0.78rem;
-    line-height: 1.5;
-  }
-  .pkg-lang {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
-    font-weight: 700;
-    padding: 0.25rem 0.45rem;
-    border-radius: 0.25rem;
-    flex-shrink: 0;
-    margin-top: 0.15rem;
-  }
-  .pkg-ts { background: rgba(49,120,198,0.15); color: #60a5fa; }
-  .pkg-py { background: rgba(255,212,59,0.12); color: #fbbf24; }
-  .pkg-go { background: rgba(0,173,216,0.12); color: #22d3ee; }
-  .pkg-rs { background: rgba(222,165,132,0.12); color: #fb923c; }
-  .pkg-php { background: rgba(119,123,180,0.15); color: #a78bfa; }
-  .pkg-la { background: rgba(239,68,68,0.12); color: #f87171; }
-  .pkg-sh { background: rgba(148,163,184,0.12); color: #94a3b8; }
-  .pkg-ai { background: rgba(34,197,94,0.12); color: #4ade80; }
-
-  @media (max-width: 768px) {
-    .pkg-grid { grid-template-columns: 1fr; }
-  }
-
-  .oss-cloud {
-    background: linear-gradient(135deg, rgba(34,197,94,0.05) 0%, rgba(99,102,241,0.05) 100%);
-    border: 1px solid rgba(34,197,94,0.15);
-    border-radius: var(--radius);
-    padding: 2rem;
-  }
-  .oss-cloud-inner {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-  }
-  .oss-cloud-copy {
-    flex: 1;
-    min-width: 200px;
-  }
-  .oss-cloud-copy h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 0.35rem;
-  }
-  .oss-cloud-features {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.35rem 1.5rem;
-    font-size: 0.82rem;
-    color: var(--text-2);
-  }
-  .oss-cloud-features span { white-space: nowrap; }
-
-  /* ============================================
-     SDK TABS
-     ============================================ */
-  .sdk-tabs {
-    max-width: 36rem;
-    margin: 0 auto;
-  }
-  .sdk-tab-bar {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 1.5rem;
-    overflow-x: auto;
-  }
-  .sdk-tab {
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    padding: 0.6rem 1rem;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    color: var(--text-3);
-    cursor: pointer;
-    white-space: nowrap;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .sdk-tab:hover { color: var(--text-2); }
-  .sdk-tab-active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-  .sdk-panel {
-    display: none;
-  }
-  .sdk-panel-active {
-    display: block;
-  }
-  .sdk-cmd {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-  }
-  .sdk-cmd code {
-    font-size: 0.82rem;
-    color: var(--text-2);
-  }
-  .copy-btn {
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    padding: 0.25rem 0.6rem;
-    background: rgba(148,163,184,0.08);
-    border: 1px solid var(--border);
-    border-radius: 0.25rem;
-    color: var(--text-3);
-    cursor: pointer;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    margin-left: 0.75rem;
-  }
-  .copy-btn:hover {
-    background: rgba(148,163,184,0.15);
-    color: var(--text-2);
-  }
-
-  /* ============================================
-     FINAL CTA
-     ============================================ */
-  .section-cta {
-    padding: 8rem 0;
-  }
-  .final {
-    text-align: center;
-    max-width: 36rem;
-    margin: 0 auto;
-  }
-  .final h2 {
-    font-size: clamp(2rem, 4.5vw, 3.2rem);
-    font-weight: 800;
-    line-height: 1.15;
-    margin-bottom: 1rem;
-  }
-  .final p {
-    color: var(--text-2);
-    font-size: 1.05rem;
-    line-height: 1.7;
-    margin-bottom: 2rem;
-  }
-  .final-ctas {
-    display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
-
-  /* ============================================
-     FOOTER
-     ============================================ */
-  .site-footer {
-    border-top: 1px solid var(--border);
-    padding: 4rem 0 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-  .footer-top {
-    display: grid;
-    grid-template-columns: 1.5fr repeat(4, 1fr);
-    gap: 2rem;
-    margin-bottom: 3rem;
-  }
-  .footer-brand p {
-    margin-top: 0.75rem;
-  }
-  .footer-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.7rem;
-    color: var(--text-3);
-    margin-top: 0.75rem;
-  }
-  .footer-social {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  .footer-social a {
-    color: var(--text-3);
-    transition: color 0.2s;
-  }
-  .footer-social a:hover { color: var(--text-2); }
-
-  .footer-col {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  .footer-heading {
-    font-size: 0.7rem;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-3);
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-  }
-  .footer-col a {
-    font-size: 0.85rem;
-    color: var(--text-2);
-    transition: color 0.2s;
-  }
-  .footer-col a:hover { color: var(--text); }
-
-  .footer-wordmark {
-    font-family: var(--font-mono);
-    font-size: clamp(4rem, 12vw, 10rem);
-    font-weight: 800;
-    text-align: center;
-    color: rgba(148,163,184,0.03);
-    line-height: 1;
-    margin-bottom: 1.5rem;
-    user-select: none;
-    pointer-events: none;
-  }
-
-  .footer-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid var(--border);
-    padding-top: 1.5rem;
-    font-size: 0.75rem;
-    color: var(--text-3);
-  }
-
-  @media (max-width: 768px) {
-    .footer-top {
-      grid-template-columns: 1fr 1fr;
-    }
-    .footer-brand {
-      grid-column: span 2;
-    }
-    .footer-bottom {
-      flex-direction: column;
-      gap: 0.5rem;
-      text-align: center;
-    }
-  }
-  @media (max-width: 480px) {
-    .footer-top { grid-template-columns: 1fr; }
-    .footer-brand { grid-column: span 1; }
-  }
-
-  /* ============================================
-     SCROLL REVEAL
-     ============================================ */
-  .reveal {
-    opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1),
-                transform 0.7s cubic-bezier(0.16,1,0.3,1);
-  }
-  .reveal.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .reveal-delay-1 { transition-delay: 0.1s; }
-  .reveal-delay-2 { transition-delay: 0.2s; }
-  .reveal-delay-3 { transition-delay: 0.3s; }
-
-  @media (prefers-reduced-motion: reduce) {
-    .reveal { opacity: 1; transform: none; }
-  }
-</style>
-
-<script is:inline>
-(function() {
-  'use strict';
-
-  /* ==== NAV SCROLL ==== */
-  var nav = document.querySelector('.nav');
-  window.addEventListener('scroll', function() {
-    if (window.scrollY > 20) {
-      nav.classList.add('scrolled');
-    } else {
-      nav.classList.remove('scrolled');
-    }
-  }, { passive: true });
-
-  /* ==== NAV TOGGLE ==== */
-  var toggleBtn = document.querySelector('.nav-toggle');
-  var mobileMenu = document.getElementById('nav-mobile');
-  var hamburgerIcon = document.querySelector('.hamburger-icon');
-  var closeIcon = document.querySelector('.close-icon');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      var isOpen = mobileMenu.classList.contains('open');
-      mobileMenu.classList.toggle('open', !isOpen);
-      hamburgerIcon.style.display = isOpen ? '' : 'none';
-      closeIcon.style.display = isOpen ? 'none' : '';
-      toggleBtn.setAttribute('aria-expanded', String(!isOpen));
+    document.getElementById('cookie-accept')?.addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', 'accepted');
+      document.getElementById('cookie-banner').style.display = 'none';
+      loadGA();
     });
-    mobileMenu.querySelectorAll('a').forEach(function(a) {
-      a.addEventListener('click', function() {
-        mobileMenu.classList.remove('open');
-        hamburgerIcon.style.display = '';
-        closeIcon.style.display = 'none';
-        toggleBtn.setAttribute('aria-expanded', 'false');
-      });
+    document.getElementById('cookie-decline')?.addEventListener('click', function() {
+      localStorage.setItem('cookie_consent', 'declined');
+      document.getElementById('cookie-banner').style.display = 'none';
     });
-  }
-
-  /* ==== HEARTBEAT CHART ==== */
-  var points = [];
-  var numPoints = 60;
-  var svgW = 600, svgH = 120;
-  for (var i = 0; i < numPoints; i++) {
-    points.push(svgH * 0.5 + (Math.random() - 0.5) * svgH * 0.4);
-  }
-
-  function drawHeartbeat() {
-    var line = document.getElementById('heartbeat-line');
-    var area = document.getElementById('heartbeat-area');
-    var dot = document.getElementById('heartbeat-dot');
-    if (!line) return;
-
-    var stepX = svgW / (numPoints - 1);
-    var d = 'M0,' + points[0].toFixed(1);
-    for (var i = 1; i < numPoints; i++) {
-      var x = i * stepX;
-      var y = points[i];
-      var px = (i - 1) * stepX;
-      var py = points[i - 1];
-      var cx1 = px + stepX * 0.4;
-      var cx2 = x - stepX * 0.4;
-      d += ' C' + cx1.toFixed(1) + ',' + py.toFixed(1) + ' ' + cx2.toFixed(1) + ',' + y.toFixed(1) + ' ' + x.toFixed(1) + ',' + y.toFixed(1);
-    }
-    line.setAttribute('d', d);
-    area.setAttribute('d', d + ' L' + svgW + ',' + svgH + ' L0,' + svgH + ' Z');
-    var lastX = (numPoints - 1) * stepX;
-    var lastY = points[numPoints - 1];
-    dot.setAttribute('cx', lastX.toFixed(1));
-    dot.setAttribute('cy', lastY.toFixed(1));
-  }
-
-  function updateHeartbeat() {
-    points.shift();
-    var last = points[points.length - 1];
-    var isSpike = Math.random() < 0.08;
-    var newVal;
-    if (isSpike) {
-      newVal = svgH * 0.15 + Math.random() * svgH * 0.2;
-    } else {
-      newVal = last + (Math.random() - 0.5) * 15;
-      newVal = Math.max(svgH * 0.25, Math.min(svgH * 0.85, newVal));
-    }
-    points.push(newVal);
-    drawHeartbeat();
-  }
-  drawHeartbeat();
-  setInterval(updateHeartbeat, 1500);
-
-  /* ==== EVENT FEED ==== */
-  var feedEvents = [
-    { type: 'ok', name: 'schedule:run', msg: 'completed in 842ms' },
-    { type: 'ok', name: 'worker.default', msg: '2 supervisors running' },
-    { type: 'warn', name: 'queue.emails', msg: 'depth 6,413 backpressure' },
-    { type: 'fail', name: 'sync:stripe-webhooks', msg: 'exit 1 retry 3/5' },
-    { type: 'ok', name: 'generate:daily-invoices', msg: 'ok 2m 14s' },
-    { type: 'ok', name: 'agent.support', msg: '12 runs p95 8.2s' },
-    { type: 'warn', name: 'telemetry:roll-up', msg: 'slow 8m 02s' },
-    { type: 'ok', name: 'cleanup:stale-sessions', msg: 'ok 1m 08s' },
-    { type: 'fail', name: 'agent.run.874', msg: '42m 318 tool calls killed' },
-    { type: 'ok', name: 'dunning:send-reminders', msg: 'ok 48s' },
-  ];
-  var feedIdx = 0;
-  var feedEl = document.getElementById('monitor-feed');
-
-  function addFeedEvent() {
-    if (!feedEl) return;
-    var ev = feedEvents[feedIdx % feedEvents.length];
-    feedIdx++;
-    var row = document.createElement('div');
-    row.className = 'feed-row';
-    var dotClass = ev.type === 'ok' ? 'dot-ok' : ev.type === 'fail' ? 'dot-fail' : 'dot-warn';
-    var now = new Date();
-    var time = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ':' + String(now.getSeconds()).padStart(2,'0');
-    row.innerHTML = '<span class="dot ' + dotClass + '"></span>' +
-      '<span>' + ev.name + '</span>' +
-      '<span style="color:var(--text-3);margin-left:0.5rem">' + ev.msg + '</span>' +
-      '<span class="feed-time">' + time + '</span>';
-    feedEl.insertBefore(row, feedEl.firstChild);
-    while (feedEl.children.length > 6) {
-      feedEl.removeChild(feedEl.lastChild);
-    }
-  }
-  addFeedEvent();
-  setInterval(addFeedEvent, 2500);
-
-  /* ==== WORKER GRID ==== */
-  var workerNames = ['default', 'invoices', 'emails', 'analytics', 'notifications', 'payments', 'reports', 'webhooks',
-                     'imports', 'exports', 'search', 'cache', 'mailer', 'billing', 'telemetry', 'agent'];
-  var workerStates = ['busy', 'busy', 'busy', 'idle', 'busy', 'busy', 'idle', 'busy',
-                      'paused', 'busy', 'busy', 'idle', 'busy', 'busy', 'idle', 'busy'];
-  var workerGrid = document.getElementById('worker-grid');
-
-  function renderWorkers() {
-    if (!workerGrid) return;
-    workerGrid.innerHTML = '';
-    for (var i = 0; i < 16; i++) {
-      var cell = document.createElement('div');
-      cell.className = 'worker-cell ' + workerStates[i];
-      var dotClass = workerStates[i] === 'busy' ? 'dot-ok' : workerStates[i] === 'paused' ? 'dot-warn' : '';
-      cell.innerHTML = '<span class="dot ' + dotClass + '" style="width:6px;height:6px"></span>' + workerNames[i];
-      workerGrid.appendChild(cell);
-    }
-  }
-
-  function updateWorkers() {
-    for (var i = 0; i < 16; i++) {
-      if (Math.random() < 0.15) {
-        var r = Math.random();
-        workerStates[i] = r < 0.6 ? 'busy' : r < 0.85 ? 'idle' : 'paused';
-      }
-    }
-    renderWorkers();
-  }
-  renderWorkers();
-  setInterval(updateWorkers, 3000);
-
-  /* ==== COUNTER ANIMATION ==== */
-  function animateCounter(el) {
-    var target = parseInt(el.getAttribute('data-count'), 10);
-    var duration = 1500;
-    var start = performance.now();
-    function step(now) {
-      var progress = Math.min((now - start) / duration, 1);
-      var eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.round(target * eased);
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-
-  var counterObserver = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        animateCounter(entry.target);
-        counterObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.5 });
-
-  document.querySelectorAll('.val[data-count]').forEach(function(el) {
-    counterObserver.observe(el);
-  });
-
-  /* ==== SCROLL REVEAL ==== */
-  var revealObserver = new IntersectionObserver(function(entries) {
-    entries.forEach(function(entry) {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        revealObserver.unobserve(entry.target);
-      }
-    });
-  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-
-  document.querySelectorAll('.reveal').forEach(function(el) {
-    revealObserver.observe(el);
-  });
-
-  /* ==== SDK TABS ==== */
-  var tabBar = document.getElementById('sdk-tab-bar');
-  if (tabBar) {
-    tabBar.addEventListener('click', function(e) {
-      var tab = e.target.closest('.sdk-tab');
-      if (!tab) return;
-      var target = tab.getAttribute('data-tab');
-      document.querySelectorAll('.sdk-tab').forEach(function(t) { t.classList.remove('sdk-tab-active'); });
-      document.querySelectorAll('.sdk-panel').forEach(function(p) { p.classList.remove('sdk-panel-active'); });
-      tab.classList.add('sdk-tab-active');
-      var panel = document.querySelector('.sdk-panel[data-panel="' + target + '"]');
-      if (panel) panel.classList.add('sdk-panel-active');
-    });
-  }
-
-  /* ==== BILLING TOGGLE ==== */
-  var billingToggle = document.getElementById('billing-toggle');
-  if (billingToggle) {
-    billingToggle.addEventListener('click', function(e) {
-      var btn = e.target.closest('.toggle-btn');
-      if (!btn) return;
-      var period = btn.getAttribute('data-period');
-      billingToggle.querySelectorAll('.toggle-btn').forEach(function(b) { b.classList.remove('toggle-active'); });
-      btn.classList.add('toggle-active');
-      document.querySelectorAll('.price-val').forEach(function(el) {
-        el.textContent = el.getAttribute('data-' + period);
-      });
-    });
-  }
-
-  /* ==== COPY BUTTONS ==== */
-  document.querySelectorAll('.copy-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var text = btn.getAttribute('data-copy');
-      navigator.clipboard.writeText(text).then(function() {
-        var orig = btn.textContent;
-        btn.textContent = 'Copied!';
-        btn.style.color = 'var(--accent)';
-        setTimeout(function() {
-          btn.textContent = orig;
-          btn.style.color = '';
-        }, 1500);
-      });
-    });
-  });
-
-  /* ==== SMOOTH SCROLL ==== */
-  document.querySelectorAll('a[href^="#"]').forEach(function(a) {
-    a.addEventListener('click', function(e) {
-      var target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    });
-  });
-
-})();
+  })();
 </script>
 
-</Base>
+<script is:inline src="/src/main.js"></script>
+
+</body>
+</html>
