@@ -240,6 +240,11 @@ import Footer from '../components/Footer.astro';
             q: 'Is there an annual discount?',
             a: 'Yes, 20% off when you pay annually. Pro goes from $19/mo to $182/yr ($15.17/mo). Team goes from $49/mo to $470/yr ($39.17/mo).',
           },
+          {
+            q: 'Can I get Pro as a one-time purchase instead of a subscription?',
+            a: 'Yes. Pro is also available as a Lifetime Deal — a one-time $149 payment for permanent access. No renewals, no subscriptions. All future Pro features are included automatically. See the lifetime deal page.',
+            href: '/lifetime-deal',
+          },
         ].map((item) => (
           <div class="border-b border-gray-800 pb-6">
             <h3 class="font-medium text-white mb-2">{item.q}</h3>
