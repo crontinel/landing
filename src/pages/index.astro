@@ -157,6 +157,49 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
       .monitor-head .label span:nth-child(4) { display: none; }
       .hero-trust { font-size: 10px; }
     }
+
+    /* ── SOCIAL PROOF STRIP ─────────────────────────────────────────── */
+    .section-muted { background: var(--bg-alt, rgba(255,255,255,0.02)); }
+    .proof-strip { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 8px 0; }
+    .proof-label { font-size: 12px; color: var(--text-3); }
+    .proof-stats { display: flex; align-items: center; gap: 0; flex-wrap: wrap; justify-content: center; }
+    .proof-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 32px; }
+    .proof-n { font-size: 20px; font-weight: 700; color: var(--text); font-family: var(--font-mono); }
+    .proof-l { font-size: 11px; color: var(--text-3); }
+    .proof-div { width: 1px; height: 32px; background: var(--border); }
+
+    /* ── OSS COMPARE TABLE ────────────────────────────────────────── */
+    .oss-compare { margin-top: 48px; }
+    .oss-compare h3 { text-align: center; margin-bottom: 8px; }
+    .oss-compare > p { text-align: center; color: var(--text-2); margin-bottom: 28px; }
+    .oss-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; max-width: 680px; margin: 0 auto; }
+    .oss-compare-col { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .oss-compare-col--saas { border-color: var(--accent); }
+    .oss-compare-head { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .oss-compare-head .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--bg-2); border: 1px solid var(--border); color: var(--text-2); letter-spacing: 0; text-transform: none; }
+    .oss-compare-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    .oss-compare-list li { font-size: 13px; color: var(--text-2); padding-left: 20px; position: relative; }
+    .oss-compare-list li::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius: 50%; }
+    .oss-compare-list li.yes { color: var(--text); }
+    .oss-compare-list li.yes::before { background: var(--ok); }
+    .oss-compare-list li.no { color: var(--text-3); }
+    .oss-compare-list li.no::before { background: var(--text-3); opacity: 0.4; }
+
+    /* ── OSS CALLOUT ───────────────────────────────────────────────── */
+    .oss-callout { display: flex; gap: 20px; align-items: flex-start; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-top: 40px; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .oss-callout-icon { flex-shrink: 0; margin-top: 2px; }
+    .oss-callout-body { flex: 1; }
+    .oss-callout-body h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+    .oss-callout-body p { font-size: 13px; color: var(--text-2); margin-bottom: 16px; line-height: 1.6; }
+    .oss-callout-cmd { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .oss-callout-cmd code { background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--accent); font-family: var(--font-mono); }
+
+    /* ── RESPONSIVE ───────────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .oss-compare-grid { grid-template-columns: 1fr; }
+      .oss-callout { flex-direction: column; gap: 12px; }
+      .proof-stat { padding: 0 16px; }
+    }
   </style>
 </head>
 
@@ -367,11 +410,11 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
 <span class="bad">agent.run.874       42m · 318 tool calls</span></pre>
       </article>
       <article class="card problem reveal">
-        <div class="pico"><span class="dot warn"></span> <span class="mono">queue.backpressure</span></div>
-        <h3>A downstream API throttles.</h3>
-        <p class="body-sm">Your <span class="mono">invoices</span> queue is backing up silently. No alert fires because no job has failed. Customers are just waiting.</p>
-        <pre class="mock"><span class="good">invoices.depth      127 → 6,413</span>
-<span class="bad">oldest_job          12m 04s</span></pre>
+        <div class="pico"><span class="dot fail"></span> <span class="mono">worker.crash</span></div>
+        <h3>Worker crashes. Queue is dead.</h3>
+        <p class="body-sm">A worker process died. Your queue manager shows "running" because one worker is still up. Your billing queue is dead. No errors. No alerts. Just silence.</p>
+        <pre class="mock"><span class="good">queue.manager       running</span>
+<span class="bad">worker.emails       · crashed</span></pre>
       </article>
     </div>
   </div>
@@ -628,6 +671,31 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 </section>
 
 <!-- ============================== PRICING ============================== -->
+<!-- ============================== SOCIAL PROOF ============================== -->
+<section class="section section-muted" id="sec-proof">
+  <div class="container">
+    <div class="proof-strip reveal">
+      <p class="proof-label mono">Trusted by developers worldwide</p>
+      <div class="proof-stats">
+        <div class="proof-stat">
+          <span class="proof-n" id="social-dev-count">—</span>
+          <span class="proof-l">developers</span>
+        </div>
+        <div class="proof-div"></div>
+        <div class="proof-stat">
+          <span class="proof-n">MIT</span>
+          <span class="proof-l">open-source license</span>
+        </div>
+        <div class="proof-div"></div>
+        <div class="proof-stat">
+          <span class="proof-n">14-day</span>
+          <span class="proof-l">Pro trial included</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section class="section" id="pricing">
   <div class="container">
     <div class="section-head reveal">
@@ -646,6 +714,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <div class="cost"><span class="amt">$0</span><span class="per">/mo</span></div>
         <ul>
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 connected app</li>
+          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 5 monitors per app</li>
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 7 days of run history</li>
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> All alert channels</li>
           <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Team access</li>
@@ -743,6 +812,39 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       </a>
     </div>
 
+    <div class="oss-compare reveal">
+      <h3 class="display h3">Self-hosted or fully managed?</h3>
+      <p class="body">The open-source package is free forever. The SaaS adds the things you would have to build yourself.</p>
+      <div class="oss-compare-grid">
+        <div class="oss-compare-col">
+          <div class="oss-compare-head">Self-hosted <span class="tag tag-free">free, MIT</span></div>
+          <ul class="oss-compare-list">
+            <li class="yes">Full queue and cron visibility</li>
+            <li class="yes">Blade dashboard on your own server</li>
+            <li class="yes">Slack alerts built in</li>
+            <li class="yes">Your data, your infra</li>
+            <li class="no">No hosted dashboard</li>
+            <li class="no">No team access or roles</li>
+            <li class="no">7-day history max</li>
+            <li class="no">You manage the server</li>
+          </ul>
+        </div>
+        <div class="oss-compare-col oss-compare-col--saas">
+          <div class="oss-compare-head">Crontinel SaaS</div>
+          <ul class="oss-compare-list">
+            <li class="yes">Everything in the open-source package</li>
+            <li class="yes">Hosted dashboard at app.crontinel.com</li>
+            <li class="yes">Team access with roles</li>
+            <li class="yes">Up to 1-year run history</li>
+            <li class="yes">Multi-app overview in one place</li>
+            <li class="yes">PagerDuty, webhooks, status pages</li>
+            <li class="yes">REST API and MCP server access</li>
+            <li class="yes">Zero server management</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
     <div class="oss-cloud reveal">
       <div class="oss-cloud-copy">
         <span class="chip"><span class="dot"></span>Hosted · app.crontinel.com</span>
@@ -755,6 +857,20 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <li><span class="ok-mark">&#10003;</span> Team access, audit log, SSO (soon)</li>
         <li><span class="ok-mark">&#10003;</span> MCP server for agents</li>
       </ul>
+    </div>
+
+    <div class="oss-callout reveal">
+      <div class="oss-callout-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <div class="oss-callout-body">
+        <h3>Prefer to self-host? The package is free forever.</h3>
+        <p>The MIT package works standalone: Blade dashboard, CLI health check, Slack alerts, full Horizon monitoring. No SaaS required. Own your data.</p>
+        <div class="oss-callout-cmd">
+          <code class="mono">composer require crontinel/laravel</code>
+          <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('composer require crontinel/laravel'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
