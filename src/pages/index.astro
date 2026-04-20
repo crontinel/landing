@@ -193,6 +193,8 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
     .oss-callout-body p { font-size: 13px; color: var(--text-2); margin-bottom: 16px; line-height: 1.6; }
     .oss-callout-cmd { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .oss-callout-cmd code { background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--accent); font-family: var(--font-mono); }
+    .oss-pkgs { display: flex; flex-wrap: wrap; gap: 8px; }
+    .oss-pkgs code { background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--accent); font-family: var(--font-mono); white-space: nowrap; }
 
     /* ── RESPONSIVE ───────────────────────────────────────────────── */
     @media (max-width: 640px) {
@@ -875,11 +877,16 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       </div>
       <div class="oss-callout-body">
-        <h3>Prefer to self-host? The package is free forever.</h3>
-        <p>The MIT package works standalone: Blade dashboard, CLI health check, Slack alerts, full Horizon monitoring. No SaaS required. Own your data.</p>
+        <h3>Prefer to self-host? Every package is free forever.</h3>
+        <p>MIT licensed. Every SDK works standalone — Blade dashboard, CLI health check, Slack alerts, queue and cron monitoring. No SaaS required. Own your data.</p>
         <div class="oss-callout-cmd">
-          <code class="mono">composer require crontinel/laravel</code>
-          <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('composer require crontinel/laravel'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+          <div class="oss-pkgs">
+            <code class="mono">npm i @crontinel/node</code>
+            <code class="mono">pip install crontinel</code>
+            <code class="mono">go get github.com/crontinel/go</code>
+            <code class="mono">composer require crontinel/laravel</code>
+            <code class="mono">gem install crontinel</code>
+          </div>
         </div>
       </div>
     </div>
