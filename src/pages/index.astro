@@ -278,7 +278,7 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
       </div>
 
       <div class="hero-trust mono">
-        <span>node · python · go · php · cli</span>
+        <span>node · python · go · php · ruby · rails · cli</span>
         <span class="sep">·</span>
         <span>MIT licensed</span>
         <span class="sep">·</span>
@@ -524,7 +524,8 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
         <pre><span class="cmt"># pick your runtime</span>
 <span class="ok">$</span> npm i @crontinel/node
 <span class="ok">$</span> pip install crontinel
-<span class="ok">$</span> go get github.com/crontinel/go</pre>
+<span class="ok">$</span> go get github.com/crontinel/go
+<span class="ok">$</span> gem install crontinel</pre>
       </div>
       <div class="step">
         <div class="n">02 · ROUTE ALERTS</div>
@@ -889,6 +890,8 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <button class="sdk-tab" data-sdk="go">Go</button>
         <button class="sdk-tab" data-sdk="rust">Rust</button>
         <button class="sdk-tab" data-sdk="php">PHP</button>
+        <button class="sdk-tab" data-sdk="ruby">Ruby</button>
+        <button class="sdk-tab" data-sdk="rails">Rails</button>
         <button class="sdk-tab" data-sdk="cli">CLI / Docker</button>
       </div>
 
@@ -921,6 +924,16 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <div class="install-cmd"><span><span class="prompt">$</span> brew install crontinel</span><button class="copy" data-copy="brew install crontinel">COPY</button></div>
         <div class="install-cmd"><span><span class="prompt">$</span> docker run crontinel/agent init</span><button class="copy" data-copy="docker run crontinel/agent init">COPY</button></div>
         <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="ruby" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> gem install crontinel</span><button class="copy" data-copy="gem install crontinel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel init</span><button class="copy" data-copy="crontinel init">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
+      </div>
+      <div class="sdk-panel" data-for="rails" hidden>
+        <div class="install-cmd"><span><span class="prompt">$</span> gem install crontinel-rails</span><button class="copy" data-copy="gem install crontinel-rails">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> rails generate crontinel:install</span><button class="copy" data-copy="rails generate crontinel:install">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> bundle exec crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="bundle exec crontinel check">COPY</button></div>
       </div>
     </div>
   </div>
