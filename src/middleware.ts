@@ -9,5 +9,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return Response.redirect(url.toString(), 301);
   }
 
+  // Redirect /docs to docs.crontinel.com
+  if (url.pathname === '/docs' || url.pathname === '/docs/') {
+    return Response.redirect('https://docs.crontinel.com' + url.pathname, 301);
+  }
+
   return next();
 });
