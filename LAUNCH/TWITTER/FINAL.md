@@ -14,7 +14,7 @@ That gives you a local dashboard for every scheduled task, queue, and Horizon pr
 4/5 MIT licensed, always. Self-hosted dashboard is free. Run it on your own infra, own your data. Optional SaaS at app.crontinel.com if you want hosted alerts and multi-app views. Early access open now.
 
 5/5 Go try it and tell us what breaks.
-GitHub: https://github.com/crontinel/crontinel
+GitHub: https://github.com/crontinel/laravel
 Docs: https://docs.crontinel.com
 Site: https://crontinel.com
 Stars, issues, and PRs all welcome.

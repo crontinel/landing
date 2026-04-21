@@ -28,7 +28,7 @@ You get a local dashboard, CLI health check (`php artisan crontinel:check` for C
 
 There's also a hosted SaaS if you want multi-app dashboards and team access, but the package stands alone.
 
-GitHub: https://github.com/crontinel/crontinel
+GitHub: https://github.com/crontinel/laravel
 Docs: https://docs.crontinel.com
 Site: https://crontinel.com
 

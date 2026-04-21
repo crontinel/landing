@@ -57,6 +57,6 @@ Generic cron monitors ping your endpoints. They can't see inside your Laravel ap
 ## Links
 
 - Website: https://crontinel.com
-- GitHub: https://github.com/crontinel/crontinel
+- GitHub: https://github.com/crontinel/laravel
 - Docs: https://docs.crontinel.com
 - SaaS: https://app.crontinel.com
