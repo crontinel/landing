@@ -23,3 +23,4 @@ Deployed automatically via Cloudflare Pages on push to `main`.
 | [crontinel/app](https://github.com/crontinel/app) | SaaS dashboard, sign up at [app.crontinel.com](https://app.crontinel.com) |
 | [crontinel/docs](https://github.com/crontinel/docs) | Product documentation at [docs.crontinel.com](https://docs.crontinel.com) |
 | [crontinel/laravel](https://github.com/crontinel/crontinel) | OSS Laravel package on GitHub |
+# trigger
