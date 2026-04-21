@@ -1,0 +1,151 @@
+---
+title: "Why Your Laravel Cron Jobs Run Twice (and How to Prevent It)"
+description: "Laravel scheduled tasks firing twice is a notoriously silent bug. Here's exactly why it happens, how to detect it, and how to prevent it using Laravel's built-in locking mechanisms."
+date: 2026-04-21
+tags: ["laravel", "cron", "scheduling", "production"]
+---
+
+Every Laravel developer eventually hits this: a scheduled task that was supposed to run once runs twice. Or three times. Or every minute for an hour. Sometimes it causes real damage — duplicate emails, double-charged payments, corrupted reports. Other times it goes completely unnoticed until someone asks why the nightly report generated twice and has duplicate rows.
+
+This is not a bug in Laravel. It's a consequence of how cron and `schedule:run` interact. Understanding the mechanism is the only way to fix it reliably.
+
+## The Root Cause: How `schedule:run` Actually Works
+
+Most Laravel developers set up the scheduler like this in their server crontab:
+
+```bash
+* * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This runs every single minute. Each time, `schedule:run` checks which tasks are due, executes them, and exits. Laravel keeps track of which tasks have run using the `schedule` cache driver.
+
+This design is intentional. `schedule:run` is idempotent by design — it checks whether a task is due before running it, and uses cache locks to prevent double execution within the same schedule cycle.
+
+But idempotent does not mean foolproof. There are three common ways double execution still happens.
+
+## Cause 1: The Scheduler Runs on Multiple Servers
+
+If you're running Laravel on multiple application servers behind a load balancer, each server has its own crontab entry. At 6:00 AM, all three servers run `schedule:run`. All three servers independently check whether the 6 AM task is due. All three see "yes, it's due." All three execute it.
+
+This is the most common cause in production environments with horizontal scaling. Laravel's default cache-based locking only works when all scheduler processes share the same cache. If your cache is Redis and all servers use the same Redis instance, Laravel can coordinate. But if the cache driver is `file` (the default), each server is independent and coordination breaks down.
+
+Here's what a multi-server setup looks like without proper locking:
+
+```php
+// app/Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->command('reports:generate')
+        ->dailyAt('06:00');
+}
+```
+
+Each server runs this independently. The `dailyAt('06:00')` guard only prevents the same scheduler process from running the task twice in one cycle — it does not coordinate across servers.
+
+**The fix:** Use an atomic cache driver (Redis, Memcached) and the `--onOneServer` flag:
+
+```php
+$schedule->command('reports:generate')
+    ->dailyAt('06:00')
+    ->onOneServer();
+```
+
+The `onOneServer()` method uses your cache's atomic locking to ensure only one server executes the task, even when multiple `schedule:run` processes fire simultaneously.
+
+## Cause 2: Overlapping Tasks Without `withoutOverlapping`
+
+Even on a single server, a long-running task can overlap with itself. If a task takes 10 minutes and the scheduler fires it again before the first run finishes, you now have two processes running the same command simultaneously.
+
+This is particularly dangerous for tasks that touch the same data:
+
+```php
+$schedule->command('import:customers')
+    ->dailyAt('03:00');
+```
+
+If the import takes longer than expected, the next `schedule:run` fires at 3:01, sees the task is still running, and starts a second import. Now you have two imports writing to the same tables, potentially creating duplicate or conflicting records.
+
+The fix is `withoutOverlapping()`:
+
+```php
+$schedule->command('import:customers')
+    ->dailyAt('03:00')
+    ->withoutOverlapping();
+```
+
+Laravel will not run this command again until the previous instance has finished. If the lock expires before the task completes (by default after 24 hours), the next scheduler cycle will proceed regardless.
+
+For very long tasks, set an explicit overlap timeout:
+
+```php
+$schedule->command('import:customers')
+    ->dailyAt('03:00')
+    ->withoutOverlapping(60 * 60 * 2); // 2-hour max runtime
+```
+
+## Cause 3: The Task Runs Inside `schedule:run` Instead of as Its Own Process
+
+Here's a subtle one. If you configure a task using `exec()` to run a PHP script directly, that script runs as a subprocess of `schedule:run`. If the subprocess hangs or the parent process is killed, the subprocess may keep running independently — or conversely, the subprocess dying may cause `schedule:run` to exit mid-execution.
+
+For critical tasks, run them as background jobs rather than subprocesses:
+
+```php
+// Instead of this:
+$schedule->exec('php /path/to/worker.php')
+    ->hourly();
+
+// Do this — dispatch a job, not a subprocess:
+$schedule->job(new CriticalWorkerJob())
+    ->hourly()
+    ->onOneServer()
+    ->withoutOverlapping();
+```
+
+## How to Detect If a Task Is Running Twice Right Now
+
+The first sign is usually duplicate records in your output — double-sent emails, double-created reports, double-logged entries. But there are more direct ways to check.
+
+**Check running PHP processes for your command:**
+
+```bash
+ps aux | grep 'reports:generate' | grep -v grep
+```
+
+If you see multiple lines, you have overlapping runs.
+
+**Check Laravel's scheduled task log** (if you're logging):
+
+Laravel logs scheduled task execution when `LOG_CHANNEL` is configured. Look for entries with the same task name and similar timestamps.
+
+**Use Crontinel to detect double execution:**
+
+Crontinel monitors your Laravel scheduler heartbeat. If your task runs twice, you get two heartbeat signals in quick succession — an immediate alert that something is wrong. Configure a threshold (e.g., alert if `reports:generate` runs more than once per 25 hours) and you'll catch double executions before they cause data damage.
+
+## Preventing Double Execution: A Checklist
+
+For every scheduled task in your Laravel app, ask:
+
+- [ ] Is this task on multiple servers? → Use `->onOneServer()` if yes
+- [ ] Can this task overlap with itself? → Use `->withoutOverlapping()` if yes
+- [ ] Is the cache driver atomic (Redis/Memcached) in production? → Default `file` driver doesn't work for `onOneServer()`
+- [ ] Does this task touch shared state (database, files, external APIs)? → Combine `onOneServer()` + `withoutOverlapping()`
+
+```php
+$schedule->command('reports:generate')
+    ->dailyAt('06:00')
+    ->onOneServer()
+    ->withoutOverlapping()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+```
+
+The combination of `onOneServer()` and `withoutOverlapping()` is the most robust pattern for production scheduled tasks. It handles both multi-server coordination and single-server overlap prevention simultaneously.
+
+## The Takeaway
+
+Laravel's scheduler is elegant, but its safety mechanisms require explicit configuration. `onOneServer()` and `withoutOverlapping()` are not defaults because they require a shared atomic cache — but in any production deployment, you should be using them. They cost nothing to add and prevent a class of bugs that range from annoying to catastrophic.
+
+If you're running Laravel across multiple servers and not using `onOneServer()`, your scheduled tasks are almost certainly running more than once. The fact that you haven't noticed just means the task hasn't caused visible damage yet.
+
+---
+
+**Ready to catch double executions and scheduler failures before they cause problems?** [Set up Crontinel](https://crontinel.com) for your Laravel app in under 5 minutes and get alerted the moment a scheduled task misbehaves.
