@@ -27,15 +27,15 @@
 .nav .brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 15px;
   letter-spacing: -0.03em;
 }
 .nav .brand .mark {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   position: relative;
 }
 .nav .links {
@@ -947,8 +947,8 @@
   padding-bottom: 56px;
 }
 @media (max-width: 980px) { .footer-top { grid-template-columns: 1fr; gap: 40px; } }
-.footer-lead .brand { font-size: 16px; gap: 8px; }
-.footer-lead .brand .mark { width: 32px; height: 32px; }
+.footer-lead .brand { font-size: 16px; gap: 10px; }
+.footer-lead .brand .mark { width: 36px; height: 36px; }
 .footer-tag {
   margin: 18px 0 0;
   font-size: 18px;
@@ -1421,8 +1421,8 @@
   .hero h1.display { margin-top: 14px; }
 
   /* Nav brand wordmark */
-  .nav .brand { font-size: 14px; }
-  .nav .brand .mark { width: 28px; height: 28px; }
+  .nav .brand { font-size: 15px; }
+  .nav .brand .mark { width: 32px; height: 32px; }
   .nav .right .btn-primary { padding: 10px 12px; font-size: 12.5px; }
   .nav .right .btn-primary .arrow-i { display: none; }
 
