@@ -1,51 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Navy background -->
+  <!-- Navy background circle -->
   <circle cx="32" cy="32" r="30" fill="#213B5E"/>
 
-  <!-- Gear teeth: 7 small rectangles at outer edge, placed explicitly -->
-  <!-- Using clipPath to keep teeth inside the circle -->
-  <defs>
-    <clipPath id="c"><circle cx="32" cy="32" r="30"/></clipPath>
-  </defs>
+  <!-- Gear arc: cyan, thick stroke, ~240° from 11 o'clock around bottom to 5 o'clock -->
+  <path d="M43.4 7.5 A27 27 0 1 1 9.9 47.5" fill="none" stroke="#4BC6F1" stroke-width="8" stroke-linecap="round"/>
 
-  <g clip-path="url(#c)">
-    <!-- Tooth 1: top-left (-65°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(-65 32 32)"/>
-    <!-- Tooth 2: left-top (-30°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(-30 32 32)"/>
-    <!-- Tooth 3: top (5°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(5 32 32)"/>
-    <!-- Tooth 4: right-top (40°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(40 32 32)"/>
-    <!-- Tooth 5: bottom-right (75°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(75 32 32)"/>
-    <!-- Tooth 6: bottom (110°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(110 32 32)"/>
-    <!-- Tooth 7: bottom-left (145°) -->
-    <rect x="30.5" y="0" width="3" height="6" rx="1" transform="rotate(145 32 32)"/>
-  </g>
+  <!-- Smooth arc: muted slate, remaining ~120° on right side -->
+  <path d="M9.9 47.5 A27 27 0 0 1 43.4 7.5" fill="none" stroke="#6373A1" stroke-width="8" stroke-linecap="round"/>
 
-  <!-- Outer arcs: both r=27, stroke=5.5, centered on the circle -->
-  <!-- Cyan arc: from -65° (11 o'clock) clockwise through bottom to 145° (5 o'clock) -->
-  <!-- Start point: x=32+27*cos(-65°)=32+11.4=43.4, y=32+27*sin(-65°)=32-24.5=7.5 -->
-  <!-- End point: x=32+27*cos(145°)=32-22.1=9.9, y=32+27*sin(145°)=32+15.5=47.5 -->
-  <path d="M43.4 7.5 A27 27 0 1 1 9.9 47.5" fill="none" stroke="#4BC6F1" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- 7 gear teeth as small circles on the cyan arc edge -->
+  <circle cx="44" cy="6" r="2.5" fill="#4BC6F1"/>
+  <circle cx="57" cy="16" r="2.5" fill="#4BC6F1"/>
+  <circle cx="61" cy="32" r="2.5" fill="#4BC6F1"/>
+  <circle cx="54" cy="47" r="2.5" fill="#4BC6F1"/>
+  <circle cx="39" cy="57" r="2.5" fill="#4BC6F1"/>
+  <circle cx="21" cy="55" r="2.5" fill="#4BC6F1"/>
+  <circle cx="7" cy="41" r="2.5" fill="#4BC6F1"/>
 
-  <!-- Muted slate arc: from 145° to -65° (top-right quadrant) -->
-  <path d="M9.9 47.5 A27 27 0 0 1 43.4 7.5" fill="none" stroke="#6373A1" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Inner dark circle to clean up arc inner edges -->
+  <circle cx="32" cy="32" r="24" fill="#213B5E"/>
 
-  <!-- Inner dark fill to clean up the inner half of arcs and teeth -->
-  <circle cx="32" cy="32" r="23" fill="#213B5E"/>
+  <!-- Clock face ring (subtle) -->
+  <circle cx="32" cy="32" r="19" fill="none" stroke="#4BC6F1" stroke-width="1" stroke-opacity="0.4"/>
 
   <!-- Clock hands: 12:00 and 4:10 -->
-  <!-- Minute hand: straight up to y=16 -->
-  <line x1="32" y1="32" x2="32" y2="16" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
-  <!-- Hour hand: 125° from up = down-right. End: (45, 50) -->
-  <line x1="32" y1="32" x2="45" y2="50" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+  <!-- Hour: straight up to y=15 -->
+  <line x1="32" y1="32" x2="32" y2="15" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Minute: 125° down-right. End: (44, 50) -->
+  <line x1="32" y1="32" x2="44" y2="50" stroke="white" stroke-width="4" stroke-linecap="round"/>
 
-  <!-- Scalloped badge: 16-point seal at top-right -->
-  <polygon points="50.5,17.5 51.3,19.3 53.3,19.1 54.1,21 55.9,21.3 56.3,23.2 58.2,23.9 58.1,25.9 59.9,26.9 59.2,28.7 60.4,30.4 59.1,31.8 59.4,33.7 57.6,34.5 57.2,36.4 55.2,36.4 54.1,38.2 52.2,37.8 50.8,39.3 49.3,37.9 47.3,38.2 46.3,36.4 44.3,36.5 43.7,34.6 41.8,33.8 42.1,31.9 40.3,30.8 41.1,29.1 39.3,27.7 39.9,25.8 38.1,24.8 38.7,23 37,21.7 38.1,20.1 36.7,18.7 37.8,17.2 36.2,15.8 37.7,14.4 36.5,12.8 38.4,12 38.8,10.1 40.8,10.1 41.9,8.3 43.8,8.7 45.2,7.2 46.7,8.6 48.7,8.3 49.7,10.1 51.7,10" fill="#48E3A6"/>
-
+  <!-- Badge: simple circle (not scalloped — scallops don't render at small sizes anyway) -->
+  <circle cx="50" cy="14" r="8" fill="#48E3A6"/>
   <!-- Checkmark -->
-  <polyline points="43.5,24.5 47,28 53.5,20.5" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <polyline points="46,14 49,17.5 54,11" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
