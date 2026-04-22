@@ -1,36 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Navy background circle -->
+  <!-- Navy background -->
   <circle cx="32" cy="32" r="30" fill="#213B5E"/>
 
-  <!-- Gear arc: cyan, thick stroke, ~240° from 11 o'clock around bottom to 5 o'clock -->
-  <path d="M43.4 7.5 A27 27 0 1 1 9.9 47.5" fill="none" stroke="#4BC6F1" stroke-width="8" stroke-linecap="round"/>
+  <!-- Smooth arc (slate) — top-right quadrant, 4 o'clock to 8 o'clock -->
+  <!-- Start: (52, 43) going counterclockwise through top to (12, 43) -->
+  <path d="M52 43 A27 27 0 0 0 12 43" fill="none" stroke="#6373A1" stroke-width="8" stroke-linecap="round"/>
 
-  <!-- Smooth arc: muted slate, remaining ~120° on right side -->
-  <path d="M9.9 47.5 A27 27 0 0 1 43.4 7.5" fill="none" stroke="#6373A1" stroke-width="8" stroke-linecap="round"/>
+  <!-- Gear arc (cyan) — 8 o'clock clockwise around to 4 o'clock -->
+  <path d="M12 43 A27 27 0 1 1 52 43" fill="none" stroke="#4BC6F1" stroke-width="8" stroke-linecap="round"/>
 
-  <!-- 7 gear teeth as small circles on the cyan arc edge -->
-  <circle cx="44" cy="6" r="2.5" fill="#4BC6F1"/>
-  <circle cx="57" cy="16" r="2.5" fill="#4BC6F1"/>
-  <circle cx="61" cy="32" r="2.5" fill="#4BC6F1"/>
-  <circle cx="54" cy="47" r="2.5" fill="#4BC6F1"/>
-  <circle cx="39" cy="57" r="2.5" fill="#4BC6F1"/>
-  <circle cx="21" cy="55" r="2.5" fill="#4BC6F1"/>
-  <circle cx="7" cy="41" r="2.5" fill="#4BC6F1"/>
+  <!-- 7 gear teeth: circles at r=30, evenly spaced on left+bottom arc (225° to 345°) -->
+  <!-- 225° = 7 o'clock, 255° = 8 o'clock, 285° = 9 o'clock, 315° = 10 o'clock -->
+  <!-- 345° = 11 o'clock, 15° = 1 o'clock (near top-right junction), 45° = 2 o'clock -->
+  <circle cx="12" cy="51" r="3.5" fill="#4BC6F1"/>
+  <circle cx="19" cy="59" r="3.5" fill="#4BC6F1"/>
+  <circle cx="29" cy="61" r="3.5" fill="#4BC6F1"/>
+  <circle cx="40" cy="58" r="3.5" fill="#4BC6F1"/>
+  <circle cx="48" cy="50" r="3.5" fill="#4BC6F1"/>
+  <circle cx="54" cy="39" r="3.5" fill="#4BC6F1"/>
+  <circle cx="56" cy="27" r="3.5" fill="#4BC6F1"/>
 
-  <!-- Inner dark circle to clean up arc inner edges -->
+  <!-- Inner dark circle to clean up inner arc edges -->
   <circle cx="32" cy="32" r="24" fill="#213B5E"/>
 
-  <!-- Clock face ring (subtle) -->
-  <circle cx="32" cy="32" r="19" fill="none" stroke="#4BC6F1" stroke-width="1" stroke-opacity="0.4"/>
-
   <!-- Clock hands: 12:00 and 4:10 -->
-  <!-- Hour: straight up to y=15 -->
-  <line x1="32" y1="32" x2="32" y2="15" stroke="white" stroke-width="4" stroke-linecap="round"/>
-  <!-- Minute: 125° down-right. End: (44, 50) -->
-  <line x1="32" y1="32" x2="44" y2="50" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Hour: straight up to y=16 -->
+  <line x1="32" y1="32" x2="32" y2="16" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <!-- Minute: down-right. End: (45, 50) -->
+  <line x1="32" y1="32" x2="45" y2="50" stroke="white" stroke-width="4" stroke-linecap="round"/>
 
-  <!-- Badge: simple circle (not scalloped — scallops don't render at small sizes anyway) -->
-  <circle cx="50" cy="14" r="8" fill="#48E3A6"/>
-  <!-- Checkmark -->
-  <polyline points="46,14 49,17.5 54,11" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Badge: green circle with checkmark -->
+  <circle cx="51" cy="14" r="8" fill="#48E3A6"/>
+  <polyline points="47,14.5 50,17.5 55,11" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
