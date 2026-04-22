@@ -1,29 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Navy background -->
-  <circle cx="32" cy="32" r="30" fill="#213B5E"/>
+  <!-- Navy background r=32 -->
+  <circle cx="32" cy="32" r="32" fill="#213B5E"/>
 
   <!-- Arc endpoints at r=27 -->
-  <!-- 8 o'clock (240°): x=18.5, y=8.6 -->
-  <!-- 1 o'clock (30°): x=55.4, y=45.5 -->
+  <!-- 11 o'clock (300°): x=45.5, y=8.6 | 5 o'clock (150°): x=8.6, y=45.5 -->
 
-  <!-- Slate arc (smooth): small CCW from 1 o'clock through top to 8 o'clock (60°) -->
-  <path d="M55.4 45.5 A27 27 0 0 0 18.5 8.6" fill="none" stroke="#6373A1" stroke-width="8" stroke-linecap="round"/>
+  <!-- Slate arc (smooth): small CCW from 11 through top to 5 -->
+  <path d="M45.5 8.6 A27 27 0 0 0 8.6 45.5" fill="none" stroke="#6373A1" stroke-width="8" stroke-linecap="round"/>
 
-  <!-- Cyan arc (gear): large CW from 8 o'clock through bottom+left to 1 o'clock (300°) -->
-  <path d="M18.5 8.6 A27 27 0 1 1 55.4 45.5" fill="none" stroke="#4BC6F1" stroke-width="8" stroke-linecap="round"/>
+  <!-- Cyan arc (gear): large CW from 11 through bottom+left to 5 -->
+  <path d="M45.5 8.6 A27 27 0 1 1 8.6 45.5" fill="none" stroke="#4BC6F1" stroke-width="8" stroke-linecap="round"/>
 
-  <!-- 7 gear teeth at r=30, evenly spaced on left arc (235° to 305°) -->
-  <!-- 235°, 246°, 258°, 270°, 282°, 293°, 305° -->
-  <!-- cos/sin of these angles give x≤32 (left side) -->
-  <circle cx="17" cy="58" r="3.5" fill="#4BC6F1"/>
-  <circle cx="13" cy="53" r="3.5" fill="#4BC6F1"/>
-  <circle cx="10" cy="47" r="3.5" fill="#4BC6F1"/>
-  <circle cx="8" cy="40" r="3.5" fill="#4BC6F1"/>
-  <circle cx="8" cy="32" r="3.5" fill="#4BC6F1"/>
-  <circle cx="10" cy="24" r="3.5" fill="#4BC6F1"/>
-  <circle cx="14" cy="17" r="3.5" fill="#4BC6F1"/>
+  <!-- 7 gear teeth at r=28, computed from angles 120° to 180° -->
+  <circle cx="18" cy="56" r="2.5" fill="#4BC6F1"/>
+  <circle cx="14" cy="53" r="2.5" fill="#4BC6F1"/>
+  <circle cx="11" cy="50" r="2.5" fill="#4BC6F1"/>
+  <circle cx="8" cy="46" r="2.5" fill="#4BC6F1"/>
+  <circle cx="6" cy="42" r="2.5" fill="#4BC6F1"/>
+  <circle cx="4" cy="37" r="2.5" fill="#4BC6F1"/>
+  <circle cx="4" cy="32" r="2.5" fill="#4BC6F1"/>
 
-  <!-- Inner dark circle r=23 (teeth at r=30 are outside, fully visible) -->
+  <!-- Inner dark circle r=23 -->
   <circle cx="32" cy="32" r="23" fill="#213B5E"/>
 
   <!-- Clock hands: 12:00 and 4:10 -->
