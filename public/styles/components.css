@@ -34,8 +34,8 @@
   letter-spacing: -0.03em;
 }
 .nav .brand .mark {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   position: relative;
 }
 .nav .links {
@@ -1420,7 +1420,7 @@
 
   /* Nav brand wordmark */
   .nav .brand { font-size: 14px; }
-  .nav .brand .mark { width: 24px; height: 24px; }
+  .nav .brand .mark { width: 26px; height: 26px; }
   .nav .right .btn-primary { padding: 10px 12px; font-size: 12.5px; }
   .nav .right .btn-primary .arrow-i { display: none; }
 
