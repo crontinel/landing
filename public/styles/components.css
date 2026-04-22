@@ -815,6 +815,8 @@
 .lang-php  { background: #777bb4; color: #fff; }
 .lang-rb   { background: #cc342d; color: #fff; }
 .lang-rs   { background: #dea584; }
+.lang-java { background: #b07219; color: #fff; }
+.lang-cs   { background: #68217a; color: #fff; }
 .lang-ai   { background: linear-gradient(135deg, #a78bfa, #22c55e); color: #0b0b0c; }
 .lang-cli  { background: #1e1e1e; color: #c9fda8; border: 1px solid #2a2a2a; }
 
