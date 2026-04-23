@@ -11,6 +11,17 @@ import Footer from '../../components/Footer.astro';
   <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
+    { "@type": "ListItem", "position": 2, "name": "Comparisons", "item": "https://crontinel.com/vs" },
+    { "@type": "ListItem", "position": 3, "name": "Crontinel vs Datadog", "item": "https://crontinel.com/vs/datadog" }
+  ]
+}
+</script>
+  <script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
   "@type": "FAQPage",
   "mainEntity": [
     {
