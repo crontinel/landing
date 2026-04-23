@@ -21,8 +21,8 @@
 - [ ] BreadcrumbList schema (VS/use-case/integration pages)
 - [ ] Article schema (blog posts)
 - [ ] PricingPage + Offer schema (/pricing)
-- [ ] Internal links — VS pages orphaned
-- [ ] Internal links — use-case pages orphaned
+- [x] Internal links — VS pages orphaned (PR #47)
+- [x] Internal links — use-case pages orphaned (PR #47)
 - [ ] Integrations index page
 
 ## Content
