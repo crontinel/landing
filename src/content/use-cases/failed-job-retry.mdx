@@ -1,0 +1,111 @@
+---
+title: "Monitoring Failed Job Retry Loops in Laravel Horizon"
+description: "A job that fails and retries forever burns queue workers without progress. Crontinel detects rising failed job rates and oldest job age spikes before the retry loop fills your queue."
+date: 2026-04-23
+---
+
+Laravel's queue system retries failed jobs automatically. That's useful when failures are transient — a momentary API timeout, a brief database lock. But when a job fails consistently across retries, the retry mechanism creates a new problem: the job consumes worker slots on every attempt without making progress, and failed jobs accumulate in the `failed_jobs` table.
+
+Crontinel monitors failed job rates and queue state so you catch retry loops before they degrade queue throughput across your entire application.
+
+## How Laravel job retries work
+
+When a job fails, Laravel checks its `$tries` and `$maxExceptions` properties:
+
+```php
+class SendInvoiceEmail implements ShouldQueue
+{
+    public $tries = 3;
+    public $backoff = [30, 60, 120]; // seconds between retries
+}
+```
+
+With this configuration, a failing job is retried up to 3 times with exponential backoff. After 3 failures, it's moved to the `failed_jobs` table and a `JobFailed` event is fired.
+
+If the underlying cause is not transient (a misconfigured API key, a deleted model, a schema mismatch), every retry fails and the job lands in `failed_jobs` again.
+
+## What a retry loop looks like
+
+Consider a `ProcessWebhookPayload` job that calls an external API with an expired token. The token expired during a deploy and wasn't rotated.
+
+Timeline without monitoring:
+- **T+0**: First failure. Retried in 30 seconds.
+- **T+30**: Second failure. Retried in 60 seconds.
+- **T+90**: Third failure. Moved to `failed_jobs`.
+- **T+90 to T+180**: 50 more `ProcessWebhookPayload` jobs dispatched from the webhook endpoint fail in the same pattern.
+- **T+3h**: 500 failed jobs in `failed_jobs`. The queue workers that should process `invoices` and `notifications` have been busy retrying `webhooks` jobs.
+
+The problem becomes visible when customers complain that emails aren't sending — not when the underlying API token expired.
+
+## Metrics Crontinel tracks
+
+### Failed jobs per minute
+
+Crontinel reads the failed job count from Redis at each polling interval and calculates the rate of change. A sudden spike in the failed job rate — even before the queue depth rises significantly — indicates a new class of job is failing.
+
+Set a threshold based on your normal failure rate:
+
+```bash
+CRONTINEL_FAILED_JOB_RATE_THRESHOLD=5  # alert if >5 failed jobs/min
+```
+
+### Oldest job age
+
+When a job is stuck retrying and blocking queue workers, the oldest unprocessed job in the queue gets older faster than normal. The oldest job age is a leading indicator of queue throughput problems.
+
+```bash
+CRONTINEL_OLDEST_JOB_MINUTES_DEFAULT=15  # alert if oldest job is >15 min old
+```
+
+### Queue depth per queue
+
+If you segment work across named queues, a retry loop in one queue doesn't necessarily raise depth in others — unless workers are shared. Crontinel monitors depth per queue so you can see which queue is affected.
+
+```bash
+CRONTINEL_QUEUE_DEPTH_WEBHOOKS=100
+CRONTINEL_QUEUE_DEPTH_INVOICES=50
+```
+
+## Responding to a retry loop
+
+When Crontinel fires a failed-job-rate alert, the typical response is:
+
+1. Check `failed_jobs` for the most common job class and exception message
+2. Identify whether the failure is transient or persistent
+3. If persistent: fix the root cause, then use `php artisan queue:retry all` once the fix is deployed
+4. If transient: let retries run, monitor for recovery, increase thresholds temporarily if needed
+
+Crontinel's alert includes the current failed job count and rate, giving you triage context without having to SSH into the server to run SQL queries.
+
+## Preventing cascading queue degradation
+
+A retry loop that consumes workers in one queue degrades throughput in all queues if workers are not isolated. The pattern that prevents this:
+
+```php
+// config/horizon.php
+'environments' => [
+    'production' => [
+        'supervisor-1' => [
+            'queue' => ['invoices', 'notifications'],
+            'balance' => 'auto',
+            'processes' => 5,
+        ],
+        'supervisor-2' => [
+            'queue' => ['webhooks'],
+            'balance' => 'auto',
+            'processes' => 3,
+        ],
+    ],
+],
+```
+
+With separate supervisors per queue group, a retry storm in `webhooks` doesn't consume workers from `invoices`. Crontinel monitors each supervisor independently, so you see which supervisor is under load.
+
+## Setup
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Configure alert thresholds in `.env`. The package reads failed job counts and queue metrics on each polling cycle. No additional instrumentation is needed in your job classes.

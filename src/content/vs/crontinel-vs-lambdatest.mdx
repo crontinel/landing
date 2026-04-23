@@ -1,0 +1,73 @@
+---
+title: "Crontinel vs LambdaTest: Testing Platform vs Laravel Job Monitoring"
+description: "LambdaTest runs your test suite in the cloud. Crontinel monitors whether your production jobs are running. Here's the difference and when you need both."
+competitor: "LambdaTest"
+date: 2026-04-23
+---
+
+LambdaTest is a cloud-based testing platform. It runs your test suite across different browsers, operating systems, and device configurations, and lets your team see test results in a centralized dashboard. Its core use case is CI/CD integration and cross-browser compatibility testing.
+
+Crontinel monitors production background jobs. It watches Laravel's scheduler and Horizon queue worker to detect failures, missed runs, and queue backlogs — in production, not in test environments.
+
+These tools do not overlap. If you're evaluating them together, you likely need both: LambdaTest to verify your application behaves correctly before deploying, and Crontinel to verify your background jobs keep running correctly after deploying.
+
+## What LambdaTest does
+
+LambdaTest's primary capabilities:
+
+- **Cross-browser testing**: Run Selenium, Cypress, or Playwright tests against hundreds of browser/OS combinations simultaneously
+- **Visual regression testing**: Screenshot comparison across browsers and deployments
+- **Real device testing**: Run tests on real iOS and Android devices
+- **CI/CD integration**: Plug into GitHub Actions, Jenkins, CircleCI to run tests on every pull request
+- **Test analytics**: Track test pass rates, flakiness, and duration over time
+
+LambdaTest is a pre-production tool. It helps you find bugs before they reach users. It has no visibility into what happens in your application after deployment.
+
+## What Crontinel does
+
+Crontinel is a post-deployment monitoring tool for Laravel's background execution layer:
+
+- **Scheduled task monitoring**: Every `php artisan schedule:run` is recorded. Non-zero exit codes trigger alerts. Missed runs (when the scheduler itself stops) are detected by comparing last-run timestamps against expected schedules.
+- **Horizon supervisor monitoring**: Reads Redis directly to detect paused or stopped supervisors immediately — no grace period required.
+- **Queue depth and age monitoring**: Alerts when a queue accumulates more jobs than expected or when the oldest unprocessed job has been waiting too long.
+- **Alert routing**: Sends alerts via Slack, email, PagerDuty, or webhook. Alerts resolve automatically when the failure condition clears.
+
+Crontinel is not a testing tool. It does not run tests, simulate users, or assess application correctness. It monitors whether production jobs are executing as expected.
+
+## The testing-monitoring gap
+
+Testing and monitoring are often treated as a single concern but they solve different problems:
+
+**Testing** answers: does my code behave correctly in controlled conditions?  
+**Monitoring** answers: is my code executing successfully in production right now?
+
+A full test suite passing in LambdaTest does not mean your production Horizon supervisors are running. A Redis connection issue, a misconfigured queue worker restart policy, or a resource limit on your hosting platform can all cause Horizon to stop processing — silently, without any test catching it.
+
+Crontinel covers the monitoring half of that equation for Laravel's background job layer specifically.
+
+## Feature comparison
+
+| Capability | Crontinel | LambdaTest |
+|---|---|---|
+| Cross-browser test execution | No | Yes |
+| Visual regression testing | No | Yes |
+| CI/CD test integration | No | Yes |
+| Test analytics and flakiness tracking | No | Yes |
+| Production cron job monitoring | Yes | No |
+| Horizon supervisor status | Yes | No |
+| Queue depth alerting | Yes | No |
+| Failed job detection | Yes | No |
+| Slack / PagerDuty / webhook alerts | Yes | No |
+| Open source / self-hostable | Yes | No |
+| Laravel-native | Yes | No |
+
+## Getting started
+
+For production monitoring of your Laravel background jobs:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Add your alert channel configuration to `.env` and the package starts recording scheduler runs immediately. Connect to the SaaS dashboard for cross-app monitoring, longer history, and Horizon visibility.

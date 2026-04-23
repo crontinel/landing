@@ -7,6 +7,61 @@ import Footer from '../components/Footer.astro';
 <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Crontinel",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "Laravel-native cron job and queue monitoring. Monitor Horizon supervisors, queue depth, and scheduled tasks. Open source and self-hostable.",
+  "url": "https://crontinel.com",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Free",
+      "description": "1 app, 5 monitors, 7-day history. No credit card required.",
+      "price": "0",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "url": "https://app.crontinel.com/register"
+    },
+    {
+      "@type": "Offer",
+      "name": "Pro",
+      "description": "5 apps, unlimited monitors, 90-day history, Slack/email/PagerDuty/webhook alerts. 14-day free trial.",
+      "price": "19",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "19",
+        "priceCurrency": "USD",
+        "unitCode": "MON",
+        "referenceQuantity": { "@type": "QuantitativeValue", "value": "1", "unitCode": "MON" }
+      },
+      "availability": "https://schema.org/InStock",
+      "url": "https://app.crontinel.com/register"
+    },
+    {
+      "@type": "Offer",
+      "name": "Team",
+      "description": "Unlimited apps and monitors, 1-year history, unlimited team members, custom alert rules, priority support. 14-day free trial.",
+      "price": "49",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "49",
+        "priceCurrency": "USD",
+        "unitCode": "MON",
+        "referenceQuantity": { "@type": "QuantitativeValue", "value": "1", "unitCode": "MON" }
+      },
+      "availability": "https://schema.org/InStock",
+      "url": "https://app.crontinel.com/register"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json" slot="head">
+{
+  "@context": "https://schema.org",
   "@type": ["WebPage", "PricePage"],
   "url": "https://crontinel.com/pricing",
   "name": "Pricing - Crontinel",
