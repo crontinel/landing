@@ -1,0 +1,71 @@
+---
+title: "Crontinel vs Cronofy: Scheduling API vs Laravel Job Monitoring"
+description: "Cronofy is a scheduling and calendar API. Crontinel monitors whether your scheduled jobs actually ran. Here's where they differ and when you need both."
+competitor: "Cronofy"
+date: 2026-04-23
+---
+
+Cronofy is a scheduling and availability API. It connects to calendar providers (Google Calendar, Outlook, Apple Calendar) to read availability, create bookings, and sync events across platforms. It's designed for products that involve scheduling people — appointment booking, interview scheduling, shared calendar access.
+
+Crontinel is a cron job and queue monitoring tool. It watches whether your background jobs ran, whether Laravel Horizon is healthy, and whether your scheduled tasks succeeded.
+
+They address different problems. If you're comparing them, it's likely because you need both: Cronofy to trigger scheduled work and Crontinel to verify it ran.
+
+## What Cronofy does
+
+Cronofy's core value is abstracting away calendar API differences. Instead of integrating with Google Calendar API, Microsoft Graph, and Apple CalDAV separately, you integrate with Cronofy once and it handles all three.
+
+Common Cronofy use cases:
+- Booking systems that read a user's real calendar availability
+- Interview scheduling tools
+- SaaS products where users link their work calendar
+- Automated event creation triggered by app events
+
+Cronofy has no concept of monitoring whether a task ran or succeeded. It creates and reads calendar events. What happens in your application as a result of those events is outside its scope.
+
+## What Crontinel does
+
+Crontinel monitors the background execution layer of your Laravel application:
+
+- **Scheduled task monitoring**: Records every `php artisan schedule:run` execution. Detects failures (non-zero exit codes), missed runs, and tasks that ran late.
+- **Horizon monitoring**: Reads Redis directly to detect when a supervisor pauses, stops, or falls behind. Fires an immediate alert rather than waiting for a missed ping.
+- **Queue depth monitoring**: Alerts when a queue exceeds a depth threshold or when the oldest job age is too high.
+- **Run history**: Keeps a timestamped log of every scheduled task execution, with exit codes and captured output.
+
+Crontinel has no scheduling capability. It does not create calendar events or manage availability. It only monitors what your application's scheduler and queue worker are doing.
+
+## When you use both
+
+A typical pattern for appointment-driven SaaS products:
+
+1. A booking is made (via Cronofy or your own scheduler)
+2. A Laravel job is queued to send confirmation emails, prepare documents, or run pre-appointment tasks
+3. Crontinel monitors whether those jobs ran, whether the queue is healthy, and whether any jobs failed
+
+Cronofy handles step 1. Crontinel monitors steps 2 and 3. Neither replaces the other.
+
+## Feature comparison
+
+| Capability | Crontinel | Cronofy |
+|---|---|---|
+| Calendar availability reading | No | Yes |
+| Cross-calendar event sync | No | Yes |
+| Booking / scheduling API | No | Yes |
+| Cron job run monitoring | Yes | No |
+| Queue depth alerting | Yes | No |
+| Horizon supervisor monitoring | Yes | No |
+| Failed job detection | Yes | No |
+| Slack / email / PagerDuty alerts | Yes | No |
+| Open source / self-hostable | Yes | No |
+| Laravel-native integration | Yes | No |
+
+## Getting started with Crontinel
+
+If you're running scheduled jobs in a Laravel application — whether triggered by Cronofy events or by your own scheduler — monitoring them requires a separate tool:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+The package hooks into Laravel's scheduler events with no per-task configuration. Connect to the SaaS dashboard for alerts, history, and Horizon monitoring.
