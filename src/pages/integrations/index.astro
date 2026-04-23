@@ -2,35 +2,32 @@
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
 
-const integrations = [
+const integrationPages = await getCollection('integrations');
+
+const integrationMeta: Record<string, { icon: string; config: string; label?: string }> = {
+  slack:     { icon: '#', config: 'CRONTINEL_SLACK_WEBHOOK', label: 'Slack' },
+  pagerduty: { icon: '🔔', config: 'CRONTINEL_PAGERDUTY_ROUTING_KEY', label: 'PagerDuty' },
+  webhook:   { icon: '⚡', config: 'CRONTINEL_WEBHOOK_URL', label: 'Webhook' },
+  laravel:   { icon: '🔴', config: 'CRONTINEL_ALERT_CHANNEL=mail', label: 'Email (Laravel Mail)' },
+};
+
+const integrations = integrationPages.map((page) => ({
+  ...page,
+  meta: integrationMeta[page.id] ?? { icon: '🔗', config: '', label: page.data.title },
+}));
+
+const upcomingIntegrations = [
   {
-    name: 'Slack',
-    status: 'available',
-    description: 'Post alerts to any Slack channel when Horizon pauses, a queue backs up, or a cron job fails.',
-    config: 'CRONTINEL_SLACK_WEBHOOK',
-    icon: '#',
+    name: 'Opsgenie',
+    description: 'Route alerts to Opsgenie teams. Full incident lifecycle support with auto-resolve on recovery.',
+    config: 'CRONTINEL_OPSGENIE_API_KEY',
   },
   {
-    name: 'Email',
-    status: 'available',
-    description: 'Send alert emails via Laravel\'s built-in mail system. Works with any SMTP provider, Mailgun, or Resend.',
-    config: 'CRONTINEL_ALERT_EMAIL',
-    icon: '✉',
-  },
-  {
-    name: 'Webhook',
-    status: 'available',
-    description: 'Fire a POST to any HTTPS endpoint when an alert triggers or resolves. Route to Opsgenie, Betterstack, or your own handler.',
-    config: 'CRONTINEL_WEBHOOK_URL',
-    icon: '⚡',
-  },
-  {
-    name: 'PagerDuty',
-    status: 'coming-soon',
-    description: 'Create and auto-resolve PagerDuty incidents via Events API v2. Dedup keys keep fire/resolve events linked to a single incident. (Coming soon)',
-    config: 'CRONTINEL_PAGERDUTY_ROUTING_KEY',
-    icon: '🔔',
+    name: 'Telegram',
+    description: 'Send alert messages to a Telegram bot or group chat.',
+    config: 'CRONTINEL_TELEGRAM_BOT_TOKEN',
   },
 ];
 ---
@@ -48,7 +45,7 @@ const integrations = [
 
 <Base
   title="Integrations - Crontinel"
-  description="Connect Crontinel alerts to Slack, email, and webhooks. Get notified the moment something breaks in your Laravel app."
+  description="Connect Crontinel alerts to Slack, PagerDuty, email, and webhooks. Get notified the moment something breaks in your Laravel app."
 >
   <Nav />
 
@@ -57,29 +54,53 @@ const integrations = [
     <div class="text-center mb-14">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Integrations</h1>
       <p class="text-gray-400 max-w-xl mx-auto">
-        Crontinel fires alerts through your existing channels. Configure once in your <code class="text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded text-sm">.env</code>, no dashboard needed.
+        Crontinel fires alerts through your existing channels. Configure once in your <code class="text-green-400 bg-green-500/10 px-1.5 py-0.5 rounded text-sm">.env</code>, no dashboard required.
       </p>
     </div>
 
-    <div class="grid sm:grid-cols-2 gap-4 mb-16">
+    <div class="grid sm:grid-cols-2 gap-4 mb-12">
       {integrations.map((i) => (
-        <div class={`bg-gray-900 border rounded-xl p-6 ${i.status === 'coming-soon' ? 'border-gray-800 opacity-60' : 'border-gray-800'}`}>
+        <a
+          href={`/integrations/${i.id}`}
+          class="bg-gray-900 border border-gray-800 hover:border-green-500/40 rounded-xl p-6 transition-colors group block"
+        >
           <div class="flex items-start justify-between mb-3">
-            <h2 class="text-lg font-semibold text-white">{i.name}</h2>
-            {i.status === 'coming-soon'
-              ? <span class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">Soon</span>
-              : <span class="text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Available</span>
-            }
+            <h2 class="text-lg font-semibold text-white group-hover:text-green-400 transition-colors">
+              {i.meta.label ?? i.data.title}
+            </h2>
+            <span class="text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Available</span>
           </div>
-          <p class="text-sm text-gray-400 mb-4">{i.description}</p>
-          {i.config && i.status !== 'coming-soon' && (
+          <p class="text-sm text-gray-400 mb-4">{i.data.description}</p>
+          {i.meta.config && (
             <div class="font-mono text-xs text-green-400 bg-gray-950 rounded px-3 py-2">
-              {i.config}=your-value
+              {i.meta.config}=your-value
             </div>
           )}
-        </div>
+        </a>
       ))}
     </div>
+
+    {upcomingIntegrations.length > 0 && (
+      <div class="mb-12">
+        <h2 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">Coming soon</h2>
+        <div class="grid sm:grid-cols-2 gap-4">
+          {upcomingIntegrations.map((i) => (
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 opacity-60">
+              <div class="flex items-start justify-between mb-3">
+                <h3 class="text-lg font-semibold text-white">{i.name}</h3>
+                <span class="text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">Soon</span>
+              </div>
+              <p class="text-sm text-gray-400 mb-4">{i.description}</p>
+              {i.config && (
+                <div class="font-mono text-xs text-gray-500 bg-gray-950 rounded px-3 py-2">
+                  {i.config}=your-value
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
 
     <div class="bg-gray-900 border border-gray-800 rounded-xl p-8">
       <h2 class="text-lg font-bold text-white mb-4">Alert config reference</h2>
@@ -99,6 +120,10 @@ const integrations = [
         <div class="flex gap-4 text-gray-400">
           <code class="text-green-400 min-w-[220px]">CRONTINEL_WEBHOOK_URL</code>
           <span>HTTPS endpoint for alert POSTs</span>
+        </div>
+        <div class="flex gap-4 text-gray-400">
+          <code class="text-green-400 min-w-[220px]">CRONTINEL_PAGERDUTY_ROUTING_KEY</code>
+          <span>PagerDuty Events API v2 routing key</span>
         </div>
       </div>
     </div>
