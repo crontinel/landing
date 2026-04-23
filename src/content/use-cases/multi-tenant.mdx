@@ -1,0 +1,109 @@
+---
+title: "Monitoring Background Jobs in a Multi-Tenant Laravel Application"
+description: "In a multi-tenant Laravel app, a job failure for one tenant can cascade to others. Crontinel monitors queue depth and failed job rates so you catch tenant-specific failures before they spread."
+date: 2026-04-23
+---
+
+Multi-tenant Laravel applications process background jobs on behalf of multiple tenants, often in the same queue workers. A misconfigured tenant integration, a data inconsistency, or a resource spike from one tenant can degrade job processing for all tenants sharing the same queues.
+
+Crontinel monitors the queue health metrics that reveal these problems: failed job rates, queue depth per queue, and oldest job age.
+
+## How multi-tenant apps use queues
+
+Most multi-tenant applications use one of two queue strategies:
+
+**Shared queues**: All tenants share the same queue names. A tenant ID in the job payload routes the work to the right tenant context. Simple to operate, but a spike from one tenant affects processing time for all.
+
+**Tenant-isolated queues**: Each tenant has its own queue, often named by tenant ID or slug. Queue workers pull from tenant queues using Horizon's auto-balancing. More expensive to operate, but failures are isolated.
+
+Crontinel supports both patterns. With shared queues, you monitor global queue health. With tenant-isolated queues, you monitor per-queue depth to detect a specific tenant's jobs backing up.
+
+## Common failure patterns in multi-tenant queues
+
+### Tenant-specific integration failure
+
+A tenant's OAuth token expires. Every job that calls their integration fails and retries until exhausted, then lands in `failed_jobs`. Other tenants' jobs continue processing normally, but the failed job rate climbs and workers spend time on unproductive retries.
+
+With Crontinel's failed job rate threshold:
+
+```bash
+CRONTINEL_FAILED_JOB_RATE_THRESHOLD=10
+```
+
+You get an alert when failure rate exceeds 10 per minute, well before the volume of failed jobs degrades overall throughput.
+
+### Tenant data causing slow jobs
+
+A tenant imports 500,000 records. Jobs processing that import are slow — each takes 30 seconds instead of the normal 200ms. The queue depth for the affected queue climbs while workers are tied up on the slow tenant's jobs.
+
+Queue depth monitoring catches this:
+
+```bash
+CRONTINEL_QUEUE_DEPTH_IMPORTS=200
+```
+
+An alert fires when the `imports` queue exceeds 200 jobs, prompting you to investigate before the slow import delays time-sensitive work for other tenants.
+
+### Missing tenant context
+
+A bug in tenant resolution causes jobs to dispatch without a valid tenant context. These jobs fail immediately on every attempt. The failed job rate spikes suddenly from near-zero to high, a pattern that's easy to detect with rate monitoring but hard to see in log files without active querying.
+
+## Monitoring tenant-isolated queues
+
+If you use per-tenant queues, configure depth thresholds for each:
+
+```bash
+# Monitor all tenant queues with a shared threshold
+CRONTINEL_QUEUE_DEPTH_THRESHOLD=100
+
+# Override for a high-volume enterprise tenant
+CRONTINEL_QUEUE_DEPTH_TENANT_ACME=500
+```
+
+When a specific tenant's queue backs up beyond normal, an alert fires. This lets you identify the affected tenant and diagnose the cause before they open a support ticket.
+
+## Dashboard view for multi-tenant monitoring
+
+The Crontinel dashboard shows:
+
+- Horizon supervisor state across all supervisors
+- Per-queue depth chart over time
+- Failed jobs per minute trend
+- Oldest job age per queue
+
+For support and operations teams, the per-queue depth chart is the most useful. A tenant whose queue has been at 1,000 jobs for 30 minutes while others are near zero is immediately visible without writing SQL queries against `jobs` and `failed_jobs`.
+
+## Horizon supervisor configuration for multi-tenant apps
+
+Isolating tenant traffic in Horizon supervisors reduces the blast radius of per-tenant failures:
+
+```php
+// config/horizon.php
+'supervisor-shared' => [
+    'queue' => ['default', 'notifications'],
+    'processes' => 5,
+    'balance' => 'auto',
+],
+'supervisor-integrations' => [
+    'queue' => ['integrations'],
+    'processes' => 3,
+    'balance' => 'auto',
+    'maxProcesses' => 10,
+],
+'supervisor-imports' => [
+    'queue' => ['imports'],
+    'processes' => 2,
+    'balance' => 'auto',
+],
+```
+
+With this setup, a failing integration doesn't consume workers from `notifications`. Crontinel monitors each supervisor and reports its state independently, so a supervisor shutdown on `integrations` alerts immediately without masking the healthy state of `supervisor-shared`.
+
+## Setup
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Add queue-specific thresholds to `.env` based on your tenant traffic patterns. For tenant-isolated queues, set per-queue depth thresholds that reflect normal volume for that tenant tier. The package reads all queue metrics automatically with no per-queue configuration beyond the threshold values.

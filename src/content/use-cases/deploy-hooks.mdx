@@ -1,0 +1,104 @@
+---
+title: "Monitoring Deploy Hooks and Post-Deploy Jobs in Laravel"
+description: "Deploy hooks kick off migrations, cache clears, and queue restarts. Crontinel monitors whether those post-deploy jobs ran and whether Horizon recovered cleanly after the restart."
+date: 2026-04-23
+---
+
+Every Laravel deployment triggers a sequence of background operations: database migrations, config cache rebuilds, queue worker restarts. When these succeed, the deployment lands cleanly. When they fail silently, the app deploys but runs in a broken state.
+
+Crontinel monitors the jobs and queue state that follow a deployment, so you know within seconds whether the deploy landed cleanly or left something broken.
+
+## What happens during a Laravel deployment
+
+A typical deployment sequence for a Laravel application:
+
+```bash
+# Deploy script (simplified)
+php artisan down
+git pull origin main
+composer install --no-dev
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+php artisan queue:restart
+php artisan horizon:terminate
+php artisan up
+```
+
+Each step has a failure mode:
+
+- **`migrate --force`**: a failed migration exits with a non-zero code. If the deploy script doesn't check this, the app runs with an inconsistent schema.
+- **`queue:restart`**: sends a graceful restart signal via Redis. If Redis is unreachable or the worker doesn't receive the signal, old workers continue running stale code.
+- **`horizon:terminate`**: terminates the Horizon master process so it restarts cleanly. If the process doesn't restart after termination, no jobs process.
+
+## The recovery window problem
+
+After `horizon:terminate`, Horizon needs to restart — usually through a process supervisor like Supervisor or Laravel Octane. If that restart fails, Horizon is simply not running. Your queued jobs back up in Redis with no worker to process them.
+
+The window between termination and restart is typically 2–10 seconds. But if the restart fails, the window becomes indefinite.
+
+Ping-based monitoring tools don't catch this. They wait for a scheduled heartbeat that would arrive in the next cron cycle — potentially minutes later. Crontinel reads Horizon's Redis keys directly and detects a missing supervisor within its next polling cycle.
+
+## What Crontinel monitors post-deploy
+
+### Horizon supervisor recovery
+
+After a deploy, Crontinel watches supervisor state:
+
+- **Running**: supervisor is processing jobs normally
+- **Paused**: supervisor received a pause signal and is holding jobs
+- **Stopped**: supervisor is not running — jobs are queued but nothing is processing them
+
+If Horizon doesn't recover within a few minutes of a deploy, Crontinel fires an alert.
+
+### Queue depth spike
+
+A deploy that takes longer than expected can cause queue depth to rise. If your deploy window lasts 3 minutes and your `invoices` queue normally processes 50 jobs per minute, you may arrive at 150 queued jobs after deployment.
+
+That's expected and should clear quickly. If queue depth stays elevated after the deploy, it indicates Horizon didn't recover or a job that was failing is blocking the queue.
+
+Set a queue depth alert with a threshold appropriate for your normal post-deploy spike:
+
+```bash
+CRONTINEL_QUEUE_DEPTH_INVOICES=200
+```
+
+This alerts only when depth exceeds 200 — above the normal post-deploy spike, indicating a real problem.
+
+### Post-deploy scheduled task run
+
+If you have a scheduled task that runs after every deployment (database seed refresh, search index rebuild, etc.), configure it to run at a known interval and set Crontinel's missed-run detection appropriately.
+
+## Setting up deploy-time alerting
+
+For teams with CI/CD pipelines, temporarily raising alert thresholds during a deploy window prevents false alarms during the expected queue spike:
+
+```bash
+# In your deploy script, after horizon:terminate
+php artisan crontinel:snooze --minutes=5
+# ... (deploy finishes)
+# Alerts resume automatically after the snooze window
+```
+
+This snooze prevents Crontinel from firing during the normal supervisor restart gap, while still alerting if the supervisor doesn't come back up within the snooze window.
+
+## Visibility into what actually happened
+
+After a deployment, the Crontinel dashboard shows:
+
+- Supervisor state timeline around the deploy time
+- Queue depth before, during, and after the deploy
+- Whether any scheduled tasks missed their expected run during the maintenance window
+- Any jobs that failed during or immediately after the deploy
+
+This makes post-deploy incident investigation faster: instead of correlating log files from multiple sources, you see the background job health timeline in one place.
+
+## Setup
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+No additional configuration is needed for deploy hook monitoring. The package records all scheduler and Horizon activity automatically. Configure alert thresholds and channels in `.env` based on your expected deploy behavior.
