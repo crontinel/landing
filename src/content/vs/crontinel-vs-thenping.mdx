@@ -1,0 +1,117 @@
+---
+title: "Crontinel vs thenping.me: The Active Laravel Monitoring Alternative"
+description: "thenping.me was the best Laravel-native cron monitoring tool. It was archived in January 2025. Crontinel is the actively maintained replacement — same Laravel-native approach, plus Horizon and queue monitoring."
+competitor: "thenping.me"
+date: 2026-04-24
+---
+
+thenping.me was the first SaaS product to monitor Laravel's scheduler the right way. Instead of wrapping jobs in ping-in/ping-out HTTP calls like generic monitors do, it hooked into Laravel's native scheduler events and gave developers per-task visibility: which commands ran, which were skipped, which failed, and which didn't run on schedule.
+
+It was featured on Laravel News in November 2020. Thousands of Laravel teams adopted it.
+
+**thenping.me was archived by its owner on January 6, 2025. The GitHub repository is read-only. The product is no longer maintained.**
+
+If you're evaluating monitoring tools and found thenping.me in a blog post or recommendation from before 2025, it's no longer a viable option.
+
+## What made thenping.me good
+
+thenping.me's key insight was that the Laravel scheduler is not a cron job — it's a PHP process that decides at runtime which commands to run. To monitor it properly, you need to observe it from inside the Laravel event system, not from outside via HTTP pings.
+
+It integrated with `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` events. It recorded run history per task, detected missed runs relative to each task's expected schedule, and fired alerts when something went wrong.
+
+That approach is exactly right for Laravel.
+
+## What Crontinel covers
+
+Crontinel takes the same Laravel-native approach and extends it to cover the full background job stack:
+
+### Scheduler monitoring (same as thenping.me)
+
+- Hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, `ScheduledTaskFailed` events automatically
+- Records every scheduled task run: command name, start time, duration, exit code, output
+- Detects missed runs by comparing last-run timestamps against expected schedules
+- No per-task instrumentation required — install once, monitor everything
+
+### Horizon monitoring (thenping.me didn't cover this)
+
+thenping.me focused on the scheduler. It had no visibility into Laravel Horizon or the queue worker layer.
+
+Crontinel monitors Horizon directly:
+
+- **Supervisor status**: reads Redis to detect paused, stopped, or unresponsive supervisors immediately — no grace period
+- **Queue depth per queue**: alerts when any queue exceeds a configured depth threshold
+- **Oldest job age**: alerts when a job has been waiting longer than expected, indicating a queue throughput problem
+- **Failed jobs per minute**: tracks the failure rate to detect retry storms before they degrade throughput
+
+This matters because a Horizon supervisor pause is a silent failure. The scheduler keeps running (tasks queue up), but no workers process the jobs. Scheduler monitoring alone doesn't catch this.
+
+### Alert routing
+
+thenping.me had email alerts. Crontinel supports:
+
+- Slack (incoming webhook)
+- Email (via Laravel Mail)
+- PagerDuty (Events API v2 with dedup keys and auto-resolve)
+- Webhook (HTTPS POST, HMAC-signed)
+
+Recovery alerts are included: when a paused supervisor resumes or queue depth drops below threshold, a resolve message fires automatically.
+
+## Feature comparison
+
+| Capability | Crontinel | thenping.me |
+|---|---|---|
+| Scheduler event monitoring | Yes | Yes |
+| Per-task run history | Yes | Yes |
+| Missed run detection | Yes | Yes |
+| Exit code capture | Yes | Yes |
+| Horizon supervisor status | Yes | No |
+| Queue depth per queue | Yes | No |
+| Oldest job age alert | Yes | No |
+| Failed jobs per minute | Yes | No |
+| Slack alerts | Yes | Limited |
+| PagerDuty integration | Yes | No |
+| Webhook support | Yes | No |
+| Open source / self-hostable | Yes | No |
+| Actively maintained | Yes | **No (archived Jan 2025)** |
+| Multi-app dashboard | Yes | Yes |
+
+## Pricing
+
+thenping.me's pricing is no longer relevant — the product is archived.
+
+Crontinel:
+
+- **Free**: 1 app, 5 monitors, 7-day history, no credit card required
+- **Pro**: $19/month — 5 apps, unlimited monitors, 90-day history, all alert channels
+- **Team**: $49/month — unlimited apps, 1-year history, team access, custom alert rules
+- **Lifetime deal**: $149 one-time for permanent Pro access
+
+## Migrating from thenping.me
+
+If you're running thenping.me, migration is straightforward:
+
+1. Remove the thenping.me package from your `composer.json`
+2. Install Crontinel:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+3. Add your API key and alert configuration to `.env`:
+
+```bash
+CRONTINEL_API_KEY=ct_your_key_here
+CRONTINEL_ALERT_CHANNEL=slack
+CRONTINEL_SLACK_WEBHOOK=https://hooks.slack.com/services/...
+```
+
+The package starts recording scheduler runs immediately. Horizon monitoring requires no additional configuration — it reads Redis state directly on each polling cycle.
+
+## The state of Laravel-native monitoring
+
+The archiving of thenping.me left a gap. As of 2025, there is no other actively maintained SaaS product that monitors Laravel's scheduler with native event integration.
+
+Healthchecks.io is a capable ping-based tool but has no Laravel scheduler awareness. Cronitor, Datadog, and Better Stack require custom instrumentation for Horizon monitoring that thenping.me provided out of the box.
+
+Crontinel was built to fill that gap — the same Laravel-native philosophy thenping.me proved was the right approach, with active maintenance and extended coverage for the queue layer.
