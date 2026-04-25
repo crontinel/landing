@@ -1,89 +1,83 @@
 ---
-title: "thenping.me Is Dead. What Laravel Developers Need Now."
-description: "The most popular Laravel-native cron monitoring service was archived in January 2025. Here's what happened, what it means for your scheduled tasks, and what to use instead."
-date: 2026-04-24
+title: "thenping.me Is Dead. Here's What Changed in the Monitoring Landscape"
+description: "thenping.me was the go-to cron monitoring tool for Laravel developers. It was archived in January 2025. Here's what happened, what alternatives exist, and what's changed since."
+date: 2026-04-25
 tags: ["laravel", "cron", "monitoring"]
 ---
 
-If you're a Laravel developer running scheduled tasks, you probably found **thenping.me** around 2020 or 2021. It was the first tool that actually understood the Laravel scheduler — hooking into Laravel's native events instead of just polling a URL like a generic cron monitor. It was elegant. It was Laravel-specific. And it worked.
+If you ran Laravel apps and cared about your scheduled tasks, you probably used **thenping.me**. It was simple, Laravel-native, and exactly what the ecosystem needed — a dead-man's-switch monitor that understood the Laravel scheduler instead of just pinging a URL and hoping for the best.
 
-**As of January 6, 2025, thenping.me is gone.**
+On January 6, 2025, the GitHub repository was archived. The product went read-only. No migration path, no announcement, no handoff. Just gone.
 
-The GitHub repository has been archived. The product is read-only. If you're still using it, you're running on borrowed time — no updates, no security patches, no support.
-
-This is a practical look at what happened, why it matters for your Laravel apps, and what to do next.
+That left a real gap in the Laravel monitoring landscape — one that's worth understanding before you assume your current setup covers it.
 
 ## What thenping.me actually did
 
-thenping.me solved a specific problem that generic cron monitors can't touch.
+thenping.me worked by adding a ping to your scheduler using Laravel's native after() callback:
 
-Laravel's scheduler (`php artisan schedule:run`) doesn't work like a traditional cron job. It runs every minute, reads your schedule definition, and decides which commands to fire based on their cron expressions. A command might run every five minutes, only on Tuesdays, or at 8am on the first of every month.
+```php
+$schedule->command('reports:generate')->daily()->thenPing('https://thenping.me/ping/your-token');
+```
 
-Generic monitors — the kind that just check whether a URL pinged back — can tell you *something* is wrong. But they can't tell you:
+This was simple to the point of elegance. The ping arrived when the task finished. If it didn't arrive within the expected window, thenping.me alerted you. No cron daemon polling. No HTTP health endpoints to maintain. Just a dead-man's switch that fit naturally into the Laravel scheduler API.
 
-- Whether the scheduler itself ran
-- Whether a specific scheduled command was supposed to fire at a given time
-- Whether a command finished successfully or threw an exception
-- Whether a job was skipped due to overlapping execution
-
-thenping.me used Laravel's native event system to give you this granularity. It felt like a first-party Laravel package because, in many ways, it behaved like one.
+It wasn't full observability — you didn't get exit codes, run durations, or per-task history dashboards. But for catching the "this task stopped running" failure mode, it was exactly right, and the Laravel community embraced it.
 
 ## What went wrong
 
-thenping.me was a solo or small-team operation. It never raised a round, never built a large team, and never expanded beyond Laravel scheduler monitoring.
+thenping.me was a small, focused product. It solved one problem well and didn't try to expand. That focus is also what made it fragile: a single-person operation with no succession plan, no investor pressure to keep the lights on, and no commercial tier that might have justified a proper shutdown or acquisition.
 
-The product simply stopped. No announcement. No farewell post. The GitHub repo went dark, and the last commits trailed off in September 2024 before the archive in January 2025.
+The product didn't fail dramatically. It just stopped. The last commits trickled out in mid-2024. The repository archived in January 2025. If you search for it today, you'll still find Laravel News articles from 2020 recommending it to new developers — none of which mention that the service is gone.
 
-If you search for it today, you'll still find articles recommending it. You'll still find the Laravel News mention from 2020. But the product is dead, and developers who built their monitoring around it are on their own.
+Developers who built their monitoring around thenping.me discovered this the hard way: either through a missed alert that would have triggered, or by stumbling across the archived repo when investigating why their monitor hadn't fired.
 
-## The problem with "good enough" monitoring
+## The alternatives that existed — and their gaps
 
-Many Laravel developers have cron monitoring that looks like this:
+When thenping.me went dark, the community pointed toward a handful of replacements.
 
-```bash
-* * * * * curl -fsSL https://your-monitor.com/ping/abc123 >> /dev/null 2>&1
-```
+**Healthchecks.io** became the most common recommendation. It's open source, has a generous free tier, and supports dead-man's-switch monitoring. The downside: it's generic. It doesn't understand Laravel's scheduler, doesn't capture exit codes or durations, and doesn't know which tasks *should* have run versus which ones did. You set up one ping per task manually, and you get one bit of information: pinged or didn't.
 
-This tells you the scheduler *ran*. It does not tell you:
+**Cronitor** and **Better Uptime** occupy the same space — URL-based heartbeat monitors with more polish. Useful, but not Laravel-native. You're still writing `->thenPing()` calls per task, managing external tokens, and losing all the rich execution context Laravel exposes.
 
-- The scheduler ran but all tasks were skipped because none were due
-- The scheduler crashed before dispatching anything
-- A specific high-value task failed and nobody noticed
-- Queue workers stopped processing and never recovered
+**Spatie's laravel-schedule-monitor** is the closest thing to a proper replacement for the tracking side. It hooks into Laravel's scheduler events and records execution history locally. But it's self-hosted storage with no alerting layer — you get the data, but getting notified when something goes wrong is your problem to solve.
 
-These are the failures that cost real money: the billing job that stopped processing invoices and nobody caught it until the next board meeting. The SSL renewal that silently failed for months. The webhook processor that dropped every event for two weeks.
+None of these handle multi-application setups cleanly. If you run three Laravel apps across two environments, you're setting up separate accounts or workspaces in each tool and context-switching between them when something goes wrong.
 
-Generic monitors give you a green checkmark when the real situation is red.
+## What's changed in the monitoring landscape
 
-## Your options right now
+The biggest shift since thenping.me closed isn't in the tools themselves — it's in the scope of what "cron monitoring" needs to cover.
 
-### Healthchecks.io
+In 2020, most Laravel shops ran one or two apps. Monitoring a handful of cron tasks with a simple ping was fine. Today, teams are running microservices, multi-tenant SaaS platforms, and staging environments alongside production — with scheduled tasks in each one. The single-app, single-environment assumption that made thenping.me's simplicity a feature now makes that approach feel incomplete.
 
-The community default. Free tier, open source, widely recommended. Works for Laravel but doesn't understand the scheduler — it's a URL pinger, not a Laravel-native tool. You'll set up a ping for the scheduler heartbeat and that's it. No per-task visibility, no exit code capture, no schedule-aware missed-run detection.
+There's also the rise of AI agent tooling. Teams are starting to use AI assistants to query observability data, investigate incidents, and surface anomalies. A monitoring tool that doesn't expose an API or integration surface for AI tools is going to feel increasingly limited.
 
-### Spatie's laravel-schedule-monitor (open source)
+## Where Crontinel fits
 
-If you want to stay self-hosted, Spatie's package logs every scheduled task run to your own database. Free, maintained, and built with proper Laravel event hooks. The catch: you're running your own monitoring stack. No alerting out of the box — you still need to check the logs, or wire up your own notification layer.
+Crontinel launched in 2026 to fill the gap thenping.me left — and to address what the landscape needs now, not what it needed five years ago.
 
-### Crontinel
-
-We're the Laravel-native monitoring layer thenping.me was. Install in two commands, get per-task run history, failure alerts to Slack or email, and a dashboard that shows exactly what ran and when — not just whether your server sent a ping.
+The Laravel integration is two commands:
 
 ```bash
 composer require crontinel/laravel
 php artisan crontinel:install
 ```
 
-We launched in 2026, built specifically for the way Laravel works: scheduler events, Horizon supervisor state, queue depth per queue. Not a generic monitoring tool with a Laravel skin.
+That's it. No `->thenPing()` calls to add per task. Crontinel hooks into Laravel's scheduler events automatically and starts recording every task: when it started, when it finished, how long it took, what exit code it returned, and whether it was expected to run at that time.
 
-Free tier covers one app with 7 days of history. No credit card required.
+**Multi-app support is first-class.** You connect multiple Laravel apps, Node services, Python workers, or anything running on a schedule — all in one dashboard. Each app gets its own monitors, but you manage everything from one place and get unified alerting.
 
-## The real lesson
+**SDK coverage** includes Laravel, Node.js, Python, Ruby, Go, .NET, and PHP. If you're running a polyglot stack — a Laravel API alongside a Python data pipeline and a Go background worker — you monitor all of it through one service without switching tools.
 
-The best monitoring for your Laravel app is the kind that knows what your Laravel app is supposed to be doing.
+**Status pages** are built in. You can create a public-facing status page that reflects the health of your scheduled jobs and services, without wiring up a separate status page service.
 
-thenping.me understood that. That's why developers loved it. That's why its death leaves a real gap.
+**MCP server for AI agents.** Crontinel ships with an MCP (Model Context Protocol) server, which means your AI assistant — whether that's Claude, a Cursor workflow, or a custom agent — can query your cron monitoring data directly. Ask it what failed last night, whether your billing job ran successfully, or why response times spiked at 3am. Your monitoring data becomes something you can have a conversation about.
 
-If you're still running thenping.me, it's time to move. If you're running a generic URL monitor, you're seeing only part of the picture. And if you've been putting off proper alerting because "nothing has failed yet" — the r/selfhosted and r/laravel threads full of silent failures discovered weeks too late are worth reading before that changes.
+**Self-hosting and SaaS both available.** If your compliance requirements or architecture mean you can't send execution data to an external service, Crontinel can be self-hosted. If you'd rather not operate the infrastructure, the SaaS version handles it with the same feature set.
 
-Your Laravel scheduler deserves more than a green checkmark that hides the truth.
+The free tier covers one app with 7-day history, no credit card required.
+
+---
+
+The monitoring landscape after thenping.me isn't worse — it's more capable. But it requires choosing tools that match the actual complexity of modern Laravel deployments, not the simpler setups of five years ago.
+
+**Ready to monitor your cron jobs? Get started free at [crontinel.com](https://crontinel.com).**
