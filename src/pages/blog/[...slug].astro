@@ -42,15 +42,63 @@ const articleSchema = {
 >
   <Nav />
 
+  <div class="hero-bg" aria-hidden="true">
+    <div class="grid"></div>
+    <div class="glow"></div>
+    <div class="scanline"></div>
+  </div>
+
   <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
 
-  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16" id="main-content">
-    <a href="/blog" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← Back to blog</a>
-    <time class="block text-xs text-gray-400 font-mono mb-2">{post.data.date.toISOString().slice(0, 10)}</time>
-    <h1 class="text-3xl font-bold text-white mb-8">{post.data.title}</h1>
-    <article class="prose prose-invert prose-gray text-sm leading-relaxed max-w-none">
-      <Content />
-    </article>
+  <main id="main-content">
+    <div class="container">
+      <a href="/blog"
+         class="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition mb-8 mt-16">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        All posts
+      </a>
+
+      <div class="max-w-3xl">
+        <div class="flex items-center gap-3 mb-4">
+          <time class="mono text-xs text-slate-500" datetime={post.data.date.toISOString().slice(0, 10)}">
+            {post.data.date.toISOString().slice(0, 10)}
+          </time>
+          <span class="text-slate-700">·</span>
+          <span class="mono text-xs text-slate-500">
+            {post.data.description?.split(' ').length > 0
+              ? Math.ceil((post.data.description?.split(' ').length ?? 0) / 200) + ' min read'
+              : '5 min read'}
+          </span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
+          {post.data.title}
+        </h1>
+
+        {post.data.description && (
+          <p class="text-lg text-slate-400 mb-12 leading-relaxed">
+            {post.data.description}
+          </p>
+        )}
+
+        <div class="border-t border-slate-800 pt-8">
+          <article class="prose prose-invert prose-gray prose-lg max-w-none
+            prose-headings:text-white prose-headings:font-bold
+            prose-p:text-slate-300 prose-p:leading-relaxed
+            prose-a:text-green-400 prose-a:no-underline hover:prose-a:underline
+            prose-code:text-green-400 prose-code:bg-slate-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
+            prose-pre:bg-slate-900 prose-pre:border prose-pre:border-slate-800
+            prose-blockquote:border-slate-700 prose-blockquote:text-slate-400
+            prose-strong:text-white prose-strong:font-semibold
+            prose-li:text-slate-300
+            prose-hr:border-slate-800">
+            <Content />
+          </article>
+        </div>
+      </div>
+    </div>
   </main>
 
   <Footer />
