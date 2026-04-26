@@ -1,0 +1,106 @@
+---
+title: "Laravel Cron vs Queue Monitoring — What's the Difference?"
+description: "Generic uptime monitors miss scheduler failures. Queue depth monitors miss Horizon supervisor death. Here's why you need both, and what each one actually covers."
+date: 2026-04-26
+tags: ["laravel", "cron", "queues", "monitoring"]
+---
+
+If you've set up cron monitoring for your Laravel app, you might think you have queue monitoring covered too. You don't. And if you've set up Horizon alerting, you might think your scheduled tasks are covered. They're not.
+
+These are different systems with different failure modes, and monitoring one doesn't tell you anything about the other.
+
+## What a cron monitor actually watches
+
+A generic cron monitor sends a ping URL to a service on each scheduler run:
+
+```bash
+* * * * * cd /app && php artisan schedule:run && curl -s https://monitor.example.com/ping/abc123
+```
+
+This tells you: the `schedule:run` command ran and exited cleanly.
+
+It doesn't tell you:
+- Whether any scheduled task actually ran (the scheduler may have had no tasks due)
+- Whether a specific task succeeded or failed
+- What exit code a command returned
+- Whether a task was skipped due to `withoutOverlapping()`
+
+A ping-based monitor gives you one bit of information: the scheduler process didn't crash. That's useful but incomplete. You can have a green ping monitor while every scheduled task in your app has been failing for days.
+
+## What Horizon monitoring actually watches
+
+Horizon monitoring typically watches the supervisor status — is Horizon running, paused, or stopped? Some tools also watch queue depth.
+
+This tells you: the queue orchestration layer is up and jobs aren't accumulating abnormally.
+
+It doesn't tell you:
+- Whether any specific scheduled command ran
+- Whether the scheduler process is alive
+- Whether a command that dispatches jobs is actually running
+- What happened to any specific run in history
+
+A task like `SendWeeklyReports` might dispatch jobs successfully, but if the scheduler never ran, no jobs were dispatched. Horizon looks healthy because no new jobs arrived, not because everything is fine.
+
+## The failure modes each misses
+
+**Ping monitor passes, but a specific task is failing:**
+
+```
+schedule:run → runs ✓
+SendInvoices → throws exception ✗
+ping fires ✓
+```
+
+The cron monitor shows green. The invoices job failed silently.
+
+**Horizon shows running, but the scheduler is dead:**
+
+```
+php artisan schedule:run → not running (missing cron entry after deploy)
+Horizon → healthy (workers are up, but nothing to process)
+queue depth → 0 (no new jobs because scheduler never dispatched them)
+```
+
+Both monitors show healthy. No scheduled tasks have run since the last deploy.
+
+**Queue worker died, scheduler still running:**
+
+```
+schedule:run → runs ✓
+ReportGeneration → dispatches jobs ✓
+Horizon supervisor → dead ✗
+queue depth → climbing ✗
+```
+
+The cron monitor shows green (scheduler ran). The queue is backing up because workers aren't processing.
+
+## What full coverage looks like
+
+Full coverage requires both layers:
+
+**Scheduler monitoring** — hooks into Laravel's native `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` events. Records every task run with its exit code, duration, and output. Detects missed runs by comparing last-run timestamps against expected schedules.
+
+**Horizon monitoring** — watches supervisor status directly from Redis, tracks queue depth per queue, and monitors job age. Alerts when a supervisor pauses or stops, before the queue backlog becomes a customer-visible problem.
+
+These two layers cover the full stack: the scheduler that decides what to run, and the queue workers that actually process the jobs.
+
+## Implementation
+
+Both are available in Crontinel. One install covers both:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Add to your `.env`:
+
+```bash
+CRONTINEL_API_KEY=ct_your_key_here
+CRONTINEL_ALERT_CHANNEL=slack
+CRONTINEL_SLACK_WEBHOOK=https://hooks.slack.com/...
+```
+
+Scheduler events are captured automatically. Horizon monitoring runs on each polling cycle — no per-supervisor configuration needed.
+
+The monitoring gap between "cron ran" and "jobs processed" is where silent failures live. Covering both layers closes it.
