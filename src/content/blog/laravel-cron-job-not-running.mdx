@@ -1,0 +1,112 @@
+---
+title: "Why Your Laravel Cron Job Isn't Running (And How to Fix It)"
+description: "Laravel cron jobs fail silently in more ways than you'd expect. Here's how to diagnose the actual cause — from misconfigured server cron entries to scheduler bugs to silent exit code failures."
+date: 2026-04-26
+tags: ["laravel", "cron", "debugging"]
+---
+
+Your Laravel scheduled command isn't running. There's nothing in the logs. The scheduler appears healthy. No alerts fired. You only noticed because a customer reported something was wrong — or because you checked manually.
+
+This is the normal failure mode for Laravel cron jobs: silent.
+
+Here's how to find the actual cause.
+
+## Step 1: Confirm the server cron entry exists
+
+Laravel's scheduler only runs if the underlying cron entry is present and correct. Check:
+
+```bash
+crontab -l
+```
+
+You should see something like:
+
+```
+* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Common mistakes:
+- Wrong working directory (`cd` path)
+- Wrong PHP binary (`php` vs `php8.2` vs a full path)
+- Output redirected to `/dev/null` before you can see errors
+- Entry is for the wrong user (root vs www-data vs deploy)
+
+If the cron entry is missing or wrong, the scheduler never runs at all. This is the most common cause of "nothing is running" issues after a server rebuild or deployment to a new host.
+
+## Step 2: Verify the scheduler is actually running
+
+Run it manually:
+
+```bash
+php artisan schedule:run
+```
+
+Look at the output. Laravel prints each task it runs and skips. If your command doesn't appear, either its schedule expression doesn't match the current time or it has an `if()` or `skip()` condition blocking it.
+
+If the scheduler returns nothing and exits cleanly, it ran — it just had no tasks due at that minute.
+
+## Step 3: Check exit codes and output
+
+A task can run and fail without Laravel treating it as a failure. Exit code behavior:
+
+```php
+$schedule->command('reports:generate')
+    ->daily()
+    ->onFailure(function () {
+        Log::error('reports:generate failed');
+    });
+```
+
+Laravel's scheduler captures exit codes from Artisan commands. If the command exits with a non-zero code and you haven't set up a failure handler, it fails silently.
+
+Check what exit code your command actually returns:
+
+```bash
+php artisan reports:generate; echo "Exit code: $?"
+```
+
+If it's non-zero, the command is failing. That's a different problem from the scheduler not running.
+
+## Step 4: Check for overlapping execution
+
+If a scheduled task takes longer than its frequency, Laravel's `withoutOverlapping()` will skip future runs while the previous one is still running:
+
+```php
+$schedule->command('reports:generate')
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+```
+
+Without `withoutOverlapping()`, you get parallel runs. With it, you get silent skips. Check your queue for stuck jobs and look at whether a previous run is still active.
+
+## Step 5: Look at the logs
+
+Laravel's scheduler logs task runs if you use `->appendOutputTo()` or `->emailOutputOnFailure()`. Without these, failed tasks leave no trace.
+
+Add output logging to diagnose intermittent failures:
+
+```php
+$schedule->command('reports:generate')
+    ->daily()
+    ->appendOutputTo(storage_path('logs/scheduler.log'));
+```
+
+Then check that file after runs.
+
+## What persistent monitoring catches
+
+Manual debugging finds the current problem. It doesn't tell you:
+- How long the task has been failing
+- Which specific runs succeeded and which didn't
+- Whether the scheduler ran at all on a given day
+
+A monitoring layer that hooks into Laravel's scheduler events (`ScheduledTaskFinished`, `ScheduledTaskFailed`) gives you per-run history with exit codes, durations, and exact timestamps. You see the first failure immediately rather than after a customer reports it.
+
+Crontinel installs in two commands and starts recording that history immediately:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+No per-task configuration needed. It monitors every scheduled command automatically.
