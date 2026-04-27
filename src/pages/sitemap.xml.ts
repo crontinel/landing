@@ -23,10 +23,10 @@ export async function GET() {
   const integrations = await getCollection('integrations');
 
   const dynamicPages = [
-    ...blogPosts.map((p) => ({ url: `/blog/${p.id}`, priority: '0.7', changefreq: 'monthly' })),
-    ...vsPosts.map((p) => ({ url: `/vs/${p.id}`, priority: '0.8', changefreq: 'monthly' })),
-    ...useCases.map((p) => ({ url: `/use-cases/${p.id}`, priority: '0.7', changefreq: 'monthly' })),
-    ...integrations.map((p) => ({ url: `/integrations/${p.id}`, priority: '0.7', changefreq: 'monthly' })),
+    ...blogPosts.map((p) => ({ url: `/blog/${p.id}/`, priority: '0.7', changefreq: 'monthly' })),
+    ...vsPosts.map((p) => ({ url: `/vs/${p.id}/`, priority: '0.8', changefreq: 'monthly' })),
+    ...useCases.map((p) => ({ url: `/use-cases/${p.id}/`, priority: '0.7', changefreq: 'monthly' })),
+    ...integrations.map((p) => ({ url: `/integrations/${p.id}/`, priority: '0.7', changefreq: 'monthly' })),
   ];
 
   const allPages = [...staticPages, ...dynamicPages];
