@@ -9,6 +9,8 @@ const title = 'Crontinel // See your cron before it screams';
 const description = 'Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.';
 ---
 
+<Base title={title} description={description} canonical={canonicalURL}>
+
 <!-- JSON-LD -->
 <script type="application/ld+json" slot="head" set:html={JSON.stringify({
   "@context": "https://schema.org",
@@ -174,7 +176,6 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
     }
   </style>
 
-<Base title={title} description={description} canonical={canonicalURL}>
 
 <!-- ============================== NAV ============================== -->
 <nav class="nav" id="nav">
