@@ -1,4 +1,6 @@
 ---
+import Base from '../layouts/Base.astro';
+
 export const prerender = true;
 
 const gaId = import.meta.env.PUBLIC_GA_MEASUREMENT_ID ?? '';
@@ -7,72 +9,40 @@ const title = 'Crontinel // See your cron before it screams';
 const description = 'Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.';
 ---
 
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="generator" content="Astro" />
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <link rel="icon" href="/favicon.ico" sizes="any" />
-  <link rel="icon" href="/favicon.png" type="image/png" />
-  <link rel="apple-touch-icon" href="/favicon.png" />
-  <link rel="canonical" href={canonicalURL} />
+<!-- JSON-LD -->
+<script type="application/ld+json" slot="head" set:html={JSON.stringify({
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://crontinel.com/#organization",
+      "name": "Crontinel",
+      "url": "https://crontinel.com",
+      "logo": { "@type": "ImageObject", "url": "https://crontinel.com/favicon.svg" },
+      "sameAs": ["https://github.com/crontinel", "https://x.com/CrontinelApp"]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://crontinel.com/#website",
+      "url": "https://crontinel.com",
+      "name": "Crontinel",
+      "description": "Cron, Scheduler & Background Job Monitoring",
+      "publisher": { "@id": "https://crontinel.com/#organization" }
+    }
+  ]
+})} />
 
-  <title>{title}</title>
-  <meta name="description" content={description} />
+<!-- Fonts (index page only) -->
+<link slot="head" rel="preconnect" href="https://fonts.googleapis.com" />
+<link slot="head" rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link slot="head" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content={canonicalURL} />
-  <meta property="og:title" content={title} />
-  <meta property="og:description" content={description} />
-  <meta property="og:image" content="https://crontinel.com/og-default.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:site_name" content="Crontinel" />
+<!-- Design system tokens -->
+<link slot="head" rel="stylesheet" href="/styles/crontinel-tokens.css" />
+<link slot="head" rel="stylesheet" href="/styles/components.css" />
 
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:site" content="@HarunRRayhan" />
-  <meta name="twitter:title" content={title} />
-  <meta name="twitter:description" content={description} />
-  <meta name="twitter:image" content="https://crontinel.com/og-default.png" />
-
-  <!-- JSON-LD -->
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "@id": "https://crontinel.com/#organization",
-        "name": "Crontinel",
-        "url": "https://crontinel.com",
-        "logo": { "@type": "ImageObject", "url": "https://crontinel.com/favicon.svg" },
-        "sameAs": ["https://github.com/crontinel", "https://x.com/HarunRRayhan"]
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://crontinel.com/#website",
-        "url": "https://crontinel.com",
-        "name": "Crontinel",
-        "description": "Cron, Scheduler & Background Job Monitoring",
-        "publisher": { "@id": "https://crontinel.com/#organization" }
-      }
-    ]
-  })} />
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Design system -->
-  <link rel="stylesheet" href="/styles/crontinel-tokens.css" />
-  <link rel="stylesheet" href="/styles/components.css" />
-
-  <!-- Page-level utilities not in design CSS -->
-  <style>
+<!-- Page-level utilities -->
+<style>
     /* Skip link */
     .skip-to-main {
       position: fixed; top: -100%; left: 0.5rem; z-index: 9999;
@@ -205,8 +175,7 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
   </style>
 </head>
 
-<body>
-<a href="#main-content" class="skip-to-main">Skip to main content</a>
+<Base title={title} description={description} canonical={canonicalURL}>
 
 <!-- ============================== NAV ============================== -->
 <nav class="nav" id="nav">
@@ -1123,61 +1092,5 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   </div>
 </aside>
 
-<!-- Cookie consent banner -->
-<div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#0f0f11;border-top:1px solid var(--border);padding:16px 24px;">
-  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;justify-content:space-between;flex-wrap:wrap;">
-    <p style="margin:0;font-size:13px;color:var(--text-2)">
-      We use cookies to understand how visitors use our site.
-      <a href="/legal/privacy" style="color:var(--text);text-decoration:underline">Privacy Policy</a>
-    </p>
-    <div style="display:flex;gap:10px;flex-shrink:0;">
-      <button id="cookie-decline" style="font-size:13px;color:var(--text-3);padding:6px 12px;cursor:pointer;background:none;border:none;">Decline</button>
-      <button id="cookie-accept" style="font-size:13px;background:var(--accent);color:#001a0d;font-weight:600;padding:7px 16px;border-radius:6px;border:none;cursor:pointer;">Accept</button>
-    </div>
-  </div>
-</div>
 
-<script is:inline define:vars={{ gaId }}>
-  (function() {
-    var consent = localStorage.getItem('cookie_consent');
-    if (!consent) document.getElementById('cookie-banner').style.display = '';
-
-    function loadGA() {
-      if (!gaId || document.getElementById('ga-script')) return;
-      var s = document.createElement('script');
-      s.id = 'ga-script'; s.async = true;
-      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
-      document.head.appendChild(s);
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date()); gtag('config', gaId);
-    }
-
-    if (localStorage.getItem('cookie_consent') === 'accepted') loadGA();
-
-    document.getElementById('cookie-accept')?.addEventListener('click', function() {
-      localStorage.setItem('cookie_consent', 'accepted');
-      document.getElementById('cookie-banner').style.display = 'none';
-      loadGA();
-    });
-    document.getElementById('cookie-decline')?.addEventListener('click', function() {
-      localStorage.setItem('cookie_consent', 'declined');
-      document.getElementById('cookie-banner').style.display = 'none';
-    });
-  })();
-</script>
-
-<script is:inline>
-window.__TWEAKS = {
-  accent: "green", density: "airy", theme: "dark", heroVariant: "heartbeat",
-  headline: "Your cron is lying to you.",
-  sub: "Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.",
-  showMetrics: true, showProblem: true, showFeatures: true, showHowItWorks: true,
-  showDashboard: true, showIntegrations: true, showPricing: true,
-  showOssVsSaas: true, showInstall: true, showFinalCta: true
-};
-</script>
-<script is:inline src="/src/main.js"></script>
-
-</body>
-</html>
+</Base>
