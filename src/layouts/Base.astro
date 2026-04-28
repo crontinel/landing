@@ -82,6 +82,7 @@ const canonicalURL = canonical ?? new URL(Astro.url.pathname, Astro.site).toStri
       ]
     })} />
 
+    <slot name="head" />
   </head>
   <body class="min-h-screen flex flex-col antialiased">
     <!-- Skip to main content for screen readers -->
