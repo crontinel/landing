@@ -1,16 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#000"/>
-  <circle cx="32" cy="32" r="26" fill="none" stroke="#f97316" stroke-width="2.5"/>
-  <circle cx="32" cy="32" r="2.5" fill="#f97316"/>
-  <!-- Bell tops -->
-  <circle cx="16" cy="14" r="5" fill="none" stroke="#f97316" stroke-width="2"/>
-  <circle cx="48" cy="14" r="5" fill="none" stroke="#f97316" stroke-width="2"/>
-  <rect x="30.5" y="6" width="3" height="5" rx="1" fill="#f97316"/>
-  <!-- Top and bottom markers (green checkmarks simplified) -->
-  <path d="M30 8 L32 10 L36 5" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M30 56 L32 54 L36 59" stroke="#22c55e" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Clock hands - red -->
-  <line x1="32" y1="32" x2="22" y2="20" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="32" y1="32" x2="44" y2="24" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="32" cy="32" r="2" fill="#ef4444"/>
+  <!-- Background -->
+  <circle cx="32" cy="32" r="32" fill="#1e3a5f"/>
+  <!-- Gear ring (cyan) -->
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#38bdf8" stroke-width="4"/>
+  <!-- Gear teeth -->
+  <rect x="30" y="8" width="4" height="6" rx="1" fill="#38bdf8"/>
+  <rect x="30" y="50" width="4" height="6" rx="1" fill="#38bdf8"/>
+  <rect x="8" y="30" width="6" height="4" rx="1" fill="#38bdf8"/>
+  <rect x="50" y="30" width="6" height="4" rx="1" fill="#38bdf8"/>
+  <rect x="13.5" y="13.5" width="6" height="4" rx="1" fill="#38bdf8" transform="rotate(45 16.5 15.5)"/>
+  <rect x="44.5" y="13.5" width="6" height="4" rx="1" fill="#38bdf8" transform="rotate(-45 47.5 15.5)"/>
+  <rect x="13.5" y="46.5" width="6" height="4" rx="1" fill="#38bdf8" transform="rotate(-45 16.5 48.5)"/>
+  <rect x="44.5" y="46.5" width="6" height="4" rx="1" fill="#38bdf8" transform="rotate(45 47.5 48.5)"/>
+  <!-- Clock face -->
+  <circle cx="32" cy="32" r="14" fill="#1e3a5f"/>
+  <!-- Clock hands (white) -->
+  <line x1="32" y1="32" x2="25" y2="23" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="32" y1="32" x2="39" y2="29" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="32" cy="32" r="2" fill="#38bdf8"/>
+  <!-- Checkmark badge (mint, top-right) -->
+  <circle cx="46" cy="17" r="8" fill="#10b981"/>
+  <path d="M42 17l3 3 5-5" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
