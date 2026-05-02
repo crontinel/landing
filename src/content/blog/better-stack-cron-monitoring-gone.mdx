@@ -1,0 +1,58 @@
+---
+title: "Better Stack Killed Cron Monitoring. Here's Where Laravel Developers Go Now."
+description: "Better Stack silently removed cron monitoring in April 2026. If you relied on it for Laravel scheduler monitoring, here's what happened and what to use instead."
+date: 2026-05-02
+tags: ["cron monitoring", "better stack", "laravel", "alternatives", "scheduled tasks"]
+keywords: ["better stack cron monitoring", "better stack alternatives", "cron monitoring gone", "laravel cron monitoring alternative"]
+---
+
+If you searched for Better Stack's cron monitoring documentation recently and hit a 404 — you're not alone. Sometime in April 2026, Better Stack quietly removed their entire cron monitoring product. The docs page, the marketing page, even their community comparison article — all gone.
+
+No announcement. No migration guide. Just... 404.
+
+## What Actually Happened
+
+Better Stack's `/cron-monitoring` page returns a 404. Their documentation at `/docs/cron-monitoring/` — also 404. The product navigation now shows AI SRE, uptime monitoring, status pages, tracing, log management, infrastructure monitoring, RUM, and error tracking. Cron monitoring is completely absent from their platform.
+
+For teams who built their cron monitoring around Better Stack's heartbeat endpoints, this is a problem. Those pings are going unanswered, and unless you were actively watching, you might not have noticed.
+
+## Why This Matters for Laravel Developers
+
+Laravel developers had it especially rough with Better Stack. The product was never Laravel-aware — it couldn't understand your scheduler, couldn't detect when `php artisan schedule:run` fired but a task failed internally, and couldn't tell you *which* scheduled job was the problem.
+
+It was a generic heartbeat monitor. You'd ping a URL at the end of your cron job, and if the ping didn't arrive, you'd get an alert. Useful, but shallow.
+
+## What to Look for in a Replacement
+
+If you're migrating away from Better Stack (or starting fresh), here's what actually matters:
+
+**Framework awareness.** Your monitoring tool should understand Laravel's scheduler — not just "did a URL get pinged?" but "did the `ProcessInvoices` job run? Did it succeed? How long did it take?"
+
+**Silent failure detection.** The #1 cron monitoring failure mode is the job that runs, pings the URL, but produces wrong results. A Laravel scheduler monitoring tool should catch task-level failures, not just process-level heartbeats.
+
+**Zero-config integration.** You shouldn't need to manually add ping URLs to every scheduled task. The right tool hooks into Laravel's scheduler events automatically.
+
+**Modern PHP patterns.** If a monitoring guide is showing you `app/Console/Kernel.php` and `$schedule->call()` — that's Laravel 8 and below. Laravel 10+ uses `routes/console.php`. Your monitoring tool should know this.
+
+## The Current Landscape (April 2026)
+
+The cron monitoring market has contracted significantly:
+
+- **Better Stack**: Cron monitoring removed entirely
+- **OhDear**: Also removed their cron monitoring feature recently
+- **thenping.me**: The Laravel-native option — archived and dead since January 2025
+- **Cronitor**: Active but generic. Their PHP guide was last updated February 2023 and shows deprecated Laravel patterns
+- **Healthchecks.io**: The most active generic option. Free tier for 20 monitors, but no Laravel awareness
+
+For Laravel developers specifically, the options have narrowed to either generic heartbeat monitors or Crontinel — the only active Laravel-native cron monitoring service.
+
+## Migrating Away from Better Stack
+
+If you were using Better Stack's cron monitoring, here's your migration path:
+
+1. **Audit your scheduled tasks.** List every cron job that was sending heartbeats to Better Stack.
+2. **Check for silent gaps.** Since Better Stack's 404, your heartbeats have been going nowhere. Some jobs may have been failing silently during this window.
+3. **Switch to event-based monitoring.** Instead of manually pinging a URL at the end of each job, use a tool that hooks into Laravel's `ScheduledTaskStarted`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` events.
+4. **Set up proper alerting.** Configure Slack, email, or webhook notifications for missed runs, failures, and duration anomalies.
+
+The disappearance of Better Stack's cron monitoring is a reminder: generic monitoring tools can pivot away from your use case without warning. For something as critical as scheduled task monitoring, a purpose-built tool is worth the investment.
