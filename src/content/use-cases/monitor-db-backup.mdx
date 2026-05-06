@@ -1,0 +1,71 @@
+---
+title: "Monitoring Spatie Laravel-Backup in Production"
+description: "Get alerted when laravel-backup fails, backup:run exits without completing, or your scheduled database backups silently stop. Covers Spatie laravel-backup monitoring patterns for Laravel production teams."
+date: 2026-05-07
+---
+
+Your last usable database backup was three weeks ago. You only find out when a junior dev accidentally truncates the `orders` table on a Tuesday afternoon, you SSH into your S3 bucket to grab the latest backup, and the most recent zip is from the week of the last deploy. The Spatie laravel-backup package was installed, `backup:run` was scheduled, the cron entry was firing, and yet nothing usable was being produced. This is the failure pattern that proper Spatie laravel-backup monitoring catches before it bites you. The package has been quietly exiting "successfully" while skipping every database it was supposed to dump.
+
+## What laravel-backup Does Under the Hood
+
+Spatie's `backup:run` artisan command orchestrates a multi-stage pipeline. It collects the dumps you've configured (databases via `mysqldump` or `pg_dump`, plus any included file directories), zips them into a single archive named with a timestamp, and uploads that archive to each disk listed in `config/backup.php`. After the upload completes, `backup:clean` runs to enforce your retention policy and delete archives older than the configured window.
+
+The piece most teams miss is that each stage is independent. If `mysqldump` is missing from `$PATH` on the production box, the database dump silently produces an empty file, but the zip still gets created and uploaded. The command exits with status 0. The Laravel scheduler logs a successful run. The only signal that anything went wrong is a `BackupHasFailed` event fired internally, which nobody is listening to.
+
+Spatie ships notification classes for Slack, mail, and Discord, but they require an `OnFailure` listener registered in your service provider. By default, fresh installs do not wire these up, so `php artisan backup:run` can fail in five different ways without producing a single alert. That is the gap proper laravel backup:run cron monitoring needs to fill.
+
+## Common Failure Modes
+
+**Disk full on the source server.** The package writes the zip to `storage/app/backup-name/temp` before uploading. If the server is short on disk, the dump fails partway through and you get a corrupt archive shipped to S3. The backup:run command exits with a generic error message that does not tell you which file it was writing when the disk filled.
+
+**Expired S3 credentials.** IAM keys rotate. The upload throws an exception, but if your queue worker is not logging exceptions to a paging service, you will only notice when you look.
+
+**Database connection drops mid-dump.** Long-running dumps on busy production databases hit `wait_timeout` or get killed by the OOM reaper. The resulting `.sql` is truncated, but the wrapping zip is still valid. You will not find out until you try to restore and the file is unreadable.
+
+**`backup:clean` failing after a successful backup.** Disk fills up because old archives never get pruned. Two weeks later, `backup:run` itself starts failing because there is no room for the next zip.
+
+## Building Visibility Into Your Backup Process
+
+Start by registering Spatie's failure event in `app/Providers/EventServiceProvider.php`:
+
+```php
+protected $listen = [
+    \Spatie\Backup\Events\BackupHasFailed::class => [
+        \App\Listeners\NotifyBackupFailure::class,
+    ],
+    \Spatie\Backup\Events\CleanupHasFailed::class => [
+        \App\Listeners\NotifyBackupFailure::class,
+    ],
+];
+```
+
+Then wrap your scheduled command with a heartbeat ping so you know it actually completed end to end:
+
+```php
+Schedule::command('backup:run')
+    ->daily()
+    ->at('02:00')
+    ->onOneServer()
+    ->withoutOverlapping(60)
+    ->before(fn () => Http::get(config('crontinel.backup_start')))
+    ->onSuccess(fn () => Http::get(config('crontinel.backup_success')))
+    ->onFailure(fn () => Http::get(config('crontinel.backup_failure')));
+```
+
+The `onSuccess` hook only fires when the command exits cleanly, which gives you a real signal rather than the cron daemon's optimistic exit code. For deeper visibility, lean on `php artisan backup:list` in a daily check that asserts the most recent archive is less than 24 hours old and larger than some sanity threshold (usually 1MB, since an empty database dump zips down to a few hundred bytes).
+
+## Detecting When backup:run Fails
+
+Three layers catch almost everything. First, the Spatie event listeners catch failures the package detects internally. Second, the `onFailure` schedule hook catches non-zero exits. Third, and this is the one that catches the silent failures, a deadline-based monitor watches for the `onSuccess` ping and alerts when it does not arrive within the expected window.
+
+That third layer is the only thing that catches the "scheduler stopped firing entirely" case. If your server's cron is broken or the scheduler binary segfaulted, no event listener runs, no failure hook fires, and the only signal is the absence of the success ping. That is why production teams treat the heartbeat as the source of truth for whether they have a working backup at all.
+
+## Quick Setup with Crontinel
+
+Create a job in your Crontinel dashboard with a 24-hour expected interval and a 2-hour grace period. Copy the resulting ping URLs into `config/crontinel.php`, deploy, and let one full cycle complete. After the next 02:00 run, you will see the duration, exit status, and uploaded archive size in the dashboard. Pull the plug on your S3 credentials in staging to verify the alert path actually pages you. Skipping that test is the most common reason teams discover, during an incident, that their Spatie laravel-backup monitoring was never wired up correctly.
+
+## See also
+
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
+- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)
