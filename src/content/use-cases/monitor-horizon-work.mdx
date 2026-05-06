@@ -85,3 +85,9 @@ Monitoring `horizon:work` requires watching three layers: the master supervisor 
 Combine process-level monitoring with queue-depth tracking. If your Redis queue length grows steadily for more than a few minutes while `horizon:work` reports as running, something is wrong at the supervisor or worker layer. Crontinel can track both the heartbeat of `horizon:work` and queue depth metrics, giving you a single alert when processing stalls regardless of which layer failed.
 
 The key insight: `horizon:work` can be "running" while doing nothing useful. Your monitoring must verify that jobs are actually being completed, not just that a process exists.
+
+## See also
+
+- [Monitoring horizon:purge in Laravel production](/use-cases/monitor-horizon-purge) — clean up stale job records before Redis fills up
+- [Monitoring horizon:terminate in Laravel production](/use-cases/monitor-horizon-terminate)
+- [Laravel Horizon monitoring](/use-cases/laravel-horizon-monitoring)

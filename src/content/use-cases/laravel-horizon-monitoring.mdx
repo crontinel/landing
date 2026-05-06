@@ -96,3 +96,8 @@ On the Team plan ($49/month), team members can view all connected apps in the sh
 - A failed deployment leaves workers running old code that can't deserialize new job payloads
 
 All of these produce Redis state changes that Crontinel detects without any application-level ping or custom command.
+
+## See also
+
+- [Monitoring horizon:purge in Laravel production](/use-cases/monitor-horizon-purge) — clean up stale job records before Redis fills up
+- [Monitoring horizon:work in Laravel production](/use-cases/monitor-horizon-work)
