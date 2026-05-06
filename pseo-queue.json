@@ -1,8 +1,5 @@
 {
   "pending": [
-    "horizon-purge",
-    "model-prune",
-    "db-backup",
     "backup-run",
     "backup-clean",
     "backup-monitor",
@@ -53,6 +50,10 @@
     "horizon-work",
     "horizon-terminate",
     "horizon-pause",
-    "horizon-continue"
-  ]
+    "horizon-continue",
+    "horizon-purge",
+    "model-prune",
+    "db-backup"
+  ],
+  "in_progress": []
 }
