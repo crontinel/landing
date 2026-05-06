@@ -1,0 +1,91 @@
+---
+title: "Monitoring model:prune in Laravel Production"
+description: "Catch when model:prune silently skips records, stops running, or produces incomplete cleanups — and why Laravel teams need monitoring around this command before old data bloats production storage."
+date: 2026-05-07
+---
+
+You shipped a new feature six months ago. It generates session logs, activity records, temporary cache rows. The database table is up to 4 million rows. Your staging server, which gets a fresh database restore every night, shows the same query performance as production. Then you look at production directly: table size has tripled, your disk is at 82%, and the last `model:prune` run was never recorded. The Laravel scheduler had stopped firing three weeks earlier. You only find out because your DBA pinged you. This is the failure mode that proper model:prune monitoring is built to catch: a command that looks like it is running, exits with code 0, and leaves your storage to fill up until something breaks.
+
+## What model:prune Actually Does
+
+`php artisan model:prune` scans your application for models using the `Prunable` trait, collects all records matching their `$prunable` condition, and deletes them in batches. The default `$prunable` condition is records older than the time specified in the model's `$prunable` property, but you can define any SQL condition you want.
+
+```php
+use Illuminate\Database\Eloquent\Prunable;
+
+class SessionLog extends Model
+{
+    use Prunable;
+
+    protected $prunable = [
+        'last_accessed_at <= ?' => now()->subDays(30),
+    ];
+}
+```
+
+When you run `model:prune` without arguments, it finds all models with the `Prunable` trait, applies the condition, and deletes matching records. It does not emit a summary. It does not tell you how many records it found or deleted. It exits with code 0 regardless of whether it deleted one record or one million. That is the first problem.
+
+The second problem: `model:prune` only works on models that have the `Prunable` trait registered. If you add a new model and forget to add the trait, or if you change the model name and forget to update the prune configuration, the command silently skips it.
+
+## Common Failure Modes
+
+**Missing `Prunable` trait.** You add a new model, add the `$prunable` property, but forget to add `use Prunable` to the class. Laravel silently skips the model during `model:prune`. No error, no warning. The model gets pruned only if you run `php artisan model:prune --model=ModelName` explicitly.
+
+**Wrong date condition.** If your `$prunable` condition references a column that does not exist on the model, `model:prune` silently skips it. If you rename a column from `created_at` to `created_on` and forget to update the prune condition, the comparison always evaluates to false and nothing gets deleted.
+
+**Scheduler not running.** The same failure mode as other scheduled commands. If `schedule:run` is not firing (broken system cron, wrong cron entry, wrong user), `model:prune` never runs and your data grows unbounded.
+
+**Memory exhaustion on large tables.** On tables with millions of rows, `model:prune` deletes in batches (default 1000 records per batch). If your model has expensive relationships loaded by default, each batch delete can consume significant memory. On memory-constrained workers, this can cause the command to be killed mid-run. The next scheduled run will delete the next batch, but if your batch size is too large for your memory limit, the command will never finish the table.
+
+## Building Visibility Into model:prune
+
+The most useful addition is a count check before and after pruning. Write a simple artisan command that reports table row counts for your prunable models:
+
+```php
+// app/Console/Commands/ReportPrunableCounts.php
+protected $signature = 'report:prunable-counts';
+
+public function handle()
+{
+    $models = [
+        SessionLog::class,
+        ActivityLog::class,
+        TemporaryFile::class,
+    ];
+
+    foreach ($models as $model) {
+        $count = $model::query()->whereRaw($model::$prunable[0], [now()->subDays(30)])->count();
+        $this->info("{$model}: {$count} records would be pruned");
+    }
+}
+```
+
+Run this before `model:prune` to see how many records are pending deletion, then run it again after to see the result. Wire the before-count into a Crontinel ping so you know the command fired:
+
+```php
+Schedule::command('model:prune')
+    ->daily()
+    ->withoutOverlapping(60)
+    ->onOneServer()
+    ->onSuccess(fn () => Http::get(config('crontinel.prune_success')));
+```
+
+## Detecting When model:prune Fails
+
+Two alert conditions matter: the ping does not arrive within the expected window (command did not run), and the count of prunable records keeps growing across successive checks (command is running but not keeping up with new records being created).
+
+For the second case, set up a separate scheduled task that runs `report:prunable-counts` and stores the result. If the prunable count for any model exceeds a threshold (e.g., 30 days of accumulated records), alert. This catches the scenario where `model:prune` is running successfully but your retention window is too long for your data volume.
+
+The scheduler failure case is the most common and the most damaging. A daily `model:prune` with no heartbeat is indistinguishable from a daily `model:prune` that is silently deleting millions of rows. The heartbeat makes the silent failure visible before your disk fills.
+
+## Quick Setup with Crontinel
+
+Create a daily heartbeat job in Crontinel for `model:prune`. Expected interval: 25 hours. Grace period: 2 hours. On staging, intentionally break the scheduler and confirm you get an alert within 3 hours. Then fix it and confirm the ping arrives. This is the verification step most teams skip, and it is the only way to know your monitoring is actually working before a real failure happens.
+
+If you have models with high deletion volume (more than 100k records per day), consider running `model:prune` twice daily. The command is idempotent and safe to overlap-prevent, so using `withoutOverlapping()` on a more frequent schedule is low risk and prevents the accumulation problem from building up between runs.
+
+## See also
+
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
+- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
+- [Laravel queue monitoring](/use-cases/laravel-queue-monitoring)

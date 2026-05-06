@@ -1,0 +1,74 @@
+---
+title: "Monitoring horizon:purge in Laravel Production"
+description: "Detect when horizon:purge silently fails to clean stale jobs, why it exits without error, and how to build monitoring that catches incomplete purges before Redis fills up."
+date: 2026-05-07
+---
+
+You push a new feature that generates a lot of short-lived jobs. A week later, Redis memory usage has climbed 40% and your ops team is asking questions. You check the Horizon dashboard: the job metrics show tens of thousands of completed jobs that were never cleaned up. `horizon:purge` was scheduled to run daily, the scheduler was firing, and yet the old job records are still sitting in Redis taking up space. The command exits with code 0 every time. Nothing in the logs. No error. Just a silent failure that nobody noticed until the memory bill arrived.
+
+This is the specific problem with `horizon:purge` as a monitoring target: it is designed to clean up after Horizon, and it does its job correctly most of the time. When it does not, the failure is invisible unless you are actively watching for it.
+
+## What horizon:purge Actually Does
+
+`horizon:purge` is the command that removes completed job records from Horizon's Redis storage. Horizon keeps a record of every job that passes through the system: status, timing, tags, the job payload. This is what powers the dashboard and lets you inspect individual jobs. After a job completes, that record stays in Redis indefinitely unless something removes it.
+
+`horizon:purge` targets three specific collections: `completedJobs`, `failedJobs`, and `monitoring`. It reads your `config/horizon.php` to determine the `retention_period` (in hours) for each, and deletes any records older than that window. The default retention period is 1 hour for completed jobs and 336 hours (14 days) for failed jobs. These are sensible defaults but they mean the command needs to run at least every hour for completed job retention to work as intended.
+
+The catch is that `horizon:purge` only removes Horizon's own job metadata. It does not touch the actual Redis queues where pending jobs wait. A backup of Redis queues means either your workers are not processing (a different problem) or you are enqueuing far more jobs than expected.
+
+## Common Failure Modes
+
+**Scheduler not running.** If `schedule:run` is not being triggered by your system cron, `horizon:purge` never fires. Redis keeps every completed job record forever. Horizon 5.x added a `--within` flag so you can run it on a tighter schedule than the default retention period, but only if the scheduler is running at all.
+
+**Wrong environment.** `horizon:purge` reads its environment from `APP_ENV`. If you have a staging environment sharing the same Redis instance as production, a `horizon:purge` run in staging can delete production job records. This happens more often than people expect when staging cron jobs are wired up by default.
+
+**Redis memory pressure killing the purge mid-run.** If Redis is already under memory pressure, a `horizon:purge` run that targets millions of records can itself consume enough memory to trigger the OOM killer. The command starts, begins iterating, and gets killed before it finishes. The next scheduled run has the same problem.
+
+**Running on a Redis replica without replication lag awareness.** In a read-replica setup, `horizon:purge` running against the replica while writes are still replicating can delete records that are not yet fully committed. Jobs that appear in the dashboard can disappear while a developer is inspecting them.
+
+## Building Visibility Into horizon:purge
+
+The first thing to check is whether `horizon:purge` is actually running on schedule. In your Crontinel dashboard, create a job with an expected interval matching your configured retention period. If you run hourly (recommended for production with high job volume), set the expected interval to 65 minutes to give a small grace period.
+
+```php
+// In App\Console\Kernel.php
+Schedule::command('horizon:purge')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->runInBackground();
+```
+
+The `onOneServer()` call prevents duplicate runs in multi-server deployments. `runInBackground()` ensures the schedule heartbeat fires even if the purge takes time on large Redis instances. After each successful purge, check the Redis key counts directly:
+
+```php
+Schedule::command('horizon:purge --force')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onSuccess(function () {
+        $completed = Redis::connection('horizon')->zcard('completedJobs') ?? 0;
+        Log::info('Horizon purge complete', [
+            'completed_jobs_remaining' => $completed,
+        ]);
+    });
+```
+
+If `completed_jobs_remaining` keeps growing despite scheduled purges, the command is running but not keeping up. This typically means your retention period is too long for your job volume.
+
+## Detecting When horizon:purge Fails
+
+Three conditions to alert on: the ping does not arrive within the expected window (the scheduler stopped), the Redis key count keeps growing despite successful pings (purge running but not keeping up), and the job exits with a non-zero code (Redis error mid-run).
+
+The most important alert is the first one. If `horizon:purge` stops firing because your system cron broke or `schedule:run` crashed, you lose visibility into all of Horizon's job metadata cleanup. Redis usage climbs, and the problem compounds because a full Redis instance slows down every subsequent purge attempt.
+
+## Quick Setup with Crontinel
+
+Add a heartbeat to your hourly `horizon:purge` schedule in the Crontinel dashboard. Set the expected interval to 65 minutes and the grace period to 15 minutes. Deploy your changes. Verify you see a successful ping within 70 minutes. Then intentionally break the cron entry on staging to confirm the alert fires.
+
+If you run `horizon:purge` less frequently (daily is common for low-volume apps), set the interval to match your retention period plus one hour. The goal is to alert before Redis fills up, not after.
+
+## See also
+
+- [Monitoring horizon:work in Laravel production](/use-cases/monitor-horizon-work)
+- [Monitoring horizon:terminate in Laravel production](/use-cases/monitor-horizon-terminate)
+- [Laravel Horizon monitoring](/use-cases/laravel-horizon-monitoring)
