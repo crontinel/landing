@@ -111,3 +111,10 @@ Schedule::command('backup:run')
 Crontinel will alert within minutes if `backup:run` fails, if it runs longer than the configured grace period, or if it stops running entirely. This catches all the silent failure modes: memory errors, credential mismatches, S3 timeouts, and permission problems.
 
 Your backups are only as reliable as your monitoring. A backup that nobody verifies is a backup that won't be there when you need it.
+
+## See also
+
+- [Monitoring Spatie Laravel-Backup in production](/use-cases/monitor-db-backup)
+- [Detecting when Laravel backup:clean fails to run](/use-cases/monitor-backup-clean)
+- [Monitoring Laravel backup health checks in production](/use-cases/monitor-backup-monitor)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)

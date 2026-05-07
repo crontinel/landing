@@ -117,3 +117,10 @@ Schedule::call(function () {
 Crontinel fires different alerts based on which endpoint receives a signal. If the corrupt endpoint gets a hit, it's an immediate alert with the file name and error code. If neither endpoint fires within the monitoring window, Crontinel alerts that the backup never completed.
 
 The three-check system — freshness, size, integrity — gives you complete coverage. Your monitoring should match your actual risk, not just the easy-to-check surface of the backup.
+
+## See also
+
+- [Monitoring Spatie Laravel-Backup in production](/use-cases/monitor-db-backup)
+- [Monitoring backup:run failures in Laravel production](/use-cases/monitor-backup-run)
+- [Detecting when Laravel backup:clean fails to run](/use-cases/monitor-backup-clean)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)

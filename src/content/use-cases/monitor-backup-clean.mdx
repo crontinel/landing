@@ -127,3 +127,10 @@ Schedule::command('backup:clean')
 If `backup:clean` exits with an error, or if it never runs (your monitoring window closes without a ping), Crontinel fires an alert. The dual-check approach — counting files + monitoring the job itself — catches cleanup failures from every angle: corrupted files, permission errors, unreachable disks, and misconfigured retention policies.
 
 Storage costs from accumulating backups are the silent version of data loss. You're not losing data, but you're paying for it every month.
+
+## See also
+
+- [Monitoring Spatie Laravel-Backup in production](/use-cases/monitor-db-backup)
+- [Monitoring backup:run failures in Laravel production](/use-cases/monitor-backup-run)
+- [Monitoring Laravel backup health checks in production](/use-cases/monitor-backup-monitor)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
