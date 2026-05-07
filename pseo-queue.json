@@ -1,10 +1,5 @@
 {
   "pending": [
-    "backup-run",
-    "backup-clean",
-    "backup-monitor",
-    "telescope-prune",
-    "telescope-clear",
     "notifications-prune",
     "cache-clear",
     "cache-prune",
@@ -53,7 +48,12 @@
     "horizon-continue",
     "horizon-purge",
     "model-prune",
-    "db-backup"
+    "db-backup",
+    "backup-run",
+    "backup-clean",
+    "backup-monitor",
+    "telescope-prune",
+    "telescope-clear"
   ],
   "in_progress": []
 }
