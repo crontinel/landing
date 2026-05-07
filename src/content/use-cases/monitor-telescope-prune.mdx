@@ -1,0 +1,148 @@
+---
+title: "Monitoring Laravel Telescope Prune in Production"
+description: "Learn how php artisan telescope:prune works, why it fails silently, and how to detect when your Telescope data cleanup is not running."
+date: 2026-05-08
+---
+
+You open the Telescope dashboard on a Monday morning. It loads slowly. You check the database. The `telescope_entries` table has 8 million rows. The `telescope_entries_tags` table has 22 million rows. The `telescope_commands` table has entries going back to January. `telescope:prune` hasn't run successfully in six weeks. You don't remember scheduling it.
+
+The default state of Laravel Telescope in production is accumulation. It keeps everything until something deletes it.
+
+## How telescope:prune Works
+
+Laravel Telescope captures every request, job, command, schedule event, log entry, and database query in your application. By default, it stores all of this in your application database. On a busy production application, this can mean millions of rows per day.
+
+The `telescope:prune` command removes old entries based on the `Telescope::prune()` configuration:
+
+```php
+// config/telescope.php
+'prune' => [
+    'hours' => env('TELESCOPE_PRUNE_HOURS', 48),
+],
+```
+
+By default, entries older than 48 hours are eligible for deletion. Running `telescope:prune` without options removes entries older than this threshold. You can also specify `--hours=24` to override the config value.
+
+The command uses a chunked delete to avoid locking the table:
+
+```php
+// Simplified internal logic
+TelescopeEntry::where('created_at', '<', now()->subHours($hours))
+    ->limit(1000)
+    ->delete();
+```
+
+Each run deletes up to 1000 rows per chunk. If you have millions of rows, a single `telescope:prune` run might not finish in one execution.
+
+## Common Failure Modes
+
+**Prune never scheduled.** The most common failure. You install Telescope, it works great, you forget about it. The `prune` configuration sits in `config/telescope.php` but nothing actually calls it. The table grows until you notice. The fix is a cron entry or scheduler registration:
+
+```php
+// In routes/console.php or app/Console/Kernel.php (Laravel 10)
+Schedule::command('telescope:prune', ['--hours' => 48])->hourly();
+```
+
+Without this, `telescope:prune` only runs when you manually invoke it.
+
+**Prune runs but doesn't finish.** With millions of rows, 1000 rows per chunk means thousands of delete statements. If `telescope:prune` hits `max_execution_time` or the PHP worker restarts mid-run, only a fraction of the eligible rows get deleted. The next run tries to delete the same old entries again. You never catch up.
+
+**Prune conflicts with active monitoring.** Telescope's prune command acquires a lock using the cache driver to prevent concurrent runs. If you have a long-running `telescope:prune` that doesn't finish before the next hourly run, the second run exits early with a lock message. On systems under heavy write load, the prune command can take 30+ minutes to process millions of rows.
+
+**Telescope entries table grows faster than prune can handle.** On a high-traffic application generating 500,000 entries per day, the hourly prune deletes 1000 rows but generates 20,000 new ones. The table never shrinks. You need more frequent pruning (every 15 minutes) or a batch script that runs multiple times per hour.
+
+## Building Visibility Into telescope:prune
+
+Count rows by age bracket to detect accumulation before it becomes critical:
+
+```php
+Schedule::call(function () {
+    $total = DB::table('telescope_entries')->count();
+    $oldEntries = DB::table('telescope_entries')
+        ->where('created_at', '<', now()->subHours(50))
+        ->count();
+
+    $ratio = $total > 0 ? ($oldEntries / $total * 100) : 0;
+
+    Log::info('Telescope prune check', [
+        'total_entries' => $total,
+        'entries_older_than_50h' => $oldEntries,
+        'old_ratio_percent' => round($ratio, 1),
+    ]);
+
+    // Alert if more than 30% of entries are older than our prune window
+    // This means prune is not keeping up
+    if ($ratio > 30) {
+        Http::get(env('CRONTINEL_TELESCOPE_PRUNE_ENDPOINT'));
+    }
+})->everyFifteenMinutes();
+```
+
+This runs every 15 minutes and tells you not just that entries exist, but whether the prune command is keeping up with new writes.
+
+## Detecting When telescope:prune Fails
+
+The clearest signal is row count growth. If Telescope is healthy, the total row count should stay roughly stable (new entries per time period ≈ pruned entries per time period). If row count is growing week over week, prune is not running fast enough.
+
+Track this with a time series in your monitoring:
+
+```php
+Schedule::call(function () {
+    $total = DB::table('telescope_entries')->count();
+    $tagsTotal = DB::table('telescope_entries_tags')->count();
+
+    Metrics::gauge('telescope.entries.count', $total);
+    Metrics::gauge('telescope.tags.count', $tagsTotal);
+})->everyFiveMinutes();
+```
+
+If `telescope_entries.count` grows more than 10% week over week while `telescope:prune` is running hourly, increase the prune frequency or run a manual full prune during off-peak hours.
+
+## Quick Setup with Crontinel
+
+Add Telescope prune monitoring with Crontinel:
+
+```bash
+composer require crontinel/crontinel-laravel
+php artisan crontinel:install
+```
+
+Configure the prune schedule and monitoring endpoint:
+
+```php
+// config/telescope.php
+'prune' => [
+    'hours' => 24, // Prune entries older than 24 hours
+],
+
+// routes/console.php
+Schedule::command('telescope:prune', ['--hours' => 24])
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Monitor prune success via heartbeat
+Schedule::call(function () {
+    // Check if recent prune has been running
+    $recentEntries = DB::table('telescope_entries')
+        ->where('created_at', '>', now()->subMinutes(20))
+        ->count();
+
+    // If prune ran successfully in last 15 min, entries should be fresh
+    // No action needed for Crontinel here — the prune command itself
+    // can call the endpoint on success
+})->everyFifteenMinutes();
+```
+
+For direct prune monitoring, configure `telescope:prune` to ping Crontinel:
+
+```php
+// A custom prune command that extends the original
+Schedule::command('telescope:prune --hours=24 && curl -X POST [CRONTINEL_ENDPOINT]')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping();
+```
+
+Or use Crontinel's built-in `schedule:run` monitoring to catch cases where the scheduler itself stops executing the telescope prune job.
+
+Telescope is only useful if you can actually load the dashboard. A table with 20 million rows will time out your browser before it loads.
