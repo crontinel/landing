@@ -1,0 +1,113 @@
+---
+title: "Monitoring backup:run Failures in Laravel Production"
+description: "Detect when php artisan backup:run silently fails in production. Learn what causes backup command failures and how to get alerted before data loss."
+date: 2026-05-08
+---
+
+You push a deploy on Friday afternoon. Everything passes. Monday morning, a developer asks why the staging restore test failed. You check and find the production backup hasn't completed since Thursday. The `backup:run` command has been silently failing for four days. Nobody noticed because nothing was watching it. This is the most common way Laravel backup monitoring breaks: not with a loud crash, but with silence.
+
+## How php artisan backup:run Works
+
+The `spatie/laravel-backup` package is the standard for Laravel backups. When you run `php artisan backup:run`, it performs a multi-step process:
+
+1. **Dump the database** — uses mysqldump, pgdump, or SQLite's native export depending on your driver
+2. **Zip the dump** — combines the database dump with any configured custom files
+3. **Encrypt** (optional) — applies AES-256 encryption if you've configured a cipher key
+4. **Upload** — pushes the archive to one or more disks: local, S3, Google Cloud Storage, Dropbox, or SFTP
+
+The entire operation runs in a single PHP process. If PHP runs out of memory at step 1, the whole thing fails. If the network connection drops during step 4, the whole thing fails. There's no partial success, no retry built in.
+
+Your `config/backup.php` defines what gets backed up, which disks receive the archive, and what cleanup policies apply. The default configuration backs up your entire database and nothing else.
+
+## Common Failure Modes
+
+**Disk fills up mid-backup.** The most common failure. The database dump starts writing to `/tmp`, the zip operation begins, and PHP hits the disk quota or the system runs out of `/tmp` space. The command exits with an error, but if your cron runs with output redirected to `/dev/null`, you never see it. Free disk space monitoring is the fix, but most teams don't have it configured.
+
+**Database credentials fail after a rotation.** You rotate the database password via your PaaS dashboard. The `.env` file gets updated but the PHP-FPM process doesn't reload it because you're running `backup:run` via cron with a separate PHP binary that caches environment variables. The command fails at the dump step with an authentication error. Authentication errors look like application errors in logs — easy to dismiss as a one-off.
+
+**S3 upload timeout.** Large databases hit S3's 15-minute multipart upload timeout or your instance's bandwidth cap. The dump completes, the zip begins, and then the upload stalls. If your backup disk is S3 and the upload takes longer than your PHP max_execution_time, the process is killed mid-upload. You get a partial or zero-byte backup file on S3.
+
+**Disk permission denied.** A deploy or server update changes ownership on the backup destination directory. `backup:run` runs as the web server user (typically `www-data`) but the backup directory is owned by `root`. The zip step fails at the write step.
+
+## Building Visibility Into backup:run
+
+Add a health check that runs after your backup:
+
+```php
+// In app/Console/Kernel.php or routes/console.php
+Schedule::command('backup:run')->dailyAt('03:00')->withoutOverlapping();
+
+// Add a monitoring ping after backup completes
+Schedule::command('backup:run')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->thenPing('https://cron.crontinel.com/heartbeat/backup-run');
+```
+
+The `thenPing()` callback fires only on successful completion. If `backup:run` crashes, times out, or never runs, you get no ping. Pair this with a maximum expected time: if the ping doesn't arrive by 3:45 AM, something went wrong.
+
+For additional visibility, capture `backup:run` output:
+
+```bash
+0 3 * * * cd /path-to-project && php artisan backup:run --disable-notifications >> /var/log/laravel-backup.log 2>&1
+```
+
+Set up a separate check that parses this log file for the string `Backup completed successfully` and alerts if it's absent after the expected run window.
+
+## Detecting When backup:run Fails
+
+The two things to watch: **did it run?** and **did it succeed?** The answers require different checks.
+
+For run detection, use a heartbeat pattern: Crontinel expects a ping within a defined window and alerts if it's missing. Set the window wide enough to account for a large database backup (90 minutes is reasonable for databases under 10GB), but no wider.
+
+For success detection, `spatie/laravel-backup` can notify via Slack, Discord, or email on failure. The problem is notification fatigue: if backups fail repeatedly (say, a disk is chronically full), you start ignoring the alerts. A health check that fails and stays failed is clearer than an email that arrives every night.
+
+Check your most recent backup file's modification time programmatically:
+
+```php
+$disk = Storage::disk('s3');
+$latestBackup = collect($disk->files('laravel-backup'))
+    ->filter(fn ($file) => str_ends_with($file, '.zip'))
+    ->sortByDesc(fn ($file) => $disk->lastModified($file))
+    ->first();
+
+$age = now()->diffInHours($disk->lastModified($latestBackup));
+
+if ($age > 25) {
+    // Backup is older than expected — alert
+}
+```
+
+Run this as a scheduled job that fires every 4 hours. If the latest zip is older than 25 hours, something is wrong.
+
+## Quick Setup with Crontinel
+
+Crontinel integrates with `spatie/laravel-backup` via the `thenPing()` callback. After installing the Crontinel package:
+
+```bash
+composer require crontinel/crontinel-laravel
+php artisan crontinel:install
+```
+
+Add your monitoring endpoint:
+
+```php
+// config/backup.php or config/crontinel.php
+'monitoring' => [
+    'endpoint' => env('CRONTINEL_ENDPOINT'),
+],
+```
+
+Then in your scheduled backup:
+
+```php
+Schedule::command('backup:run')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->onOneServer() // prevents duplicate runs on multi-server setups
+    ->thenPing(env('CRONTINEL_BACKUP_ENDPOINT'));
+```
+
+Crontinel will alert within minutes if `backup:run` fails, if it runs longer than the configured grace period, or if it stops running entirely. This catches all the silent failure modes: memory errors, credential mismatches, S3 timeouts, and permission problems.
+
+Your backups are only as reliable as your monitoring. A backup that nobody verifies is a backup that won't be there when you need it.

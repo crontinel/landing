@@ -1,0 +1,119 @@
+---
+title: "Monitoring Laravel Backup Health Checks in Production"
+description: "Learn how php artisan backup:monitor works, what backup health issues it catches, and how to get alerted when your Laravel backups are unhealthy."
+date: 2026-05-08
+---
+
+You check the Spatie backup notifications. Everything looks healthy. The last backup completed successfully 18 hours ago. Then someone asks: when was the last time you actually tested a restore? You try to restore from the latest backup. The file is there. The zip opens. The database dump is 2KB. Your largest table is 4 million rows. The backup file is corrupt. It has been corrupt for 3 days. `backup:monitor` said everything was fine.
+
+The `backup:monitor` command checks backup health, but it only checks what it can verify from the surface.
+
+## How backup:monitor Works
+
+The `spatie/laravel-backup` `backup:monitor` command performs structural health checks on your most recent backup:
+
+- **Backup freshness** — is the most recent backup newer than `freshness` threshold in config?
+- **Backup size** — is the backup file larger than `minimumSize` if configured?
+- **Backup disk reachable** — can the monitoring process list files on the destination disk?
+- **Backup is not encrypted with a mismatched key** — if encryption is enabled, can the file be opened with the configured key?
+
+The command exits with code 0 if all checks pass, non-zero if any fail. This is useful as a monitoring signal, but it only tells you if the most recent backup is structurally valid. It doesn't tell you if the database inside the zip is intact.
+
+Here's what the config looks like:
+
+```php
+// config/backup.php
+'monitoring' => [
+    'health' => [
+        'healthy' => [
+            'MAX_AGE_OF_THE_MOST_RECENT_BACKUP' => '12h',
+        ],
+    ],
+],
+```
+
+## Common Health Check Failures
+
+**The backup is fresh but corrupt.** The most insidious failure mode. The `backup:run` completes (zip file is written), `backup:monitor` checks freshness (the file exists and is recent), but the database dump inside the zip is truncated because PHP hit `memory_limit` or `max_execution_time` during the dump phase. The zip is valid, the header is valid, but the compressed data is incomplete. `backup:monitor` has no way to detect this because it doesn't actually open and verify the backup.
+
+**Disk unreachable during monitoring.** `backup:monitor` runs hours after `backup:run`. If your S3 bucket policy changed, your IAM role rotated, or your SFTP server had a transient failure during the monitor run, the command reports the backup as unhealthy even though the backup itself is fine. You get a false positive that causes alert fatigue.
+
+**The freshness threshold is too loose.** Your monitoring is configured to alert if the backup is older than 24 hours, but your `backup:run` cron runs daily. If `backup:run` fails on Monday and succeeds on Tuesday, the backup is 48 hours old but was created 24 hours ago. `backup:monitor` says healthy. You're running with 48 hours of potential data loss on a daily backup schedule.
+
+**Backup disk filled up, newest backup is still small.** You set a minimum backup size of 10MB. Your database is 500MB. The backup fails midway through upload to S3. The partial zip file is 8MB. `backup:monitor` sees 8MB, which is below your minimum, and flags it. But 8MB is also exactly the size of a corrupt backup. The flag is correct, but you're now chasing two possible causes.
+
+## Building Visibility Into Backup Health
+
+The gap in `backup:monitor` is the restore test. No monitoring command can replace actually opening the backup and verifying the database dump:
+
+```php
+Schedule::command('backup:run')->dailyAt('03:00');
+
+Schedule::call(function () {
+    $disk = Storage::disk('s3');
+    $latestZip = collect($disk->files('laravel-backup'))
+        ->filter(fn ($f) => str_ends_with($f, '.zip'))
+        ->sortByDesc(fn ($f) => $disk->lastModified($f))
+        ->first();
+
+    if (!$latestZip) {
+        Log::error('No backup zip found');
+        return;
+    }
+
+    // Verify zip integrity without extracting
+    $zipPath = tempnam(sys_get_temp_dir(), 'backup_check');
+    file_put_contents($zipPath, $disk->get($latestZip));
+
+    $zip = new ZipArchive;
+    $zipOpen = $zip->open($zipPath);
+
+    if ($zipOpen !== true) {
+        Log::error('Backup zip is corrupt or unreadable', [
+            'file' => $latestZip,
+            'error_code' => $zipOpen,
+        ]);
+        Http::get(env('CRONTINEL_BACKUP_CORRUPT_ENDPOINT'));
+    } else {
+        $zip->close();
+        Log::info('Backup integrity check passed', ['file' => $latestZip]);
+    }
+
+    unlink($zipPath);
+})->dailyAt('06:00');
+```
+
+This runs at 6 AM, three hours after backup completion. It downloads the latest zip from S3 to a temp file, opens it with PHP's ZipArchive (which validates the zip structure), and alerts if the zip can't be opened. This catches corruption that `backup:monitor` misses.
+
+## Detecting Backup Health Issues
+
+Pair three separate checks:
+
+1. **Freshness** — is the latest backup newer than your retention window? (caught by `backup:monitor`)
+2. **Size** — is the backup above minimum expected size? (caught by `backup:monitor` if configured)
+3. **Integrity** — does the backup zip open without errors? (custom check, `backup:monitor` misses this)
+
+The integrity check is the one most teams skip. It's also the one that catches the worst failures.
+
+## Quick Setup with Crontinel
+
+Crontinel's Laravel package can receive multiple signals for the same backup job:
+
+```php
+// After backup:run completes
+Schedule::command('backup:run')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->thenPing(env('CRONTINEL_BACKUP_SUCCESS_ENDPOINT'));
+
+// After integrity check
+Schedule::call(function () {
+    // run integrity check above
+    Http::get(env('CRONTINEL_BACKUP_CORRUPT_ENDPOINT'));
+})->dailyAt('06:00');
+```
+
+Crontinel fires different alerts based on which endpoint receives a signal. If the corrupt endpoint gets a hit, it's an immediate alert with the file name and error code. If neither endpoint fires within the monitoring window, Crontinel alerts that the backup never completed.
+
+The three-check system — freshness, size, integrity — gives you complete coverage. Your monitoring should match your actual risk, not just the easy-to-check surface of the backup.
