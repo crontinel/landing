@@ -1,6 +1,5 @@
 {
   "pending": [
-    "notifications-prune",
     "cache-clear",
     "cache-prune",
     "optimize",
@@ -55,5 +54,11 @@
     "telescope-prune",
     "telescope-clear"
   ],
-  "in_progress": []
+  "in_progress": [
+    "notifications-prune",
+    "scout-flush",
+    "migrate",
+    "optimize",
+    "event-cache"
+  ]
 }

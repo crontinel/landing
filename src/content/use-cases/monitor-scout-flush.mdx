@@ -1,0 +1,82 @@
+---
+title: "Monitoring scout:flush in Laravel Production"
+description: "Track when Laravel Scout's scout:flush command runs in production to prevent accidental index wipes, catch deployment errors, and recover search data faster."
+date: 2026-05-09
+---
+
+You deploy a feature that calls `Searchable::flush()` on a model during development, and it ends up in your production deploy script. Or a developer accidentally runs `php artisan scout:flush SomeModel` against the production environment. In either case, your search index is empty, users search for products and get nothing, and you have no idea how long the index has been wiped. You restore from a backup, run the import command, and watch your queue back up as Scout rebuilds 800,000 records.
+
+This is what happens when nobody watches `scout:flush`.
+
+## How scout:flush Actually Works
+
+Laravel Scout's `scout:flush` command removes all records for a given model from the search index:
+
+```bash
+php artisan scout:flush "App\Models\Product"
+```
+
+Internally, it calls the model's `searchable` method to get all record IDs, then deletes them in chunks from the configured search engine (Algolia, Meilisearch, Typesense, or the database). The command does not touch your database, only the search index.
+
+The critical thing about this command is that it is destructive to your search index with no built-in confirmation or logging. By default, it prints progress to the console, but if you're running it via a deploy script with output redirected to `/dev/null`, you have no record that it ran or which models it affected.
+
+Scout does not provide events for `flush` or `import` operations, which makes automatic monitoring harder. You need to add it yourself.
+
+## Common Failure Modes
+
+**Accidental flush in production deploy scripts.** If your CI/CD pipeline runs `scout:flush` and `scout:import` as part of every deploy (to handle schema changes), a failure in the import step leaves your search index empty until the queue processes the rebuild. During that window, search is broken for your users.
+
+**Flush runs but import queue job silently fails.** If the import job is queued and hits a serialization error or a missing dependency, it fails silently into the failed jobs table. Your index stays empty, and the failed job is not obvious unless you're actively watching the failed_jobs table.
+
+**Different models flushed at different times.** If you flush Model A, then Model B, then rebuild A but not B, your index ends up with inconsistent data. Some searches return partial results that look like a bug in your search logic when it's actually a sync problem.
+
+**Index drift during partial updates.** If you use `softDeletes` and your Scout sync doesn't handle them correctly, deleted records may still appear in search results. The `flush` command does not fix this; only a full `scout:import` would, and that is expensive on large datasets.
+
+## Building Visibility Into scout:flush
+
+The best approach is to wrap the Scout flush call with a custom event you can monitor:
+
+```php
+// In your deploy script or a custom artisan command
+Event::dispatch(new ScoutIndexFlushing('Product'));
+$model = new Product();
+$model::removeAllFromSearch();
+Event::dispatch(new ScoutIndexFlushed('Product'));
+```
+
+Then create a listener that notifies your monitoring system:
+
+```php
+Event::listen(ScoutIndexFlushed::class, function ($event) {
+    Http::post(config('services.monitor.scout_flush'), [
+        'model' => $event->model,
+        'occurred_at' => now()->toIso8601String(),
+    ]);
+});
+```
+
+If your monitoring endpoint receives the `Flushed` event without a corresponding `ImportComplete` event within your expected window, the import failed and you need to check the queue.
+
+For Algolia specifically, you can monitor index health via the Algolia API:
+
+```php
+$response = Http::withHeaders([
+    'X-Algolia-Application-Id' => config('scout.algolia.app_id'),
+    'X-Algolia-API-Key' => config('scout.algolia.secret_key'),
+])->get("https://analytics.algolia.com/2/indexes/{$indexName}/stats");
+
+$stats = $response->json();
+// Alert if stats['entries'] drops below expected threshold
+```
+
+Meilisearch and other engines have similar health endpoints you can poll.
+
+## Detecting Search Index Problems
+
+The fastest way to detect an index problem is a synthetic search check: your monitoring system periodically runs a known query against your search index and verifies the expected results come back. If the result is empty when it should not be, your index is likely empty or broken.
+
+This catches `scout:flush` accidents faster than waiting for users to report that search is broken. Set the check interval based on how long a full import takes: if rebuilding your index takes 2 hours, check every 30 minutes so you catch problems well before the next full cycle would catch them.
+
+Pair this with queue depth monitoring on your Scout import jobs. If the import queue is empty but your index has fewer records than your database, the flush ran but the import never started.
+
+Search is often the first thing users blame when it's slow or empty, and the last thing developers think to monitor. A synthetic check and an alert on queue depth covers the most common failure modes for `scout:flush` in production.
