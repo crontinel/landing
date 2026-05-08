@@ -1,0 +1,92 @@
+---
+title: "Monitoring notifications:prune in Laravel Production"
+description: "Track Laravel's notifications:prune command in production to catch missed runs, slow executions, and silent failures before your notifications table balloons."
+date: 2026-05-09
+---
+
+You push a migration that adds a notifications table. Six months later, your database is 4GB and growing. Nobody scheduled the prune command, or it ran but hit a memory limit and silently skipped half the records. Your users get slower notification delivery because every query against the table is a full table scan on an unindexed timestamp column.
+
+This is what happens when nobody watches the prune command.
+
+## How notifications:prune Actually Works
+
+Laravel's notifications system stores database notifications in the `notifications` table by default. The `notifications:prune` command deletes records older than a configurable retention period:
+
+```bash
+php artisan notifications:prune --hours=48
+```
+
+This tells Laravel to delete any notification record where `created_at` is older than 48 hours. Behind the scenes, it runs a chunked delete to avoid locking the table:
+
+```php
+// vendor/laravel/framework/src/Illuminate/Notifications/Console/PruneCommand.php
+$executed = $model::pruneAll($prunable);
+```
+
+The model is configurable, but defaults to `DatabaseNotification` from the notifications table. The command is designed to be safe: it chunks deletions in batches of 100 (or whatever you configure) to avoid long-running transactions.
+
+The catch is that `notifications:prune` is an artisan command, not a queued job. It runs inside `schedule:run`, which means if your scheduler is down, the prune command never fires.
+
+## Common Failure Modes
+
+**The scheduler stops but nobody notices.** If `schedule:run` crashes or the cron entry disappears, every scheduled task stops including your prune job. The notifications table grows unchecked until someone notices the database size.
+
+**Memory limits on large tables.** If you have millions of rows, the default memory limit may cause the command to OOM before completing. The fix is setting a lower batch size with `--chunk=500`, but this means the command runs longer and is more likely to hit timeout issues.
+
+**Wrong retention window for your use case.** If you set `--hours=48` but your app shows notifications for 7 days, users will see notifications disappear while they're still relevant. The prune schedule must match your actual notification lifetime, not an arbitrary number.
+
+**Permissions issues after deployments.** If the web server user can't write to the storage directory, or if the database user lacks DELETE permissions on the notifications table, the command fails silently inside `schedule:run` because you're probably redirecting output to `/dev/null`.
+
+## Building Visibility Into notifications:prune
+
+The most reliable approach is a scheduled heartbeat: an endpoint that fires before and after prune runs, so you know the command actually executed:
+
+```php
+// In your console Kernel or routes/console.php
+Schedule::command('notifications:prune --hours=48')
+    ->daily()
+    ->before(function () {
+        Http::get(config('services.monitor.prune_url') . '/before');
+    })
+    ->after(function () {
+        Http::get(config('services.monitor.prune_url') . '/after');
+    });
+```
+
+If you only get the "before" ping and never the "after" ping within your expected window, the prune command crashed or timed out. Crontinel watches for the "after" signal and fires an alert when it goes missing.
+
+You can also add logging to a custom notification model to track deletions:
+
+```php
+class Notification extends Model
+{
+    protected static function booted()
+    {
+        static::deleted(function ($notification) {
+            Log::channel('prune')->info('Pruned notification', [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'age_hours' => now()->diffInHours($notification->created_at),
+            ]);
+        });
+    }
+}
+```
+
+This gives you a log file you can ship to your monitoring system to track how many notifications get pruned each run.
+
+## Detecting When Prune Fails
+
+Check your `notifications` table row count over time. A healthy table should stay relatively stable once the prune job is running correctly. Set up a query that runs daily:
+
+```sql
+SELECT COUNT(*) as total,
+       COUNT(CASE WHEN created_at < NOW() - INTERVAL 48 HOUR THEN 1 END) as overdue
+FROM notifications;
+```
+
+If `overdue` is growing, your prune job is not keeping up. The reasons could be scheduler failure, slow deletions, or a retention window mismatch.
+
+Crontinel runs this query or its equivalent via an external check and alerts when the overdue count exceeds your threshold. This catches prune failures even when Laravel itself does not log an error.
+
+Production monitoring of `notifications:prune` is not glamorous, but a 4GB notifications table is worse. Catch the missed runs before they become a database emergency.

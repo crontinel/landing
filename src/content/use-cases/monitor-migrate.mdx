@@ -1,0 +1,106 @@
+---
+title: "Monitoring migrate in Laravel Production"
+description: "Watch Laravel migration runs in production to catch failures, long-running migrations, and rollback issues before they take your site down or corrupt data."
+date: 2026-05-09
+---
+
+Your deploy pipeline runs `php artisan migrate` against the production database at 2am. By morning, the site is returning 500 errors. The migration ran but one of the up() methods references a column that doesn't exist in the down() method, making it impossible to roll back cleanly. The developer who deployed didn't notice because they were watching the deploy log scroll past too fast to read the error.
+
+Or worse: the migration ran fine, but it took 47 minutes because it was rebuilding a 50-million-row table, and your load balancer kept serving requests to a database that was locked for most of that time.
+
+These are the real costs of running migrations without visibility.
+
+## How migrate Actually Works
+
+The `php artisan migrate` command runs all outstanding migrations in order. Each migration is a pair of up() and down() methods that define a schema change. Laravel tracks which migrations have run in the `migrations` table by storing a single row per migration file with its batch number.
+
+Migrations run in a transaction by default in MySQL if your tables support it (InnoDB). But this is where it gets tricky: adding a column to a table with millions of rows does an `ALTER TABLE` that cannot be rolled back within a transaction in MySQL. Laravel detects this and runs the migration without a transaction, meaning a partial failure leaves your database in an inconsistent state.
+
+Laravel 10 and later fire events you can hook into for monitoring:
+
+```php
+use Illuminate\Database\Events\MigrationsEnded;
+use Illuminate\Database\Events\MigrationsStarting;
+
+Event::listen(MigrationsStarting::class, function ($event) {
+    Log::info('Migrations starting', ['pretending' => $event->pretending]);
+});
+
+Event::listen(MigrationsEnded::class, function ($event) {
+    Log::info('Migrations ended', ['scope' => $event->scope]);
+});
+```
+
+These fire regardless of whether you're using the `--pretend` flag, giving you a hook for monitoring without modifying your migration files.
+
+## Common Failure Modes
+
+**Destructive migrations run in the wrong order.** If two developers write migrations that both modify the same table and they get applied in an unexpected order, the second migration may reference columns that the first one renamed or dropped. The migration fails, and depending on whether it was in a transaction, your database may be left partially migrated.
+
+**Long-running migrations lock the database.** Adding an index to a large table in MySQL acquires a shared lock that blocks writes. Adding a NOT NULL column without a default blocks reads and writes for the entire duration. These operations can take minutes on large tables, and your application will timeout waiting for the database during that window.
+
+**Rollback runs when it shouldn't.** If your deployment tool runs `migrate` and your rollback tool runs `migrate:rollback` separately, an accidental rollback after a successful migration can undo changes you intended to keep. This is especially dangerous in multi-region deployments where rollback completes in one region but hasn't started in another.
+
+**Missing dependencies.** A migration that adds a column and references it in a foreign key constraint will fail if the parent table migration hasn't run yet. This is usually caught in testing, but it occasionally slips through when the test environment has a different migration history than production.
+
+## Building Visibility Into Migrations
+
+Use the `migrate` event hooks to send a heartbeat at the start and end of each migration run:
+
+```php
+// In AppServiceProvider or a dedicated event service provider
+Event::listen(MigrationsStarting::class, function () {
+    Http::get(config('services.monitor.migrate_url') . '/started');
+});
+
+Event::listen(MigrationsEnded::class, function ($event) {
+    Http::get(config('services.monitor.migrate_url') . '/ended?' . http_build_query([
+        'scope' => $event->scope,
+        'pretending' => $event->pretending,
+    ]));
+});
+```
+
+If the "ended" ping never arrives after a migration run, the process crashed. Crontinel tracks this and fires an alert.
+
+You can also track migration duration by measuring the time between start and end pings. A migration that normally takes 5 seconds but suddenly takes 45 minutes is likely hitting a lock or running a slow ALTER TABLE.
+
+For migrations that are expected to be long, track progress through the individual migration files:
+
+```php
+// In a long-running migration
+use Illuminate\Support\Facades\DB;
+
+public function up()
+{
+    $total = DB::table('orders')->count();
+    $processed = 0;
+
+    DB::table('orders')->orderBy('id')->chunk(1000, function ($orders) use (&$processed, $total) {
+        // Process batch
+        $processed += $orders->count();
+        Http::get(config('services.monitor.migrate_url') . '/progress?' . http_build_query([
+            'model' => 'Order',
+            'processed' => $processed,
+            'total' => $total,
+        ]));
+    });
+}
+```
+
+This gives you visibility into migration progress even for operations that take hours.
+
+## Detecting Migration Problems
+
+The clearest signal of a migration problem is an unusual deployment duration. If your CI pipeline normally deploys in 8 minutes and suddenly takes 45, a migration is the first thing to check.
+
+After every production migration, verify that the application can boot correctly by running a health check endpoint that exercises the new schema:
+
+```bash
+php artisan migrate --pretend && \
+curl -f https://your-app.com/health/database
+```
+
+The health check should run a query against the new schema. If it fails, the migration broke something. This is faster than waiting for a user to hit the error page.
+
+Production migration monitoring is about knowing whether the migration ran, whether it succeeded, and whether it caused collateral damage to your application's response times. A few event hooks and a health check cover all three.

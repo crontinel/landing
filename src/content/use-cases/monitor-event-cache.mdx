@@ -1,0 +1,113 @@
+---
+title: "Monitoring event:cache in Laravel Production"
+description: "Track Laravel's event:cache command in production to catch listener registration failures, deployment cache corruption, and missing event handlers before they break your app."
+date: 2026-05-09
+---
+
+Your deployment adds a new event listener for `OrderShipped`. You test it locally, it works perfectly. You deploy to production. The `event:cache` command runs as part of your deploy script. Three days later, you notice that customer emails are not being sent after orders ship. The listener was registered, but it was never cached because the event class path in the service provider was wrong on one environment, and `event:cache` silently skipped it. Your application fell back to Laravel's auto-discovery, but that didn't find the listener either, and nobody noticed for three days.
+
+This is what happens when nobody watches `event:cache`.
+
+## How event:cache Actually Works
+
+Laravel's event system has two modes: uncached (development) and cached (production). In development, Laravel auto-discovers listeners every time an event fires by scanning your registered providers. In production, Laravel caches the entire event-to-listener map to avoid the overhead of discovery on every request.
+
+The `event:cache` command writes this map to `bootstrap/cache/events.php`. On every request in production, Laravel loads this file instead of running discovery. This is faster, but it means any registration error gets cached too.
+
+The command itself is simple:
+
+```bash
+php artisan event:cache
+```
+
+It collects all listeners from ` Event::listen()` calls in your service providers and console kernel, plus any listeners registered via the `[ 'event' => 'listeners' ]` array format, and writes them to the cache file.
+
+The problem is that `event:cache` does not validate that the listener classes actually exist or that they can be autoloaded. If you register a listener with a wrong namespace, or if the service provider is disabled in production, `event:cache` silently skips it. No error is printed. The listener just does not appear in the cached file.
+
+## Common Failure Modes
+
+**Listener registered but cache not rebuilt after deploy.** If your deploy script adds a new listener but does not run `event:cache`, the new listener works fine in development but never fires in production because the old cache does not know about it. The listener's registration code exists, but Laravel never reads it because it loads the cache instead.
+
+**Cache file written with stale data.** Some deployment tools copy the entire `bootstrap/cache/` directory from a previous deployment. If `events.php` is included, your new listener does not get registered even after running `event:cache`, because the copy happens after the cache command runs.
+
+**Environment-specific listeners not registered in production.** If a listener is registered inside an `if ($app->environment('local'))` block, it is registered in development but not in production. The `event:cache` command correctly skips it, but if you test locally and assume the listener works in production, you'll be surprised.
+
+**Service provider fails to load.** If a service provider throws an exception during registration, Laravel skips it silently for some providers and the event registration never runs. This is rare but happens with poorly written third-party packages.
+
+## Building Visibility Into event:cache
+
+The most reliable approach is to compare the registered events before and after a deploy. Run this locally and in production to verify the same events are cached:
+
+```bash
+php artisan event:cache && cat bootstrap/cache/events.php
+```
+
+You can write a script that compares the output between environments:
+
+```php
+// In your CI/CD pipeline
+$local = trim(shell_exec('php artisan event:list --json'));
+$production = trim(shell_exec('curl -s https://your-app.com/_events'));
+
+// Parse and compare the listener counts
+$localEvents = json_decode($local, true);
+$prodEvents = json_decode($production, true);
+
+$missing = array_diff(array_keys($localEvents), array_keys($prodEvents));
+if (!empty($missing)) {
+    echo "Missing events in production: " . implode(', ', $missing);
+    exit(1);
+}
+```
+
+Expose the events list via a hidden route for monitoring:
+
+```php
+// In routes/console.php or a route that requires authentication
+Route::get('/_events', function () {
+    $events = Event::getListeners();
+    $list = [];
+    foreach ($events as $eventName => $listeners) {
+        $list[$eventName] = count($listeners);
+    }
+    return response()->json($list);
+})->middleware('auth.basic');
+```
+
+After running `event:cache`, compare the production event list against your expected list. If a new event has fewer listeners than expected, the registration failed.
+
+You can also monitor the cache file itself:
+
+```php
+$cacheFile = base_path('bootstrap/cache/events.php');
+$lastModified = filemtime($cacheFile);
+$fileSize = filesize($cacheFile);
+
+// Alert if events.php was not modified in the last hour
+// (a healthy production deploy should touch it)
+if (time() - $lastModified > 3600) {
+    Http::get(config('services.monitor.event_url') . '/stale');
+}
+```
+
+## Detecting When event:cache Breaks
+
+The fastest way to detect a broken event cache is to fire a test event in staging before every production deploy and verify the expected listeners respond. In production, a synthetic check that fires a test event and verifies the side effects occur catches listener registration failures without relying on the cache file itself.
+
+For critical events, you can add a monitoring hook directly in the event listener:
+
+```php
+Event::listen(OrderShipped::class, function ($event) {
+    Http::get(config('services.monitor.event_url') . '/OrderShipped?' . http_build_query([
+        'order_id' => $event->order->id,
+        'occurred_at' => now()->toIso8601String(),
+    ]));
+
+    // Then continue with the actual handler logic
+    Mail::to($event->order->customer)->send(new OrderShippedMail($event->order));
+});
+```
+
+If this ping stops arriving for a specific event that should fire regularly, the listener is not being invoked. Crontinel watches for the absence of these pings and alerts when a critical event goes silent.
+
+Event caching is one of those optimizations that works beautifully until it silently breaks. Monitoring the cache file modification time and comparing the registered listener count against a known-good baseline catches most failures before they become user-visible problems.

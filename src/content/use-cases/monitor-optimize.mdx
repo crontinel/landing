@@ -1,0 +1,102 @@
+---
+title: "Monitoring optimize in Laravel Production"
+description: "Watch Laravel's optimize command run in production to catch config cache failures, bootstrap errors, and deployment issues before they take your site down."
+date: 2026-05-09
+---
+
+Your deploy script runs `php artisan optimize` to regenerate the production bootstrap cache. The command exits with status 0, so your CI pipeline proceeds. An hour later, you start getting support tickets: users can't log in, API requests are returning 500 errors, and your monitoring dashboard is showing latency spikes. The optimize command ran, but it cached a stale config value from the old deployment because the `.env` file changed during the deploy and the old cached config won.
+
+Or the opposite: the optimize command failed silently because a new package's config file had a syntax error, but your deploy script didn't check the exit code, so it continued deploying with no cached config at all.
+
+These are the ways `php artisan optimize` quietly breaks production.
+
+## How optimize Actually Works
+
+In Laravel 11 and 12, `php artisan optimize` is a meta-command that runs several sub-commands:
+
+```bash
+php artisan optimize:clear    # Clears all bootstrap cache files
+php artisan config:cache     # Caches config/*.php to bootstrap/cache/config.php
+php artisan route:cache      # Caches routes to bootstrap/cache/routes-v7.php
+php artisan view:cache        # Compiles and caches Blade templates
+php artisan event:cache      # Caches registered events and listeners
+```
+
+The most consequential of these is `config:cache`, which combines all your config files into a single PHP file. The cached config is loaded instead of individual files on every request, which is significantly faster, but it means any config error gets cached too.
+
+The critical thing to understand: the cached config is a PHP file, not a JSON file. If it contains a syntax error, PHP fails to load it, and your application cannot start. You get a white screen of death with no error message visible to users.
+
+Laravel 12 changed the optimize command behavior slightly. Running `optimize` now runs a reduced set of optimizations by default, and you can control which optimizations run with the `config/optimize.php` config file.
+
+## Common Failure Modes
+
+**Stale config cached from the wrong environment.** If your deploy script runs `optimize` before copying the new `.env` file, or if multiple app instances have different `.env` values, the cached config reflects whichever instance ran `optimize` first. Subsequent instances load the same stale cache.
+
+**Bootstrap error cached.** If a syntax error or fatal error occurs during config generation, Laravel writes an empty or partial cache file. The file exists, so Laravel thinks it is valid, but loading it causes a fatal error at request time.
+
+**Permission errors on bootstrap/cache.** The `optimize` command writes to `bootstrap/cache/`. If the directory does not exist, if it is not writable by the web server user, or if it was deleted during a deploy (some deploy tools clear the cache directory), the command fails. If your deploy script ignores the exit code, you ship a broken site.
+
+**Config changes during a rolling deploy.** In a rolling deployment with multiple app instances, if instance A caches the new config and instance B is still running the old code, requests can hit either. This inconsistency causes intermittent 500 errors that are hard to reproduce.
+
+## Building Visibility Into optimize
+
+The safest approach is to verify that the optimize command produced a valid cache file and that the application can start with it:
+
+```php
+// Add this to your deploy script after running optimize
+$configCache = base_path('bootstrap/cache/config.php');
+if (!file_exists($configCache)) {
+    throw new \RuntimeException('Config cache file was not created');
+}
+
+$contents = file_get_contents($configCache);
+if (strpos($contents, '<?php') !== 0) {
+    throw new \RuntimeException('Config cache is empty or invalid');
+}
+
+// Test that the application can bootstrap with the cached config
+exec('php ' . base_path('artisan') . ' env 2>&1', $output, $exitCode);
+if ($exitCode !== 0) {
+    throw new \RuntimeException('Application cannot bootstrap: ' . implode("\n", $output));
+}
+```
+
+Send a monitoring ping after successful verification:
+
+```php
+Http::get(config('services.monitor.optimize_url') . '/success?' . http_build_query([
+    'app_version' => config('app.version'),
+    'cache_time' => filemtime($configCache),
+]));
+```
+
+This tells your monitoring system that optimize ran successfully and at what time. If you receive a deploy notification but no success ping within a few minutes, the optimize command failed silently.
+
+You can also monitor the cache file size and modification time as a proxy for healthy optimization:
+
+```bash
+stat bootstrap/cache/config.php
+# Size should be reasonable (typically 50-200KB depending on your config)
+# Modification time should be recent (within the last deploy)
+```
+
+If the cache file is older than your last deploy, the optimize command did not run.
+
+## Detecting optimize Failures
+
+The fastest detection is a health check that explicitly loads the cached config:
+
+```php
+Route::get('/health/bootstrap', function () {
+    $configCache = base_path('bootstrap/cache/config.php');
+    if (!file_exists($configCache)) {
+        return response()->json(['status' => 'error', 'reason' => 'no_cache'], 503);
+    }
+    $content = require $configCache;
+    return response()->json(['status' => 'ok', 'config_keys' => count($content)]);
+});
+```
+
+This endpoint is fast because it loads the cached config directly, bypassing the full Laravel bootstrap. If it returns anything other than 200, your cached config is broken.
+
+The `php artisan optimize` command is one of those commands that is invisible when it works and catastrophic when it fails. Monitoring the cache file existence, size, and modification time, plus a health check that exercises the cached config, covers the most common failure modes.
