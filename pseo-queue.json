@@ -2,7 +2,6 @@
   "pending": [
     "cache-clear",
     "cache-prune",
-    "optimize",
     "optimize-clear",
     "route-cache",
     "route-clear",
@@ -10,16 +9,13 @@
     "config-clear",
     "view-cache",
     "view-clear",
-    "event-cache",
     "event-clear",
     "storage-link",
     "db-seed",
     "db-wipe",
-    "migrate",
     "migrate-fresh",
     "migrate-rollback",
     "scout-import",
-    "scout-flush",
     "scout-sync-index-settings",
     "reverb-start",
     "pulse-check",
@@ -52,13 +48,12 @@
     "backup-clean",
     "backup-monitor",
     "telescope-prune",
-    "telescope-clear"
-  ],
-  "in_progress": [
+    "telescope-clear",
     "notifications-prune",
     "scout-flush",
     "migrate",
     "optimize",
     "event-cache"
-  ]
+  ],
+  "in_progress": []
 }
