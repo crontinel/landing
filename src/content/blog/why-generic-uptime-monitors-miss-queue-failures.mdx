@@ -7,7 +7,7 @@ tags: ["laravel", "queues", "monitoring"]
 
 Your Laravel app responds to HTTP requests in milliseconds. Your queue workers process jobs asynchronously. These are two different systems running in parallel, and most monitoring only watches the first one.
 
-A standard uptime monitor — Pingdom, Better Stack, UptimeRobot, Cronitor — sends an HTTP request to your domain and declares everything healthy if it gets a 200. That tells you your web server is running. It tells you nothing about what happens inside your queue.
+A standard uptime monitor - Pingdom, Better Stack, UptimeRobot, Cronitor - sends an HTTP request to your domain and declares everything healthy if it gets a 200. That tells you your web server is running. It tells you nothing about what happens inside your queue.
 
 ## What the monitor sees vs. what your users experience
 
@@ -17,17 +17,17 @@ This is the failure mode that generic uptime monitors completely miss.
 
 ### The sequence
 
-1. 08:00 — Supervisor `default` crashes. Horizon reports it as "running" because the Horizon process is alive. The queue workers for the `default` queue are gone.
-2. 08:01 — Your generic uptime monitor checks `example.com`, gets 200, logs "all clear."
-3. 08:15 — Crontinel sees that the `default` supervisor has reported no processed jobs in 15 minutes. Alert fires.
-4. 09:30 — A customer asks why they haven't received their order confirmation. You find out about the crash from a support ticket, not an alert.
-5. 09:35 — You manually restart the queue workers, 5,000 jobs process, customers get delayed emails.
+1. 08:00 - Supervisor `default` crashes. Horizon reports it as "running" because the Horizon process is alive. The queue workers for the `default` queue are gone.
+2. 08:01 - Your generic uptime monitor checks `example.com`, gets 200, logs "all clear."
+3. 08:15 - Crontinel sees that the `default` supervisor has reported no processed jobs in 15 minutes. Alert fires.
+4. 09:30 - A customer asks why they haven't received their order confirmation. You find out about the crash from a support ticket, not an alert.
+5. 09:35 - You manually restart the queue workers, 5,000 jobs process, customers get delayed emails.
 
 The generic monitor never flagged anything. The queue backed up for 90 minutes. Your users waited.
 
 ## The difference between HTTP monitoring and queue monitoring
 
-HTTP monitoring checks if the outside of your system is working. Queue monitoring reads the inside — the actual state of your job processing, from the perspective of your Laravel app itself.
+HTTP monitoring checks if the outside of your system is working. Queue monitoring reads the inside - the actual state of your job processing, from the perspective of your Laravel app itself.
 
 | Scenario | HTTP monitor | Crontinel |
 |---|---|---|
@@ -43,7 +43,7 @@ The two approaches are complementary. You need HTTP monitoring for your web laye
 
 Monitoring Laravel queues properly isn't about polling an HTTP endpoint. It's about reading the same internal state your app uses.
 
-Laravel Horizon stores state in Redis — supervisor status, job counts, failed job flags, process IDs. That's the data source. A monitor that only checks your web server's HTTP response can't see it.
+Laravel Horizon stores state in Redis - supervisor status, job counts, failed job flags, process IDs. That's the data source. A monitor that only checks your web server's HTTP response can't see it.
 
 Crontinel reads those Redis keys directly:
 
@@ -73,14 +73,14 @@ The generic uptime monitor doesn't know any of this happened. When you rebuild y
 
 Queue monitoring that actually catches failures needs to:
 
-1. Read Horizon's Redis keys directly — not just poll an HTTP endpoint
-2. Alert on supervisor pause state — not just check if the process is alive
-3. Track queue depth and oldest-job age — not just count completed jobs
-4. Record failed jobs per minute — not just log errors somewhere
-5. Alert on late cron runs — the scheduler fired but no jobs executed
+1. Read Horizon's Redis keys directly - not just poll an HTTP endpoint
+2. Alert on supervisor pause state - not just check if the process is alive
+3. Track queue depth and oldest-job age - not just count completed jobs
+4. Record failed jobs per minute - not just log errors somewhere
+5. Alert on late cron runs - the scheduler fired but no jobs executed
 
 That's the difference between "the web server responded" and "the queue is actually working." Your users feel the queue. Your generic monitor doesn't.
 
 ---
 
-Crontinel monitors Laravel queues from the inside — supervisor state, queue depth, oldest-job age, and failed job rates. [Try it free](https://crontinel.com).
+Crontinel monitors Laravel queues from the inside - supervisor state, queue depth, oldest-job age, and failed job rates. [Try it free](https://crontinel.com).

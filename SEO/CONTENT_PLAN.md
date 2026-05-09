@@ -1,4 +1,4 @@
-# SEO Content Plan — Status Update
+# SEO Content Plan - Status Update
 
 **Last audited:** 2026-04-12
 
@@ -30,6 +30,6 @@ Covers: laravel-cron-monitoring, laravel-horizon-monitoring, laravel-queue-monit
 - [ ] Integrations: no index page, no nav link
 
 ## Remaining Content Gaps
-- [ ] More VS pages (Cronofy, LambdaTest) — low priority, main competitors covered
-- [ ] More use-case pages — deploy hooks, failed job retry, multi-region
-- [ ] Integrations index page — high value, orphan pages have no discovery path
+- [ ] More VS pages (Cronofy, LambdaTest) - low priority, main competitors covered
+- [ ] More use-case pages - deploy hooks, failed job retry, multi-region
+- [ ] Integrations index page - high value, orphan pages have no discovery path

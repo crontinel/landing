@@ -105,7 +105,7 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
       .table td:nth-child(3), .table th:nth-child(3) { display: none; }
       /* Remove fixed min-height so the dashboard collapses cleanly */
       .db-body { min-height: 0 !important; }
-      /* Dashboard KPI strip — ensure 2 cols already applied */
+      /* Dashboard KPI strip - ensure 2 cols already applied */
       .kpis { grid-template-columns: repeat(2, 1fr) !important; }
       /* Hero monitor height guard */
       .monitor-graph { height: 160px; }
@@ -208,7 +208,7 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
 <!-- ============================== ANNOUNCEMENT BAR ============================== -->
 <div id="thenping-notice" style="background:#111111;border-bottom:1px solid rgba(74,222,128,0.15);padding:10px 16px;text-align:center;font-size:13px;color:#94a3b8;">
   <span style="color:#4ade80;font-weight:600;">thenping.me is no longer maintained</span>
-  &mdash; Crontinel is the active Laravel-native alternative.
+  - Crontinel is the active Laravel-native alternative.
   <a href="/blog/thenping-me-is-dead" style="color:#4ade80;text-decoration:underline;margin-left:8px;">Read more &rarr;</a>
   <button onclick="localStorage.setItem('thenping-dismissed','1');this.parentElement.style.display='none'" aria-label="Dismiss" style="margin-left:12px;color:#64748b;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;">&times;</button>
 </div>
@@ -443,7 +443,7 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
         <div>
           <span class="b-eyebrow">Alerts</span>
           <h3 class="b-title">Route once, quiet forever.</h3>
-          <p class="b-desc">One alert fans out to the channels your team actually watches — per-service routing, quiet hours, auto-resolve.</p>
+          <p class="b-desc">One alert fans out to the channels your team actually watches - per-service routing, quiet hours, auto-resolve.</p>
         </div>
         <div class="viz-channels">
           <span class="pill"><span class="dot"></span>Slack</span>
@@ -654,7 +654,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <p class="proof-label mono">Trusted by developers worldwide</p>
       <div class="proof-stats">
         <div class="proof-stat">
-          <span class="proof-n" id="social-dev-count">—</span>
+          <span class="proof-n" id="social-dev-count"> - </span>
           <span class="proof-l">developers</span>
         </div>
         <div class="proof-div"></div>
@@ -856,7 +856,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       </div>
       <div class="oss-callout-body">
         <h3>Prefer to self-host? Every package is free forever.</h3>
-        <p>MIT licensed. Every SDK works standalone — Blade dashboard, CLI health check, Slack alerts, queue and cron monitoring. No SaaS required. Own your data.</p>
+        <p>MIT licensed. Every SDK works standalone - Blade dashboard, CLI health check, Slack alerts, queue and cron monitoring. No SaaS required. Own your data.</p>
         <div class="oss-callout-cmd">
           <div class="oss-pkgs">
             <code class="mono">npm i @crontinel/node</code>
@@ -1092,5 +1092,6 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   </div>
 </aside>
 
+<script is:inline src="/src/main.js"></script>
 
 </Base>

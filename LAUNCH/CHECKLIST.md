@@ -1,15 +1,15 @@
 # Launch Checklist
 
 ## Pre-Launch
-- [x] Landing page (crontinel.com) — live
-- [x] Docs (docs.crontinel.com) — live
-- [x] OSS package (crontinel/laravel) — on Packagist
-- [x] MCP server — README + Claude Code examples
-- [x] Security page — live
-- [x] Cookie policy — live
-- [x] DMARC + DKIM + SPF — configured
-- [ ] `app.crontinel.com` — DNS + deployment
-- [ ] Stripe — real Price IDs + webhook secret
+- [x] Landing page (crontinel.com) - live
+- [x] Docs (docs.crontinel.com) - live
+- [x] OSS package (crontinel/laravel) - on Packagist
+- [x] MCP server - README + Claude Code examples
+- [x] Security page - live
+- [x] Cookie policy - live
+- [x] DMARC + DKIM + SPF - configured
+- [ ] `app.crontinel.com` - DNS + deployment
+- [ ] Stripe - real Price IDs + webhook secret
 
 ## SEO
 - [x] twitter:site / twitter:card
@@ -21,8 +21,8 @@
 - [ ] BreadcrumbList schema (VS/use-case/integration pages)
 - [ ] Article schema (blog posts)
 - [ ] PricingPage + Offer schema (/pricing)
-- [x] Internal links — VS pages orphaned (PR #47)
-- [x] Internal links — use-case pages orphaned (PR #47)
+- [x] Internal links - VS pages orphaned (PR #47)
+- [x] Internal links - use-case pages orphaned (PR #47)
 - [ ] Integrations index page
 
 ## Content

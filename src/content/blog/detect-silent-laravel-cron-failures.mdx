@@ -5,7 +5,7 @@ date: 2026-04-12
 tags: ["laravel", "cron", "monitoring"]
 ---
 
-Most Laravel applications have a cron entry that runs `schedule:run` every minute. If you've set it up, you probably tested it once — the job ran, everything looked fine — and then you never checked on it again.
+Most Laravel applications have a cron entry that runs `schedule:run` every minute. If you've set it up, you probably tested it once - the job ran, everything looked fine - and then you never checked on it again.
 
 That "it ran once" test is worthless. It tells you nothing about what happens at 2am on a Sunday, or after a deployment that changed the job's dependencies, or when a queue worker crashes and the scheduler keeps running but no jobs actually execute.
 
@@ -77,7 +77,7 @@ Better: instrument individual jobs. Laravel's scheduler fires `ScheduledTaskStar
 
 ### 3. Is the schedule mutex stuck?
 
-`withoutOverlapping()` is great for preventing duplicate runs. But if the mutex isn't released properly — because the job died mid-execution, or the mutex TTL is misconfigured — subsequent runs of that job are silently skipped.
+`withoutOverlapping()` is great for preventing duplicate runs. But if the mutex isn't released properly - because the job died mid-execution, or the mutex TTL is misconfigured - subsequent runs of that job are silently skipped.
 
 ```php
 $schedule->command('process-payments')
@@ -85,7 +85,7 @@ $schedule->command('process-payments')
     ->withoutOverlapping(60); // Lock expires after 60 minutes
 ```
 
-Monitor the mutex. If the same job has been "running" for longer than its max expected duration, that's a stuck mutex — alert immediately.
+Monitor the mutex. If the same job has been "running" for longer than its max expected duration, that's a stuck mutex - alert immediately.
 
 ### 4. Are queue jobs being processed?
 
@@ -134,8 +134,8 @@ A job that takes 10 minutes but runs every 5 minutes will overlap with itself. L
 ## The minimum viable monitoring
 
 If you do nothing else:
-1. Add a heartbeat for `schedule:run` — if it stops running, alert immediately
-2. Track the last successful run timestamp for each scheduled job — if it's later than expected, alert
+1. Add a heartbeat for `schedule:run` - if it stops running, alert immediately
+2. Track the last successful run timestamp for each scheduled job - if it's later than expected, alert
 3. Log exit codes and alert on non-zero
 
 That's it. Three signals, no overhead, catches 90% of silent failures. Everything else is refinement.

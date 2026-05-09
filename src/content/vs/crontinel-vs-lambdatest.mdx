@@ -7,7 +7,7 @@ date: 2026-04-23
 
 LambdaTest is a cloud-based testing platform. It runs your test suite across different browsers, operating systems, and device configurations, and lets your team see test results in a centralized dashboard. Its core use case is CI/CD integration and cross-browser compatibility testing.
 
-Crontinel monitors production background jobs. It watches Laravel's scheduler and Horizon queue worker to detect failures, missed runs, and queue backlogs — in production, not in test environments.
+Crontinel monitors production background jobs. It watches Laravel's scheduler and Horizon queue worker to detect failures, missed runs, and queue backlogs - in production, not in test environments.
 
 These tools do not overlap. If you're evaluating them together, you likely need both: LambdaTest to verify your application behaves correctly before deploying, and Crontinel to verify your background jobs keep running correctly after deploying.
 
@@ -28,7 +28,7 @@ LambdaTest is a pre-production tool. It helps you find bugs before they reach us
 Crontinel is a post-deployment monitoring tool for Laravel's background execution layer:
 
 - **Scheduled task monitoring**: Every `php artisan schedule:run` is recorded. Non-zero exit codes trigger alerts. Missed runs (when the scheduler itself stops) are detected by comparing last-run timestamps against expected schedules.
-- **Horizon supervisor monitoring**: Reads Redis directly to detect paused or stopped supervisors immediately — no grace period required.
+- **Horizon supervisor monitoring**: Reads Redis directly to detect paused or stopped supervisors immediately - no grace period required.
 - **Queue depth and age monitoring**: Alerts when a queue accumulates more jobs than expected or when the oldest unprocessed job has been waiting too long.
 - **Alert routing**: Sends alerts via Slack, email, PagerDuty, or webhook. Alerts resolve automatically when the failure condition clears.
 
@@ -38,10 +38,10 @@ Crontinel is not a testing tool. It does not run tests, simulate users, or asses
 
 Testing and monitoring are often treated as a single concern but they solve different problems:
 
-**Testing** answers: does my code behave correctly in controlled conditions?  
+**Testing** answers: does my code behave correctly in controlled conditions?
 **Monitoring** answers: is my code executing successfully in production right now?
 
-A full test suite passing in LambdaTest does not mean your production Horizon supervisors are running. A Redis connection issue, a misconfigured queue worker restart policy, or a resource limit on your hosting platform can all cause Horizon to stop processing — silently, without any test catching it.
+A full test suite passing in LambdaTest does not mean your production Horizon supervisors are running. A Redis connection issue, a misconfigured queue worker restart policy, or a resource limit on your hosting platform can all cause Horizon to stop processing - silently, without any test catching it.
 
 Crontinel covers the monitoring half of that equation for Laravel's background job layer specifically.
 

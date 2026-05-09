@@ -1,4 +1,4 @@
-# Crontinel Landing — .cfignore
+# Crontinel Landing - .cfignore
 
 # Cloudflare
 .wrangler/

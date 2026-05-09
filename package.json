@@ -6,10 +6,11 @@
   "scripts": {
     "astro": "astro",
     "build": "astro build",
-    "check": "astro build && tsc && wrangler deploy --dry-run",
+    "check": "wrangler types && astro build && tsc && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "dev": "astro dev",
     "preview": "astro build && wrangler dev",
+    "test": "node tests/no-em-dash-and-hero-animation.mjs",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {

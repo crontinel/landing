@@ -1,4 +1,4 @@
-# Crontinel Landing — CLAUDE.md
+# Crontinel Landing - CLAUDE.md
 
 > **This is the landing page repo only** (`crontinel.com`).
 > Do not reference or modify the OSS package (`crontinel`) or SaaS app (`crontinel-app`) from here.
@@ -12,7 +12,7 @@ Static by default. MDX content in `src/content/`.
 
 - Astro 6 + Tailwind CSS + MDX
 - Cloudflare Pages (static output + CF adapter)
-- No JS framework — Alpine via CDN only if needed
+- No JS framework - Alpine via CDN only if needed
 - Google Analytics 4 via `PUBLIC_GA_MEASUREMENT_ID` env var (consent-gated)
 
 ## Key files
@@ -37,7 +37,7 @@ Static by default. MDX content in `src/content/`.
 - Dark theme only (gray-950 bg, green-400 accents)
 - All pages must prerender (no server-side routes)
 - SEO pages (blog, vs, use-cases, integrations) are MDX content collections
-- Never add tracking scripts to app.crontinel.com — landing page only
+- Never add tracking scripts to app.crontinel.com - landing page only
 - Run `npm run build` before committing to verify no errors
 
 ## Repo structure

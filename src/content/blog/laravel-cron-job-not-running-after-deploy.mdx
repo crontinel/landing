@@ -50,10 +50,10 @@ sudo crontab -u www-data -l
 You want to see the symlink path, not a release-specific path:
 
 ```bash
-# Correct — works across deploys
+# Correct - works across deploys
 * * * * * cd /var/www/html/current && php artisan schedule:run >> /var/log/laravel-schedule.log 2>&1
 
-# Wrong — breaks after the next deploy
+# Wrong - breaks after the next deploy
 * * * * * cd /var/www/html/releases/42 && php artisan schedule:run >> /var/log/laravel-schedule.log 2>&1
 ```
 
@@ -73,7 +73,7 @@ composer install --no-dev --optimize-autoloader
 # 3. Run migrations
 php artisan migrate --force
 
-# 4. Clear old cache FIRST — before the symlink swap
+# 4. Clear old cache FIRST - before the symlink swap
 php artisan config:clear
 
 # 5. Then rebuild cache from new code
@@ -154,7 +154,7 @@ class VerifyDeployHealth extends Command
         // Check schedule has expected tasks
         $scheduleList = shell_exec('php artisan schedule:list 2>&1');
         if (str_contains($scheduleList ?? '', 'No scheduled tasks')) {
-            $this->warn('No scheduled tasks registered — verify Kernel.php');
+            $this->warn('No scheduled tasks registered - verify Kernel.php');
         }
 
         // Check config cache is fresh

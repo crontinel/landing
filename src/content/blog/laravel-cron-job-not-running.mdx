@@ -1,11 +1,11 @@
 ---
 title: "Why Your Laravel Cron Job Isn't Running (And How to Fix It)"
-description: "Laravel cron jobs fail silently in more ways than you'd expect. Here's how to diagnose the actual cause — from misconfigured server cron entries to scheduler bugs to silent exit code failures."
+description: "Laravel cron jobs fail silently in more ways than you'd expect. Here's how to diagnose the actual cause - from misconfigured server cron entries to scheduler bugs to silent exit code failures."
 date: 2026-04-26
 tags: ["laravel", "cron", "debugging"]
 ---
 
-Your Laravel scheduled command isn't running. There's nothing in the logs. The scheduler appears healthy. No alerts fired. You only noticed because a customer reported something was wrong — or because you checked manually.
+Your Laravel scheduled command isn't running. There's nothing in the logs. The scheduler appears healthy. No alerts fired. You only noticed because a customer reported something was wrong - or because you checked manually.
 
 This is the normal failure mode for Laravel cron jobs: silent.
 
@@ -43,7 +43,7 @@ php artisan schedule:run
 
 Look at the output. Laravel prints each task it runs and skips. If your command doesn't appear, either its schedule expression doesn't match the current time or it has an `if()` or `skip()` condition blocking it.
 
-If the scheduler returns nothing and exits cleanly, it ran — it just had no tasks due at that minute.
+If the scheduler returns nothing and exits cleanly, it ran - it just had no tasks due at that minute.
 
 ## Step 3: Check exit codes and output
 

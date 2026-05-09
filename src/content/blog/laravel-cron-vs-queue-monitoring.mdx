@@ -1,5 +1,5 @@
 ---
-title: "Laravel Cron vs Queue Monitoring — What's the Difference?"
+title: "Laravel Cron vs Queue Monitoring - What's the Difference?"
 description: "Generic uptime monitors miss scheduler failures. Queue depth monitors miss Horizon supervisor death. Here's why you need both, and what each one actually covers."
 date: 2026-04-26
 tags: ["laravel", "cron", "queues", "monitoring"]
@@ -29,7 +29,7 @@ A ping-based monitor gives you one bit of information: the scheduler process did
 
 ## What Horizon monitoring actually watches
 
-Horizon monitoring typically watches the supervisor status — is Horizon running, paused, or stopped? Some tools also watch queue depth.
+Horizon monitoring typically watches the supervisor status - is Horizon running, paused, or stopped? Some tools also watch queue depth.
 
 This tells you: the queue orchestration layer is up and jobs aren't accumulating abnormally.
 
@@ -78,9 +78,9 @@ The cron monitor shows green (scheduler ran). The queue is backing up because wo
 
 Full coverage requires both layers:
 
-**Scheduler monitoring** — hooks into Laravel's native `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` events. Records every task run with its exit code, duration, and output. Detects missed runs by comparing last-run timestamps against expected schedules.
+**Scheduler monitoring** - hooks into Laravel's native `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` events. Records every task run with its exit code, duration, and output. Detects missed runs by comparing last-run timestamps against expected schedules.
 
-**Horizon monitoring** — watches supervisor status directly from Redis, tracks queue depth per queue, and monitors job age. Alerts when a supervisor pauses or stops, before the queue backlog becomes a customer-visible problem.
+**Horizon monitoring** - watches supervisor status directly from Redis, tracks queue depth per queue, and monitors job age. Alerts when a supervisor pauses or stops, before the queue backlog becomes a customer-visible problem.
 
 These two layers cover the full stack: the scheduler that decides what to run, and the queue workers that actually process the jobs.
 
@@ -101,6 +101,6 @@ CRONTINEL_ALERT_CHANNEL=slack
 CRONTINEL_SLACK_WEBHOOK=https://hooks.slack.com/...
 ```
 
-Scheduler events are captured automatically. Horizon monitoring runs on each polling cycle — no per-supervisor configuration needed.
+Scheduler events are captured automatically. Horizon monitoring runs on each polling cycle - no per-supervisor configuration needed.
 
 The monitoring gap between "cron ran" and "jobs processed" is where silent failures live. Covering both layers closes it.

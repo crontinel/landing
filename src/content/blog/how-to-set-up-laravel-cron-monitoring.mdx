@@ -4,7 +4,7 @@ description: "A step-by-step guide to setting up Laravel cron monitoring that ac
 date: 2026-04-12
 ---
 
-Laravel's task scheduler is powerful — but fragile. One misconfigured cron entry and your daily reports stop sending. Your weekly cleanup jobs silently fail. Your payment reconciliation sits idle for days.
+Laravel's task scheduler is powerful - but fragile. One misconfigured cron entry and your daily reports stop sending. Your weekly cleanup jobs silently fail. Your payment reconciliation sits idle for days.
 
 This guide walks through the right way to monitor Laravel cron jobs, so nothing slips through the cracks.
 
@@ -44,7 +44,7 @@ class Kernel extends ConsoleKernel
 }
 ```
 
-The `withoutOverlapping()` method is critical — it prevents a job from running twice if the previous run didn't finish. The `onOneServer()` method (requires Laravel Forge or a cache driver) ensures the job only runs on one server in a multi-server setup.
+The `withoutOverlapping()` method is critical - it prevents a job from running twice if the previous run didn't finish. The `onOneServer()` method (requires Laravel Forge or a cache driver) ensures the job only runs on one server in a multi-server setup.
 
 ## Step 2: Set Up the System Cron
 
@@ -103,12 +103,12 @@ This tells the package to also ping Crontinel when Horizon supervisors stop proc
 
 ## Step 5: Set Up Alerts for the Right Events
 
-Don't alert on everything — you'll get alert fatigue. Alert on:
+Don't alert on everything - you'll get alert fatigue. Alert on:
 
-- **Scheduler stopped** — no heartbeat for 90+ seconds
-- **Job failed** — non-zero exit code
-- **Job took too long** — ran longer than expected
-- **Horizon supervisor down** — no heartbeat from Horizon
+- **Scheduler stopped** - no heartbeat for 90+ seconds
+- **Job failed** - non-zero exit code
+- **Job took too long** - ran longer than expected
+- **Horizon supervisor down** - no heartbeat from Horizon
 
 Configure alert channels in `.env`:
 
@@ -134,7 +134,7 @@ After setup, verify your monitoring is receiving data:
 2. **Kill test**: Stop the scheduler process and confirm you receive an alert within 90 seconds
 3. **Failure test**: Temporarily add `->throw(new \Exception('Test failure'))` to a scheduled job and verify the failure alert fires
 
-Don't leave the test failure code in — remove it after verification.
+Don't leave the test failure code in - remove it after verification.
 
 ## What Generic Uptime Monitors Miss
 
@@ -145,7 +145,7 @@ Real cron monitoring needs to understand:
 - What a "missed" heartbeat looks like for a Laravel scheduler
 - Laravel-specific failure modes (Horizon supervisors, queue workers, `withoutOverlapping` locks)
 
-That's why Crontinel exists — it's built specifically for Laravel's scheduler and queue system.
+That's why Crontinel exists - it's built specifically for Laravel's scheduler and queue system.
 
 ## Quick Checklist
 

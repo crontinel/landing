@@ -1,9 +1,9 @@
-# Crontinel Landing Page — Design Specification
+# Crontinel Landing Page - Design Specification
 
 ## 1. Concept & Vision
 
 A premium, dark-first SaaS landing page for Laravel developers. The aesthetic channels the
-elegance of the Laravel ecosystem (Cloud, Vapor) while borrowing the bold energy of Railway —
+elegance of the Laravel ecosystem (Cloud, Vapor) while borrowing the bold energy of Railway  -
 striking gradient typography, glass-morphism nav, editorial section rhythm, and purposeful motion.
 The page should feel like a well-engineered product: confident, minimal, alive. Not a template.
 Not a clone. A distinct identity for Crontinel.
@@ -31,9 +31,9 @@ editorial breathing room between sections.
 | `--danger`     | `#ef4444` | Alert states, failed status        |
 
 ### Typography
-- **Headings**: System font stack — `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` — with tight tracking (`-0.02em`) and bold weight
+- **Headings**: System font stack - `ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif` - with tight tracking (`-0.02em`) and bold weight
 - **Body**: Same stack, normal weight, relaxed leading
-- **Mono**: `"Geist Mono", "Fira Code", ui-monospace, monospace` — for code blocks and terminal UI
+- **Mono**: `"Geist Mono", "Fira Code", ui-monospace, monospace` - for code blocks and terminal UI
 - **Scale**: Hero 64px → Section 48px → Card 20px → Body 16px → Small 14px
 
 ### Spatial System
@@ -51,27 +51,27 @@ editorial breathing room between sections.
 - **Reduced motion**: All animations respect `prefers-reduced-motion`
 
 ### Visual Assets
-- Icons: Custom inline SVGs — consistent 20x20 or 24x24 stroke icons
+- Icons: Custom inline SVGs - consistent 20x20 or 24x24 stroke icons
 - Dashboard preview: Styled terminal mockup (dark card, traffic lights, monospace)
-- No emoji anywhere — all visual accents are SVG
+- No emoji anywhere - all visual accents are SVG
 - Background: Subtle noise texture overlay on hero; radial gradient blobs on a few key sections
 - Decorative: Faint grid/dot pattern behind hero
 
 ## 3. Layout & Structure
 
 ```
-[Nav] — floating frosted glass, sticky, backdrop-blur
-[Hero] — full-width, bold headline, subtext, CTA buttons, trust badges
-[Metrics Strip] — 3 numbers: developers, apps monitored, uptime
-[Problem] — 3-card grid with icon-led headers
-[Features] — Bento-style asymmetric grid (6 features)
-[How It Works] — 3-step horizontal flow with step numbers
-[Dashboard Preview] — terminal mockup, full-width card
-[Integrations] — pill badges, categorized
-[Pricing] — 3-tier cards + billing toggle
-[OSS vs SaaS] — 2-column comparison
-[Final CTA] — centered, email capture + install command
-[Footer] — links, copyright
+[Nav] - floating frosted glass, sticky, backdrop-blur
+[Hero] - full-width, bold headline, subtext, CTA buttons, trust badges
+[Metrics Strip] - 3 numbers: developers, apps monitored, uptime
+[Problem] - 3-card grid with icon-led headers
+[Features] - Bento-style asymmetric grid (6 features)
+[How It Works] - 3-step horizontal flow with step numbers
+[Dashboard Preview] - terminal mockup, full-width card
+[Integrations] - pill badges, categorized
+[Pricing] - 3-tier cards + billing toggle
+[OSS vs SaaS] - 2-column comparison
+[Final CTA] - centered, email capture + install command
+[Footer] - links, copyright
 ```
 
 **Visual pacing**: Hero is loud (gradient headline, glow background). Metrics is quiet.
@@ -95,7 +95,7 @@ Pricing is focused. Final CTA is warm and inviting. Footer is minimal.
 - Headline: "Never miss a failed cron again." with "again" in accent green
 - Subheadline: 1-line value prop
 - Two CTAs: "Start monitoring free" (primary) + "View on GitHub" (ghost)
-- Below CTAs: trust badges — "Free plan · No credit card · MIT open source"
+- Below CTAs: trust badges - "Free plan · No credit card · MIT open source"
 - Background: radial gradient glow (green, very dim) + dot grid pattern
 - Animation: headline fades up on load, CTAs stagger in 100ms later
 
@@ -115,7 +115,7 @@ Pricing is focused. Final CTA is warm and inviting. Footer is minimal.
 ### How It Works
 - 3 steps horizontally (stacked on mobile)
 - Step number in accent green circle, title, description, connector line between steps
-- Minimal, clean — gives clarity on onboarding
+- Minimal, clean - gives clarity on onboarding
 
 ### Dashboard Preview
 - Terminal-style card with traffic lights, URL bar, monospace content
@@ -160,7 +160,7 @@ Pricing is focused. Final CTA is warm and inviting. Footer is minimal.
 - Large variant: spanning 2 cols, slightly taller
 
 ### Pricing Card
-- States: default, highlighted (Pro — green border + glow shadow)
+- States: default, highlighted (Pro - green border + glow shadow)
 - Toggle state: monthly/yearly pricing swaps reactively
 
 ### Terminal Mockup
@@ -175,6 +175,6 @@ Pricing is focused. Final CTA is warm and inviting. Footer is minimal.
 - **Scripts**: Vanilla JS in `<script>` tags (no framework hydration needed)
 - **Build**: `astro build` → Cloudflare Pages
 - **Animations**: CSS `@keyframes` + Intersection Observer for scroll reveal
-- **No external UI libraries** — all components hand-crafted
+- **No external UI libraries** - all components hand-crafted
 - **Font loading**: System fonts only (no Google Fonts CDN dependency)
 - **Icons**: Inline SVG (no icon library dependency)

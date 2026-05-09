@@ -1,23 +1,23 @@
 ---
 title: "How to Monitor Horizon Jobs in Production"
-description: "Laravel Horizon gives you a beautiful dashboard — but if you're not watching it in production, you won't know when supervisors stop, queues pile up, or failed jobs start accumulating. Here's how to set up proper Horizon monitoring."
+description: "Laravel Horizon gives you a beautiful dashboard - but if you're not watching it in production, you won't know when supervisors stop, queues pile up, or failed jobs start accumulating. Here's how to set up proper Horizon monitoring."
 date: 2026-04-12
 tags: ["laravel", "horizon", "monitoring"]
 ---
 
-Laravel Horizon is the premium job queue dashboard for Laravel. It tracks your queues, shows you supervisor status, visualizes job throughput, and keeps a history of recent jobs. When it's working, it's excellent. When something goes wrong in production and nobody's watching — you won't know until your users start complaining.
+Laravel Horizon is the premium job queue dashboard for Laravel. It tracks your queues, shows you supervisor status, visualizes job throughput, and keeps a history of recent jobs. When it's working, it's excellent. When something goes wrong in production and nobody's watching - you won't know until your users start complaining.
 
 ## What Horizon monitors for you
 
 Horizon exposes a rich set of signals about your queue workers:
 
-- **Supervisor status** — each Horizon supervisor is a group of queue workers. If all supervisors for a queue stop, jobs accumulate with no processing.
-- **Queue depth** — how many jobs are waiting in each queue.
-- **Failed jobs per minute** — a spike in failures is a clear incident signal.
-- **Paused state** — Horizon queues can be paused manually. If this happens unintentionally, jobs queue up silently.
-- **Job timing** — Horizon tracks how long jobs take, which helps spot degradation.
+- **Supervisor status** - each Horizon supervisor is a group of queue workers. If all supervisors for a queue stop, jobs accumulate with no processing.
+- **Queue depth** - how many jobs are waiting in each queue.
+- **Failed jobs per minute** - a spike in failures is a clear incident signal.
+- **Paused state** - Horizon queues can be paused manually. If this happens unintentionally, jobs queue up silently.
+- **Job timing** - Horizon tracks how long jobs take, which helps spot degradation.
 
-Horizon stores all of this in Redis. The dashboard reads from Redis, so it's real-time — but only if someone is looking at it.
+Horizon stores all of this in Redis. The dashboard reads from Redis, so it's real-time - but only if someone is looking at it.
 
 ## The monitoring gap
 
@@ -34,7 +34,7 @@ You need monitoring layered on top of Horizon to catch these cases.
 
 ### Supervisor status
 
-Horizon's `/api/horizon/status` endpoint returns the status of all supervisors. The key field is `status` — it can be `active`, `paused`, or `inactive`. When all supervisors for a given queue are `inactive`, that queue is not being processed at all.
+Horizon's `/api/horizon/status` endpoint returns the status of all supervisors. The key field is `status` - it can be `active`, `paused`, or `inactive`. When all supervisors for a given queue are `inactive`, that queue is not being processed at all.
 
 If you're using Crontinel, it reads this automatically from your Horizon setup. You can also query it directly:
 
@@ -57,7 +57,7 @@ Set a threshold based on your normal workload. When depth exceeds it, alert.
 
 ### Failed jobs per minute
 
-Horizon exposes `failed_per_minute` as a rolling rate. A sustained rate above 0 on a production queue is always worth investigating — even if it's low, it means something is consistently failing.
+Horizon exposes `failed_per_minute` as a rolling rate. A sustained rate above 0 on a production queue is always worth investigating - even if it's low, it means something is consistently failing.
 
 ### Paused supervisors
 
@@ -77,7 +77,7 @@ The Crontinel package reads Horizon's `/api/horizon/status` endpoint and reports
 - Paused state and when it was paused
 - Queue depths across all queues
 
-From the Crontinel dashboard, you can set alerts on all of these signals — so you get notified at 3am instead of finding out from a user report.
+From the Crontinel dashboard, you can set alerts on all of these signals - so you get notified at 3am instead of finding out from a user report.
 
 ## Common Horizon failures in production
 
@@ -90,7 +90,7 @@ Horizon supervisors restart when they hit PHP memory limits. If your jobs proces
     'production' => [
         'supervisor-1' => [
             'maxProcesses' => 10,
-            'memory' => 1024, // megabytes — restart at 1GB
+            'memory' => 1024, // megabytes - restart at 1GB
             'maxTime' => 3600, // restart after 1 hour
         ],
     ],
@@ -101,7 +101,7 @@ Monitoring catches this when you see a pattern of supervisors restarting frequen
 
 ### Long-running jobs blocking queues
 
-A job that takes 10 minutes when most jobs take 10 milliseconds will consume a worker for that duration. If you have 2 workers and 3 long-running jobs queue up, your short jobs start timing out. Horizon shows job timing — use it to find the outliers.
+A job that takes 10 minutes when most jobs take 10 milliseconds will consume a worker for that duration. If you have 2 workers and 3 long-running jobs queue up, your short jobs start timing out. Horizon shows job timing - use it to find the outliers.
 
 Set `timeout` explicitly on long-running jobs:
 
@@ -114,7 +114,7 @@ ProcessReportJob::dispatch($report)
 
 ### Redis connection drops
 
-If Redis becomes unavailable, Horizon's `/api/horizon/status` will return an error or timeout. If Crontinel can't reach Horizon, it fires an alert: "Cannot reach Horizon status endpoint." This is a distinct failure mode from slow queues — it means the entire queue system is unreachable, not just backed up.
+If Redis becomes unavailable, Horizon's `/api/horizon/status` will return an error or timeout. If Crontinel can't reach Horizon, it fires an alert: "Cannot reach Horizon status endpoint." This is a distinct failure mode from slow queues - it means the entire queue system is unreachable, not just backed up.
 
 ### Deployment race condition
 
@@ -134,7 +134,7 @@ Set these based on your baseline:
 
 ## Dashboard vs monitoring
 
-Horizon's dashboard is excellent for investigating current queue state — you can see which jobs are running, how long they've been running, and what failed. Use it for debugging. But don't rely on someone having it open to catch incidents. Layer alerting on top so you're notified automatically.
+Horizon's dashboard is excellent for investigating current queue state - you can see which jobs are running, how long they've been running, and what failed. Use it for debugging. But don't rely on someone having it open to catch incidents. Layer alerting on top so you're notified automatically.
 
 ---
 

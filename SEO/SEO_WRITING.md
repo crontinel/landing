@@ -8,13 +8,13 @@ This guide trains the crontinel-docs-writer cron job to produce SEO content for 
 
 ## Content Pillars
 
-1. **Cron job monitoring** — what it is, why it matters, how it works
-2. **Laravel Horizon** — internals, Redis, supervisor monitoring
-3. **Queue monitoring** — queue depth, job age, failed jobs
-4. **Alerting** — Slack, email, PagerDuty, webhook setup
-5. **Comparisons** — Crontinel vs Cronitor, Better Stack, UptimeRobot, Forge Heartbeats
-6. **Best practices** — alert fatigue, thresholds, on-call
-7. **Use cases** — SaaS billing jobs, scheduled tasks, multi-tenant
+1. **Cron job monitoring** - what it is, why it matters, how it works
+2. **Laravel Horizon** - internals, Redis, supervisor monitoring
+3. **Queue monitoring** - queue depth, job age, failed jobs
+4. **Alerting** - Slack, email, PagerDuty, webhook setup
+5. **Comparisons** - Crontinel vs Cronitor, Better Stack, UptimeRobot, Forge Heartbeats
+6. **Best practices** - alert fatigue, thresholds, on-call
+7. **Use cases** - SaaS billing jobs, scheduled tasks, multi-tenant
 
 ---
 
@@ -37,18 +37,18 @@ pubDate: YYYY-MM-DD
 tags: [laravel, cron, monitoring]
 ---
 
-[Opening hook — the pain point, 2-3 sentences]
+[Opening hook - the pain point, 2-3 sentences]
 
-## H2 — target keyword
+## H2 - target keyword
 [Body]
 
-## H2 — secondary topic
+## H2 - secondary topic
 [Body]
 
-## H2 — third topic
+## H2 - third topic
 [Body]
 
-## H2 — actionable takeaway
+## H2 - actionable takeaway
 [Wrap up with install command or waitlist link]
 ```
 
@@ -65,10 +65,10 @@ tags: [laravel, cron, monitoring]
 ## Internal Linking
 
 Every post should link to:
-- `/pricing` — once
-- `/features` — once or twice
-- Relevant VS page — once
-- OSS package GitHub — at CTA
+- `/pricing` - once
+- `/features` - once or twice
+- Relevant VS page - once
+- OSS package GitHub - at CTA
 
 ---
 

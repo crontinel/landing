@@ -34,11 +34,11 @@ Each step has a failure mode:
 
 ## The recovery window problem
 
-After `horizon:terminate`, Horizon needs to restart — usually through a process supervisor like Supervisor or Laravel Octane. If that restart fails, Horizon is simply not running. Your queued jobs back up in Redis with no worker to process them.
+After `horizon:terminate`, Horizon needs to restart - usually through a process supervisor like Supervisor or Laravel Octane. If that restart fails, Horizon is simply not running. Your queued jobs back up in Redis with no worker to process them.
 
 The window between termination and restart is typically 2–10 seconds. But if the restart fails, the window becomes indefinite.
 
-Ping-based monitoring tools don't catch this. They wait for a scheduled heartbeat that would arrive in the next cron cycle — potentially minutes later. Crontinel reads Horizon's Redis keys directly and detects a missing supervisor within its next polling cycle.
+Ping-based monitoring tools don't catch this. They wait for a scheduled heartbeat that would arrive in the next cron cycle - potentially minutes later. Crontinel reads Horizon's Redis keys directly and detects a missing supervisor within its next polling cycle.
 
 ## What Crontinel monitors post-deploy
 
@@ -48,7 +48,7 @@ After a deploy, Crontinel watches supervisor state:
 
 - **Running**: supervisor is processing jobs normally
 - **Paused**: supervisor received a pause signal and is holding jobs
-- **Stopped**: supervisor is not running — jobs are queued but nothing is processing them
+- **Stopped**: supervisor is not running - jobs are queued but nothing is processing them
 
 If Horizon doesn't recover within a few minutes of a deploy, Crontinel fires an alert.
 
@@ -64,7 +64,7 @@ Set a queue depth alert with a threshold appropriate for your normal post-deploy
 CRONTINEL_QUEUE_DEPTH_INVOICES=200
 ```
 
-This alerts only when depth exceeds 200 — above the normal post-deploy spike, indicating a real problem.
+This alerts only when depth exceeds 200 - above the normal post-deploy spike, indicating a real problem.
 
 ### Post-deploy scheduled task run
 

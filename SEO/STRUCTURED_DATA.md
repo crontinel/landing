@@ -27,4 +27,4 @@
 
 ## Pending
 
-- [ ] WebPage schema — about, changelog, legal pages (supplementary)
+- [ ] WebPage schema - about, changelog, legal pages (supplementary)

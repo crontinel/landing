@@ -1,4 +1,4 @@
-# Product Hunt Launch — Crontinel
+# Product Hunt Launch - Crontinel
 
 ## Status
 - [ ] Assets ready
@@ -14,7 +14,7 @@ Target: ~2-3 weeks out. Pick a **Tuesday, Wednesday, or Thursday** (avoid Monday
 
 ### Hero Image
 **Requirements:** 1270x760px, PNG or JPG
-**Current status:** ❌ AI image generated has gibberish text — not suitable
+**Current status:** ❌ AI image generated has gibberish text - not suitable
 **Better approach:** Take a real screenshot from app.crontinel.com dashboard, overlay on device frame
 **Tools:** Canva, Figma, or Photoshop to place screenshot in device mockup
 
@@ -28,7 +28,7 @@ Square 512x512px (used in PH hunt list)
 **Tagline:** Cron & background job monitoring for Laravel teams
 
 **Short description (2-3 sentences):**
-Crontinel monitors your Laravel queues, cron jobs, and Horizon workers — and alerts you when something breaks before your users notice. Built as an open-source MIT project with SDKs for Node, Python, Go, Rust, PHP, Ruby, and .NET. Free self-hosted option, or hosted Pro at $19/mo.
+Crontinel monitors your Laravel queues, cron jobs, and Horizon workers - and alerts you when something breaks before your users notice. Built as an open-source MIT project with SDKs for Node, Python, Go, Rust, PHP, Ruby, and .NET. Free self-hosted option, or hosted Pro at $19/mo.
 
 **Pricing:**
 - Free: 1 app, 7-day history

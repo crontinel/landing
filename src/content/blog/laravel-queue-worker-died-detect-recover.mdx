@@ -7,21 +7,21 @@ tags: ["laravel", "horizon", "queues"]
 
 Your Laravel queue worker died. You don't know yet. Jobs are piling up. In an hour, three hours, or tomorrow morning, someone will notice that emails aren't sending or that a batch job didn't complete.
 
-This is what queue worker death looks like: nothing. No error page. No alert. Just silence — and an ever-growing backlog.
+This is what queue worker death looks like: nothing. No error page. No alert. Just silence - and an ever-growing backlog.
 
 ## How queue workers die
 
-**Out of memory kills.** PHP is memory-hungry under load. If a job leaks memory — or if a worker processes enough jobs that heap fragmentation accumulates — the OS kills the process. Horizon's `--max-jobs` and `--max-time` flags are the right solution, but many apps don't set them.
+**Out of memory kills.** PHP is memory-hungry under load. If a job leaks memory - or if a worker processes enough jobs that heap fragmentation accumulates - the OS kills the process. Horizon's `--max-jobs` and `--max-time` flags are the right solution, but many apps don't set them.
 
 **Segfaults.** PHP extensions (Redis, image processing, PDF libraries) occasionally segfault. The process terminates immediately with no PHP exception and no log entry.
 
 **Restart loops.** Horizon tries to restart dead supervisors. If the restart itself fails (missing env variable, failed migration, corrupt session), Horizon enters a restart loop and stops processing jobs. The Horizon dashboard may still show "running" because the master process is alive.
 
-**Server reboots and deploys.** Queue workers don't survive server restarts unless they're managed by a process supervisor like Supervisor or systemd. After a rolling deploy, workers that aren't restarted continue running old code — or they die and aren't replaced.
+**Server reboots and deploys.** Queue workers don't survive server restarts unless they're managed by a process supervisor like Supervisor or systemd. After a rolling deploy, workers that aren't restarted continue running old code - or they die and aren't replaced.
 
 ## What "running" doesn't mean
 
-Horizon's status dashboard reads Redis state. If the master process is alive and writing heartbeats, Horizon reports "running" — even if every supervisor under it has terminated. You can have a green Horizon dashboard with zero workers actually processing jobs.
+Horizon's status dashboard reads Redis state. If the master process is alive and writing heartbeats, Horizon reports "running" - even if every supervisor under it has terminated. You can have a green Horizon dashboard with zero workers actually processing jobs.
 
 This is the fundamental trap: Horizon's UI tells you the orchestration layer is up, not that jobs are being processed.
 
@@ -78,7 +78,7 @@ Or set these in your `horizon.php` config per supervisor.
 
 Manual recovery fixes the current incident. It doesn't tell you how long workers were dead, which jobs were affected, or whether this has happened before.
 
-Crontinel monitors Horizon supervisor status directly from Redis — it detects a paused or stopped supervisor the moment it happens, not after the queue backlog reaches a threshold you notice manually.
+Crontinel monitors Horizon supervisor status directly from Redis - it detects a paused or stopped supervisor the moment it happens, not after the queue backlog reaches a threshold you notice manually.
 
 ```bash
 composer require crontinel/laravel
