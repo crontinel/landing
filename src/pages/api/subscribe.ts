@@ -3,10 +3,27 @@ import { env } from 'cloudflare:workers';
 
 const RATE_LIMIT_KV = 'subscribe_ratelimit';
 
+type SubscribeBody = {
+  email?: unknown;
+};
+
+type TurnstileResponse = {
+  success?: boolean;
+};
+
+type SubscribeEnv = Cloudflare.Env & {
+  TURNSTILE_SECRET_KEY?: string;
+  SUBSCRIBE_KV?: KVNamespace;
+  RESEND_API_KEY?: string;
+  RESEND_AUDIENCE_ID?: string;
+};
+
+const bindings = env as SubscribeEnv;
+
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json();
-    const email = body?.email;
+    const body = await request.json() as SubscribeBody;
+    const email = body.email;
 
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ ok: false, error: 'Email is required' }), {
@@ -25,7 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // --- Bot protection via Cloudflare Turnstile ---
     const turnstileToken = request.headers.get('cf-turnstile-response');
-    const turnstileSecret = env.TURNSTILE_SECRET_KEY;
+    const turnstileSecret = bindings.TURNSTILE_SECRET_KEY;
 
     if (turnstileSecret && turnstileToken) {
       const turnstileRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
@@ -38,7 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
         }),
       });
 
-      const turnstileData = await turnstileRes.json();
+      const turnstileData = await turnstileRes.json() as TurnstileResponse;
       if (!turnstileData.success) {
         return new Response(JSON.stringify({ ok: false, error: 'Security check failed. Please try again.' }), {
           status: 403,
@@ -49,7 +66,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // --- Rate limiting via KV (max 3 signups per IP per hour) ---
     const ip = request.headers.get('CF-Connecting-IP') ?? 'unknown';
-    const kv = env.SUBSCRIBE_KV as KVNamespace | undefined;
+    const kv = bindings.SUBSCRIBE_KV;
 
     if (kv) {
       const key = `${RATE_LIMIT_KV}:${ip}`;
@@ -72,8 +89,8 @@ export const POST: APIRoute = async ({ request }) => {
       await kv.put(key, String(count + 1), { expirationTtl: 3600 });
     }
 
-    const resendApiKey = env.RESEND_API_KEY;
-    const resendAudienceId = env.RESEND_AUDIENCE_ID;
+    const resendApiKey = bindings.RESEND_API_KEY;
+    const resendAudienceId = bindings.RESEND_AUDIENCE_ID;
 
     if (!resendApiKey || !resendAudienceId) {
       console.error('Missing env vars:', {

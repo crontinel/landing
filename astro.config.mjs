@@ -12,7 +12,7 @@ export default defineConfig({
     },
   }),
   build: {
-    assetsDir: '_astro',
+    assets: '_astro',
   },
   integrations: [mdx()],
   site: 'https://crontinel.com',

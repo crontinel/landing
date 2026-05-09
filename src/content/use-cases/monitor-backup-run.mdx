@@ -10,10 +10,10 @@ You push a deploy on Friday afternoon. Everything passes. Monday morning, a deve
 
 The `spatie/laravel-backup` package is the standard for Laravel backups. When you run `php artisan backup:run`, it performs a multi-step process:
 
-1. **Dump the database** — uses mysqldump, pgdump, or SQLite's native export depending on your driver
-2. **Zip the dump** — combines the database dump with any configured custom files
-3. **Encrypt** (optional) — applies AES-256 encryption if you've configured a cipher key
-4. **Upload** — pushes the archive to one or more disks: local, S3, Google Cloud Storage, Dropbox, or SFTP
+1. **Dump the database** - uses mysqldump, pgdump, or SQLite's native export depending on your driver
+2. **Zip the dump** - combines the database dump with any configured custom files
+3. **Encrypt** (optional) - applies AES-256 encryption if you've configured a cipher key
+4. **Upload** - pushes the archive to one or more disks: local, S3, Google Cloud Storage, Dropbox, or SFTP
 
 The entire operation runs in a single PHP process. If PHP runs out of memory at step 1, the whole thing fails. If the network connection drops during step 4, the whole thing fails. There's no partial success, no retry built in.
 
@@ -23,7 +23,7 @@ Your `config/backup.php` defines what gets backed up, which disks receive the ar
 
 **Disk fills up mid-backup.** The most common failure. The database dump starts writing to `/tmp`, the zip operation begins, and PHP hits the disk quota or the system runs out of `/tmp` space. The command exits with an error, but if your cron runs with output redirected to `/dev/null`, you never see it. Free disk space monitoring is the fix, but most teams don't have it configured.
 
-**Database credentials fail after a rotation.** You rotate the database password via your PaaS dashboard. The `.env` file gets updated but the PHP-FPM process doesn't reload it because you're running `backup:run` via cron with a separate PHP binary that caches environment variables. The command fails at the dump step with an authentication error. Authentication errors look like application errors in logs — easy to dismiss as a one-off.
+**Database credentials fail after a rotation.** You rotate the database password via your PaaS dashboard. The `.env` file gets updated but the PHP-FPM process doesn't reload it because you're running `backup:run` via cron with a separate PHP binary that caches environment variables. The command fails at the dump step with an authentication error. Authentication errors look like application errors in logs - easy to dismiss as a one-off.
 
 **S3 upload timeout.** Large databases hit S3's 15-minute multipart upload timeout or your instance's bandwidth cap. The dump completes, the zip begins, and then the upload stalls. If your backup disk is S3 and the upload takes longer than your PHP max_execution_time, the process is killed mid-upload. You get a partial or zero-byte backup file on S3.
 
@@ -74,7 +74,7 @@ $latestBackup = collect($disk->files('laravel-backup'))
 $age = now()->diffInHours($disk->lastModified($latestBackup));
 
 if ($age > 25) {
-    // Backup is older than expected — alert
+    // Backup is older than expected - alert
 }
 ```
 

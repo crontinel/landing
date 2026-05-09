@@ -1,4 +1,4 @@
-# Waitlist Email Capture — Implementation Plan
+# Waitlist Email Capture - Implementation Plan
 
 ## 1. Current State
 
@@ -21,12 +21,12 @@ The full waitlist signup flow is already built and wired up. Nothing is missing 
 - Validates email with a basic regex (422 on bad input)
 - Calls `POST https://api.resend.com/audiences/{AUDIENCE_ID}/contacts`
 - Treats HTTP 409 (already subscribed) as success
-- **Graceful degradation**: if either env var is missing, logs an error but returns `{ ok: true }` — so the form appears to work even without the real keys. This means the feature is silently broken right now in production.
+- **Graceful degradation**: if either env var is missing, logs an error but returns `{ ok: true }` - so the form appears to work even without the real keys. This means the feature is silently broken right now in production.
 - CORS headers set for `*` (OPTIONS preflight also handled)
 
 ### Email Provider
 
-Resend is the chosen provider. The function calls the Resend Contacts API directly via `fetch` — no SDK installed or needed.
+Resend is the chosen provider. The function calls the Resend Contacts API directly via `fetch` - no SDK installed or needed.
 
 ---
 
@@ -39,7 +39,7 @@ Resend is the chosen provider. The function calls the Resend Contacts API direct
 | `RESEND_API_KEY` | Resend dashboard → API Keys → Create API Key (send access) | **Not set** |
 | `RESEND_AUDIENCE_ID` | Resend dashboard → Audiences → create or pick audience → copy ID | **Not set** |
 
-These are **not** in `.env.example` — the file only documents `PUBLIC_GA_MEASUREMENT_ID` and optional CI secrets. They need to be added to `.env.example` and set in the Cloudflare Pages dashboard under Settings → Environment Variables → Production.
+These are **not** in `.env.example` - the file only documents `PUBLIC_GA_MEASUREMENT_ID` and optional CI secrets. They need to be added to `.env.example` and set in the Cloudflare Pages dashboard under Settings → Environment Variables → Production.
 
 ### No `.dev.vars` for local testing
 
@@ -74,7 +74,7 @@ If you cannot get a Resend API key this week, here are ranked options:
 - Downside: ugly by default, no custom confirmation message without extra JS
 
 ### Option D: Formspree free tier
-- `action="https://formspree.io/f/{YOUR_ID}"` on the existing form — no backend change needed
+- `action="https://formspree.io/f/{YOUR_ID}"` on the existing form - no backend change needed
 - Free tier: 50 submissions/month
 - Only suitable for very early validation, not real launch volume
 
@@ -93,7 +93,7 @@ If you cannot get a Resend API key this week, here are ranked options:
 
 ### Step 2: Set env vars in Cloudflare Pages
 - [ ] Go to: Cloudflare Dashboard → Pages → `crontinel-landing` → Settings → Environment Variables
-- [ ] Add variable: `RESEND_API_KEY` = `re_...` — set for **Production** (and optionally Preview)
+- [ ] Add variable: `RESEND_API_KEY` = `re_...` - set for **Production** (and optionally Preview)
 - [ ] Add variable: `RESEND_AUDIENCE_ID` = the UUID from step 1
 - [ ] Save and trigger a new deployment (or redeploy the latest commit)
 
@@ -128,7 +128,7 @@ If you cannot get a Resend API key this week, here are ranked options:
 
 Run these in order after a successful deployment with the real keys:
 
-### Test 1: Happy path — new email
+### Test 1: Happy path - new email
 1. Open `https://crontinel.com` in a browser
 2. Enter a fresh email address you control (e.g. a `+waitlist` alias)
 3. Click "Get early access"
@@ -151,7 +151,7 @@ Run these in order after a successful deployment with the real keys:
 ### Test 4: Check CF Workers logs
 1. Cloudflare Dashboard → Pages → `crontinel-landing` → Functions → Logs
 2. Confirm no `Resend env vars not configured` errors appear after a real submission
-3. If that error still appears, the env vars were not saved correctly — re-check step 2
+3. If that error still appears, the env vars were not saved correctly - re-check step 2
 
 ### Test 5: Mobile form layout
 1. Open the site on a mobile viewport (or DevTools device emulation)
@@ -164,4 +164,4 @@ Run these in order after a successful deployment with the real keys:
 
 - The graceful degradation in `subscribe.ts` (line 24–28) means the form shows success even when env vars are missing. This is a silent failure. If you want to catch misconfiguration sooner, consider changing it to return a 500 in non-production environments.
 - There is no rate limiting or bot protection on the endpoint. For a waitlist this is fine. Add Cloudflare Turnstile before launch if spam becomes an issue.
-- The Resend Contacts API does not send a confirmation email automatically — it just stores the contact. If you want a "thanks for joining" transactional email, that requires a separate Resend email send call or a Resend Broadcast to the audience.
+- The Resend Contacts API does not send a confirmation email automatically - it just stores the contact. If you want a "thanks for joining" transactional email, that requires a separate Resend email send call or a Resend Broadcast to the audience.

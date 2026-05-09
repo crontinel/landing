@@ -65,7 +65,7 @@ Schedule::call(function () {
 
     // Alert if more files than expected (cleanup not running)
     if ($count > 20) {
-        // Crontinel heartbeat — this fires the alert
+        // Crontinel heartbeat - this fires the alert
         Http::get(env('CRONTINEL_CLEAN_ENDPOINT'));
     }
 })->dailyAt('06:00');
@@ -99,7 +99,7 @@ php artisan backup:clean
 AFTER=$(aws s3 ls s3://your-bucket/laravel-backup/ | grep -c '\.zip$')
 
 if [ "$AFTER" -ge "$BEFORE" ]; then
-    echo "Backup cleanup did not reduce file count — possible failure"
+    echo "Backup cleanup did not reduce file count - possible failure"
     # trigger alert
 fi
 ```
@@ -109,7 +109,7 @@ fi
 Schedule both backup and cleanup in the same monitoring context:
 
 ```php
-// config/backup.php — ensure cleanup is scheduled
+// config/backup.php - ensure cleanup is scheduled
 Schedule::command('backup:run')->dailyAt('03:00')->withoutOverlapping()->onOneServer();
 Schedule::command('backup:clean')->dailyAt('04:00')->withoutOverlapping()->onOneServer();
 ```
@@ -124,7 +124,7 @@ Schedule::command('backup:clean')
     ->thenPing(env('CRONTINEL_CLEAN_ENDPOINT'));
 ```
 
-If `backup:clean` exits with an error, or if it never runs (your monitoring window closes without a ping), Crontinel fires an alert. The dual-check approach — counting files + monitoring the job itself — catches cleanup failures from every angle: corrupted files, permission errors, unreachable disks, and misconfigured retention policies.
+If `backup:clean` exits with an error, or if it never runs (your monitoring window closes without a ping), Crontinel fires an alert. The dual-check approach - counting files + monitoring the job itself - catches cleanup failures from every angle: corrupted files, permission errors, unreachable disks, and misconfigured retention policies.
 
 Storage costs from accumulating backups are the silent version of data loss. You're not losing data, but you're paying for it every month.
 

@@ -10,7 +10,7 @@
  * API key resolution order:
  *   1. ANTHROPIC_API_KEY environment variable
  *   2. ANTHROPIC_API_KEY in .env file at repo root
- *   3. claude CLI (Claude Code session) — used as fallback
+ *   3. claude CLI (Claude Code session) - used as fallback
  */
 
 import Anthropic from '@anthropic-ai/sdk';

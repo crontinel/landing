@@ -1,5 +1,5 @@
 // ============================================================
-// Crontinel — main.js
+// Crontinel - main.js
 // All the interactivity: heartbeat feed, scroll reveal, nav,
 // pricing toggle, tweaks panel, copy buttons, cursor reactivity.
 // ============================================================

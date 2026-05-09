@@ -5,7 +5,7 @@ date: 2026-04-12
 tags: ["laravel", "queues", "monitoring"]
 ---
 
-Every Laravel application with asynchronous work uses queues. Sending welcome emails, generating PDF reports, processing payments, dispatching notifications — all of these happen in the background, away from the HTTP request cycle. That's the point. But it also means they're invisible.
+Every Laravel application with asynchronous work uses queues. Sending welcome emails, generating PDF reports, processing payments, dispatching notifications - all of these happen in the background, away from the HTTP request cycle. That's the point. But it also means they're invisible.
 
 A job that fails silently doesn't surface an error to your users. It just... doesn't happen. The user gets a success response. The email never arrives. You find out three days later when they email support.
 
@@ -23,7 +23,7 @@ The catch: if nobody is watching the failed jobs table or Horizon dashboard, the
 
 ### The queue worker dies
 
-A `php artisan queue:work` process can die for many reasons — out-of-memory kill from the OS, a segfault, Redis connection dropping, an unhandled exception at the top level. When the worker dies, jobs that were being processed are lost (or if you're using `queue:work --expire=0`, they go back to the queue). Jobs waiting in the queue keep waiting. Your application appears to be working — the web layer is fine — but nothing is processing.
+A `php artisan queue:work` process can die for many reasons - out-of-memory kill from the OS, a segfault, Redis connection dropping, an unhandled exception at the top level. When the worker dies, jobs that were being processed are lost (or if you're using `queue:work --expire=0`, they go back to the queue). Jobs waiting in the queue keep waiting. Your application appears to be working - the web layer is fine - but nothing is processing.
 
 The only signal is that queue depth starts climbing.
 
@@ -33,7 +33,7 @@ A job that always fails and gets retried creates a different symptom: a job that
 
 ### Redis goes down
 
-If Redis is your queue driver and Redis becomes unavailable, `queue:work` will continuously try to reconnect and fail. The queue doesn't fail — it just stops processing. Depth climbs. Nothing happens. No exceptions are thrown in your application code.
+If Redis is your queue driver and Redis becomes unavailable, `queue:work` will continuously try to reconnect and fail. The queue doesn't fail - it just stops processing. Depth climbs. Nothing happens. No exceptions are thrown in your application code.
 
 ## What to monitor
 
@@ -41,13 +41,13 @@ Effective queue monitoring covers four signals:
 
 ### 1. Failed job count
 
-Track the number of failed jobs per queue over time. A sudden spike in failed jobs is an incident — investigate immediately. A slow accumulation of failures is a degradation — schedule time to fix the underlying issue.
+Track the number of failed jobs per queue over time. A sudden spike in failed jobs is an incident - investigate immediately. A slow accumulation of failures is a degradation - schedule time to fix the underlying issue.
 
 If you're using Horizon, `failed_jobs` is tracked per supervisor and per queue. If you're using the database queue driver, query `failed_jobs` directly.
 
 ### 2. Queue depth
 
-The number of jobs waiting in a queue is a load signal, not a failure signal — but it's the first sign of trouble when workers die or Redis goes down.
+The number of jobs waiting in a queue is a load signal, not a failure signal - but it's the first sign of trouble when workers die or Redis goes down.
 
 A queue that normally has 50 jobs and suddenly has 5,000 is a problem, even if none of them have failed yet. The work isn't being processed fast enough, which means something is wrong upstream.
 
@@ -57,7 +57,7 @@ A job that's been waiting in a queue for 30 minutes when your SLA is "emails sen
 
 ### 4. Worker status
 
-Horizon supervisors can stop — a memory limit gets hit, the process crashes, a deployment kills old workers before new ones are ready. When all supervisors for a queue are stopped, jobs accumulate with no processing. Horizon's `status` field tells you: active, paused, or stopped.
+Horizon supervisors can stop - a memory limit gets hit, the process crashes, a deployment kills old workers before new ones are ready. When all supervisors for a queue are stopped, jobs accumulate with no processing. Horizon's `status` field tells you: active, paused, or stopped.
 
 ## Setting up queue monitoring in Laravel
 
@@ -82,9 +82,9 @@ You can view all of this from the Crontinel dashboard, or query it via the API i
 Monitoring without alerting is just historical data. Set up alerts for:
 
 - **Failed jobs > 0** on critical queues (payment processing, order fulfillment)
-- **Queue depth > threshold** — determine what depth is abnormal for your workload
-- **Oldest job age > N minutes** — set based on your SLA
-- **All Horizon supervisors stopped** — if workers are down and nobody scheduled a restart, you need to know
+- **Queue depth > threshold** - determine what depth is abnormal for your workload
+- **Oldest job age > N minutes** - set based on your SLA
+- **All Horizon supervisors stopped** - if workers are down and nobody scheduled a restart, you need to know
 
 ```php
 // In your Crontinel dashboard or via API
@@ -107,7 +107,7 @@ $criteria = [
 ```php
 'defaults' => [
     'supervisor-1' => [
-        'memory' => 256, // megabytes — restart if exceeded
+        'memory' => 256, // megabytes - restart if exceeded
     ],
 ],
 ```
@@ -140,7 +140,7 @@ Laravel serializes queued closures (jobs defined as anonymous functions) to stor
 
 ## When queue monitoring isn't enough
 
-Queue monitoring tells you *that* something is wrong. It doesn't tell you *what* is wrong. For detailed debugging — inspecting job payloads, replaying failed jobs, tracing a job through its lifecycle — you need Horizon's job management interface.
+Queue monitoring tells you *that* something is wrong. It doesn't tell you *what* is wrong. For detailed debugging - inspecting job payloads, replaying failed jobs, tracing a job through its lifecycle - you need Horizon's job management interface.
 
 Think of monitoring as the alert system and Horizon as the investigative tool. You need both.
 

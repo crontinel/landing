@@ -12,10 +12,10 @@ The `backup:monitor` command checks backup health, but it only checks what it ca
 
 The `spatie/laravel-backup` `backup:monitor` command performs structural health checks on your most recent backup:
 
-- **Backup freshness** — is the most recent backup newer than `freshness` threshold in config?
-- **Backup size** — is the backup file larger than `minimumSize` if configured?
-- **Backup disk reachable** — can the monitoring process list files on the destination disk?
-- **Backup is not encrypted with a mismatched key** — if encryption is enabled, can the file be opened with the configured key?
+- **Backup freshness** - is the most recent backup newer than `freshness` threshold in config?
+- **Backup size** - is the backup file larger than `minimumSize` if configured?
+- **Backup disk reachable** - can the monitoring process list files on the destination disk?
+- **Backup is not encrypted with a mismatched key** - if encryption is enabled, can the file be opened with the configured key?
 
 The command exits with code 0 if all checks pass, non-zero if any fail. This is useful as a monitoring signal, but it only tells you if the most recent backup is structurally valid. It doesn't tell you if the database inside the zip is intact.
 
@@ -89,9 +89,9 @@ This runs at 6 AM, three hours after backup completion. It downloads the latest 
 
 Pair three separate checks:
 
-1. **Freshness** — is the latest backup newer than your retention window? (caught by `backup:monitor`)
-2. **Size** — is the backup above minimum expected size? (caught by `backup:monitor` if configured)
-3. **Integrity** — does the backup zip open without errors? (custom check, `backup:monitor` misses this)
+1. **Freshness** - is the latest backup newer than your retention window? (caught by `backup:monitor`)
+2. **Size** - is the backup above minimum expected size? (caught by `backup:monitor` if configured)
+3. **Integrity** - does the backup zip open without errors? (custom check, `backup:monitor` misses this)
 
 The integrity check is the one most teams skip. It's also the one that catches the worst failures.
 
@@ -116,7 +116,7 @@ Schedule::call(function () {
 
 Crontinel fires different alerts based on which endpoint receives a signal. If the corrupt endpoint gets a hit, it's an immediate alert with the file name and error code. If neither endpoint fires within the monitoring window, Crontinel alerts that the backup never completed.
 
-The three-check system — freshness, size, integrity — gives you complete coverage. Your monitoring should match your actual risk, not just the easy-to-check surface of the backup.
+The three-check system - freshness, size, integrity - gives you complete coverage. Your monitoring should match your actual risk, not just the easy-to-check surface of the backup.
 
 ## See also
 

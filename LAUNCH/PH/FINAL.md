@@ -2,7 +2,7 @@
 
 ## Tagline
 
-**Monitor your Laravel cron jobs, queues, and Horizon supervisors — before your users notice.**
+**Monitor your Laravel cron jobs, queues, and Horizon supervisors - before your users notice.**
 
 ---
 
@@ -40,7 +40,7 @@ The package is MIT licensed and fully self-hostable. There's also an optional Sa
 
 ## What's different from Cronitor/OhDear?
 
-Generic cron monitors ping your endpoints. They can't see inside your Laravel app. Crontinel hooks into Laravel's scheduler and Horizon internals directly — it knows when a supervisor goes down, not just when a URL stops responding.
+Generic cron monitors ping your endpoints. They can't see inside your Laravel app. Crontinel hooks into Laravel's scheduler and Horizon internals directly - it knows when a supervisor goes down, not just when a URL stops responding.
 
 ---
 

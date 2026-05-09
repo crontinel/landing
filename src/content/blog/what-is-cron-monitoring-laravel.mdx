@@ -21,7 +21,7 @@ Consider a typical `invoices:send` command that runs every morning at 6 AM:
 0 6 * * * cd /var/www && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-The cron daemon runs this every minute. At 6:00 AM, `schedule:run` finds `invoices:send`, executes it, and the command runs. If the command throws an exception — maybe the database is locked, maybe the Stripe API returned a 500 — Laravel catches it, logs it, and exits.
+The cron daemon runs this every minute. At 6:00 AM, `schedule:run` finds `invoices:send`, executes it, and the command runs. If the command throws an exception - maybe the database is locked, maybe the Stripe API returned a 500 - Laravel catches it, logs it, and exits.
 
 The exit code is non-zero. The cron daemon logs:
 ```
@@ -34,13 +34,13 @@ If you have a service like Datadog or CloudWatch parsing your cron logs, you mig
 
 Classical uptime monitoring checks if a URL returns 200. Cron jobs don't have URLs. A health check on `https://yourapp.com` tells you the web server is running. It tells you nothing about whether your `invoices:send` command ran at 6 AM, whether it completed successfully, or whether it took 47 minutes instead of the usual 4.
 
-This is the fundamental blind spot: cron monitoring is not web monitoring. The approaches that work for HTTP services — ping a URL, alert on 5xx — don't apply to background scheduled tasks.
+This is the fundamental blind spot: cron monitoring is not web monitoring. The approaches that work for HTTP services - ping a URL, alert on 5xx - don't apply to background scheduled tasks.
 
 ## The three most common ways Laravel cron jobs fail
 
 ### 1. Wrong schedule syntax
 
-Laravel's scheduler uses human-readable expressions. `->dailyAt('14:00')` is intuitive. `->cron('0 14 * * *')` is explicit. Both work — until they don't.
+Laravel's scheduler uses human-readable expressions. `->dailyAt('14:00')` is intuitive. `->cron('0 14 * * *')` is explicit. Both work - until they don't.
 
 A misplaced space in a cron expression produces no error. `->cron('0 14 * * *')` works. `->cron('0 14 * *  *')` (extra space before the asterisk) silently becomes invalid and the task never runs.
 
@@ -50,23 +50,23 @@ Laravel's `withoutOverlapping()` prevents a task from running if a previous inst
 
 ### 3. Queue worker crashes
 
-A queue worker running `php artisan queue:work` exits when it encounters an unrecoverable error — an out-of-memory kill, a Redis connection loss, an unhandled exception in a job. When the worker dies, jobs queue up. They don't fail in the traditional sense; they just stop being processed. You'll only notice when customers start asking why their orders aren't being fulfilled.
+A queue worker running `php artisan queue:work` exits when it encounters an unrecoverable error - an out-of-memory kill, a Redis connection loss, an unhandled exception in a job. When the worker dies, jobs queue up. They don't fail in the traditional sense; they just stop being processed. You'll only notice when customers start asking why their orders aren't being fulfilled.
 
 ## How Laravel cron monitoring works
 
 Purpose-built cron monitoring for Laravel works by hooking into Laravel's scheduler lifecycle events:
 
-- **`ScheduledTaskStarting`** — fired when a task begins execution
-- **`ScheduledTaskFinished`** — fired when a task completes successfully
-- **`ScheduledTaskFailed`** — fired when a task exits with a non-zero code or throws an exception
+- **`ScheduledTaskStarting`** - fired when a task begins execution
+- **`ScheduledTaskFinished`** - fired when a task completes successfully
+- **`ScheduledTaskFailed`** - fired when a task exits with a non-zero code or throws an exception
 
 By recording every invocation, a monitor can show you:
 
-- **What ran** — the task name and command
-- **When it ran** — exact timestamps
-- **How long it took** — duration in milliseconds
-- **What happened** — exit code and output
-- **What didn't run** — a task that was scheduled but never started
+- **What ran** - the task name and command
+- **When it ran** - exact timestamps
+- **How long it took** - duration in milliseconds
+- **What happened** - exit code and output
+- **What didn't run** - a task that was scheduled but never started
 
 This is the difference between "I think my cron jobs are working" and "I know exactly what happened with each scheduled task for the past 30 days."
 
@@ -92,12 +92,12 @@ Once installed, Crontinel automatically captures scheduler events and sends them
 
 For each monitored application, you'll see:
 
-- **Recent cron runs** — a timestamped log of every scheduled task execution with status (completed, failed, late)
-- **Missed run alerts** — notification when a task was scheduled but never started
-- **Duration tracking** — a task that normally takes 2 seconds taking 30 seconds is a signal worth investigating
-- **Horizon status** — if you're using Laravel Horizon, worker status and failed job counts
+- **Recent cron runs** - a timestamped log of every scheduled task execution with status (completed, failed, late)
+- **Missed run alerts** - notification when a task was scheduled but never started
+- **Duration tracking** - a task that normally takes 2 seconds taking 30 seconds is a signal worth investigating
+- **Horizon status** - if you're using Laravel Horizon, worker status and failed job counts
 
-Alerts can be sent to Slack, email, PagerDuty, or a generic webhook — whatever your team already uses.
+Alerts can be sent to Slack, email, PagerDuty, or a generic webhook - whatever your team already uses.
 
 ## Do you need cron monitoring?
 

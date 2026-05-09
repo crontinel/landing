@@ -4,7 +4,7 @@ description: "A job that fails and retries forever burns queue workers without p
 date: 2026-04-23
 ---
 
-Laravel's queue system retries failed jobs automatically. That's useful when failures are transient — a momentary API timeout, a brief database lock. But when a job fails consistently across retries, the retry mechanism creates a new problem: the job consumes worker slots on every attempt without making progress, and failed jobs accumulate in the `failed_jobs` table.
+Laravel's queue system retries failed jobs automatically. That's useful when failures are transient - a momentary API timeout, a brief database lock. But when a job fails consistently across retries, the retry mechanism creates a new problem: the job consumes worker slots on every attempt without making progress, and failed jobs accumulate in the `failed_jobs` table.
 
 Crontinel monitors failed job rates and queue state so you catch retry loops before they degrade queue throughput across your entire application.
 
@@ -35,13 +35,13 @@ Timeline without monitoring:
 - **T+90 to T+180**: 50 more `ProcessWebhookPayload` jobs dispatched from the webhook endpoint fail in the same pattern.
 - **T+3h**: 500 failed jobs in `failed_jobs`. The queue workers that should process `invoices` and `notifications` have been busy retrying `webhooks` jobs.
 
-The problem becomes visible when customers complain that emails aren't sending — not when the underlying API token expired.
+The problem becomes visible when customers complain that emails aren't sending - not when the underlying API token expired.
 
 ## Metrics Crontinel tracks
 
 ### Failed jobs per minute
 
-Crontinel reads the failed job count from Redis at each polling interval and calculates the rate of change. A sudden spike in the failed job rate — even before the queue depth rises significantly — indicates a new class of job is failing.
+Crontinel reads the failed job count from Redis at each polling interval and calculates the rate of change. A sudden spike in the failed job rate - even before the queue depth rises significantly - indicates a new class of job is failing.
 
 Set a threshold based on your normal failure rate:
 
@@ -59,7 +59,7 @@ CRONTINEL_OLDEST_JOB_MINUTES_DEFAULT=15  # alert if oldest job is >15 min old
 
 ### Queue depth per queue
 
-If you segment work across named queues, a retry loop in one queue doesn't necessarily raise depth in others — unless workers are shared. Crontinel monitors depth per queue so you can see which queue is affected.
+If you segment work across named queues, a retry loop in one queue doesn't necessarily raise depth in others - unless workers are shared. Crontinel monitors depth per queue so you can see which queue is affected.
 
 ```bash
 CRONTINEL_QUEUE_DEPTH_WEBHOOKS=100

@@ -1,5 +1,5 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-05-08 02:30 UTC — updated after first SEO pipeline run
+Auto-generated: 2026-05-08 02:30 UTC - updated after first SEO pipeline run
 
 ## Run Summary (2026-05-08)
 
@@ -10,7 +10,7 @@ Auto-generated: 2026-05-08 02:30 UTC — updated after first SEO pipeline run
 - monitor-telescope-prune.mdx
 - monitor-telescope-clear.mdx
 
-**GSC:** URLs confirmed in sitemap.xml, submitted via markAsReviewed. URL inspection API returned 403 — pages not yet live (Cloudflare Pages rebuild pending). Sitemap discovery will handle it.
+**GSC:** URLs confirmed in sitemap.xml, submitted via markAsReviewed. URL inspection API returned 403 - pages not yet live (Cloudflare Pages rebuild pending). Sitemap discovery will handle it.
 
 **Internal links:** Added cross-links from monitor-db-backup.mdx, monitor-horizon-purge.mdx, and all 5 new articles to related content.
 
@@ -21,7 +21,7 @@ Auto-generated: 2026-05-08 02:30 UTC — updated after first SEO pipeline run
 - Problem-first structure: hook with the failure, then technical explanation, then monitoring solution
 
 ## Improvement Needed
-- GSC URL inspection API requires live pages — sitemap submission is the reliable fallback when Cloudflare Pages hasn't rebuilt yet
+- GSC URL inspection API requires live pages - sitemap submission is the reliable fallback when Cloudflare Pages hasn't rebuilt yet
 
 ## Content Rules (accumulated learning)
 - Keyword must appear in H1, first paragraph, and at least one H2

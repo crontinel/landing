@@ -6,7 +6,7 @@ date: 2026-05-08
 
 You're debugging a production issue. You open Telescope and type the job ID from your error logs. Nothing appears. You search for the request ID. Nothing. You check the entries table directly. The job ran. The request was logged. The entry exists, but it's not showing up in the dashboard because Telescope truncated the display at 50 entries per page and you're on page 47. You scroll. It loads. The entry is there. Everything is fine.
 
-Except: on a different day, you search for an entry and it genuinely isn't there. It should be — the job ran, the error fired. But Telescope shows nothing. You check the table directly. The entry exists. It's a `live` entry, captured by Telescope's real-time broadcaster. On this server, the WebSocket connection dropped three days ago and nobody noticed.
+Except: on a different day, you search for an entry and it genuinely isn't there. It should be - the job ran, the error fired. But Telescope shows nothing. You check the table directly. The entry exists. It's a `live` entry, captured by Telescope's real-time broadcaster. On this server, the WebSocket connection dropped three days ago and nobody noticed.
 
 There's a less obvious Telescope failure mode: the data is in the database, but Telescope can't reach it.
 
@@ -48,7 +48,7 @@ You would use `telescope:clear` in these situations:
 
 ## Common Failure Modes
 
-**Clear runs accidentally in production.** If `telescope:clear` is in your deploy pipeline or accidentally scheduled in production instead of development, you lose all historical Telescope data. Unlike `telescope:prune`, there's no age filter — it wipes everything. The command has no confirmation prompt when run non-interactively. If your deploy script calls `php artisan telescope:clear` with the wrong environment variable, your production history is gone.
+**Clear runs accidentally in production.** If `telescope:clear` is in your deploy pipeline or accidentally scheduled in production instead of development, you lose all historical Telescope data. Unlike `telescope:prune`, there's no age filter - it wipes everything. The command has no confirmation prompt when run non-interactively. If your deploy script calls `php artisan telescope:clear` with the wrong environment variable, your production history is gone.
 
 **Clear while a developer has Telescope open.** The Telescope dashboard maintains a live connection via Horizon's broadcast system. When `telescope:clear` truncates the tables, the live entries vanish from the dashboard in real time. If a developer is actively debugging a live issue, they lose the real-time view of what's happening.
 
@@ -58,7 +58,7 @@ You would use `telescope:clear` in these situations:
 
 ## Building Visibility Into Telescope Data
 
-The health check for Telescope is not about whether entries exist — it's about whether the database and the live feed are both functioning:
+The health check for Telescope is not about whether entries exist - it's about whether the database and the live feed are both functioning:
 
 ```php
 Schedule::call(function () {
@@ -77,10 +77,10 @@ Schedule::call(function () {
     ]);
 
     // Alert if no new entries in 5 minutes on a busy app
-    // (but be careful — not all apps generate entries constantly)
+    // (but be careful - not all apps generate entries constantly)
     // This is most useful on apps with steady request volume
     if ($recentCount === 0 && now()->hour >= 9 && now()->hour <= 17) {
-        // Daytime hours with no entries — might indicate Telescope stopped capturing
+        // Daytime hours with no entries - might indicate Telescope stopped capturing
         Http::get(env('CRONTINEL_TELESCOPE_ENDPOINT'));
     }
 })->everyFiveMinutes();
@@ -94,7 +94,7 @@ Schedule::call(function () {
 | Speed | Instantaneous (truncate) | Slow (chunked delete) |
 | Disk space | Frees immediately | Frees progressively |
 | Use case | Emergency cleanup, CI, dev | Continuous maintenance |
-| Risk | High — no undo | Low — old entries only |
+| Risk | High - no undo | Low - old entries only |
 
 In production, use `telescope:prune` on a schedule. Use `telescope:clear` manually and rarely.
 
@@ -110,7 +110,7 @@ Schedule::command('telescope:prune', ['--hours' => 24])
     ->onOneServer();
 ```
 
-Monitor Telescope's overall health — whether it's receiving and storing entries at all:
+Monitor Telescope's overall health - whether it's receiving and storing entries at all:
 
 ```php
 Schedule::call(function () {

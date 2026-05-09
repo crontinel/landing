@@ -129,7 +129,7 @@ Schedule::call(function () {
         ->count();
 
     // If prune ran successfully in last 15 min, entries should be fresh
-    // No action needed for Crontinel here — the prune command itself
+    // No action needed for Crontinel here - the prune command itself
     // can call the endpoint on success
 })->everyFifteenMinutes();
 ```
