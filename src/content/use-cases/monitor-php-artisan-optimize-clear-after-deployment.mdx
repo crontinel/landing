@@ -1,0 +1,111 @@
+---
+title: "How to Monitor php artisan optimize:clear After Deployment"
+description: "Make php artisan optimize:clear visible after Laravel deployments so stale config, route, view, and event cache problems do not survive unnoticed."
+date: 2026-05-11
+canonical: "https://crontinel.com/use-cases/monitor-php-artisan-optimize-clear-after-deployment/"
+---
+
+`php artisan optimize:clear after deployment` is usually treated as cleanup. The deploy script runs it, the terminal scrolls past, and everyone assumes the old cache is gone. Then production keeps reading a stale config value, a removed route still appears cached on one server, or a view compiled from the previous release survives because the command failed on a single node.
+
+The dangerous part is that `optimize:clear` often fails in the least visible place: inside a deploy hook, under a non-interactive shell, with stderr swallowed by the deployment tool.
+
+## How optimize:clear works
+
+`optimize:clear` removes Laravel's cached bootstrap and compiled artifacts:
+
+```bash
+php artisan optimize:clear
+```
+
+Depending on the Laravel version and installed packages, it clears cached config, routes, events, views, compiled services, and package discovery files. It is the broad reset button before rebuilding production cache with commands like `config:cache`, `route:cache`, `view:cache`, and `event:cache`.
+
+A common deploy sequence looks like this:
+
+```bash
+php artisan down --render="errors::503"
+git pull origin main
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan optimize:clear
+php artisan optimize
+php artisan up
+```
+
+That sequence only works if `optimize:clear` really runs on the release that will serve traffic, as the same user that owns the cache files.
+
+## Common failure modes
+
+**The command runs before the release symlink changes.** Some zero-downtime deploy tools run hooks in the old release directory. `optimize:clear` succeeds, but it clears yesterday's cache files.
+
+**Permissions changed during deploy.** `bootstrap/cache` and `storage/framework/views` may be writable by the web user but not by the deploy user. The command fails to delete files, then the app keeps using stale artifacts.
+
+**One server misses the hook.** In a multi-node setup, node A clears cache and node B does not. Users see intermittent behavior depending on which server handles the request.
+
+**The deploy tool ignores the exit code.** A shell script that does not use `set -e` can let the deployment continue after `optimize:clear` exits non-zero.
+
+## Building visibility into optimize:clear
+
+Make the deploy hook fail loudly and ping only after success:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www/current
+START=$(date +%s)
+php artisan optimize:clear
+
+curl -fsS "https://crontinel.example/ping/optimize-clear?host=$(hostname)&duration=$(( $(date +%s) - START ))"
+```
+
+If the `curl` never arrives, Crontinel alerts. That catches both command failures and deploy hooks that never ran.
+
+You can also verify that cache files changed after the clear:
+
+```bash
+php artisan optimize:clear
+
+if [ -f bootstrap/cache/config.php ]; then
+  echo "config cache still exists after optimize:clear"
+  exit 1
+fi
+
+if [ -f bootstrap/cache/routes-v7.php ]; then
+  echo "route cache still exists after optimize:clear"
+  exit 1
+fi
+```
+
+Laravel file names can differ between versions, so keep this check aligned with the cache files your app actually creates.
+
+## Detecting optimize:clear failures
+
+A heartbeat tells you the hook completed. A post-deploy application check tells you whether the app is using fresh cache.
+
+Add a small internal endpoint that returns the current release ID and cache timestamps:
+
+```php
+Route::get('/_deploy-cache', function () {
+    return response()->json([
+        'release' => trim(@file_get_contents(base_path('REVISION'))),
+        'config_cache_mtime' => file_exists(base_path('bootstrap/cache/config.php'))
+            ? filemtime(base_path('bootstrap/cache/config.php'))
+            : null,
+        'host' => gethostname(),
+    ]);
+})->middleware('auth.basic');
+```
+
+After deployment, check every node. If one server reports an old release or an old cache timestamp, remove it from rotation and rerun the clear step there.
+
+## Quick setup with Crontinel
+
+Create one Crontinel monitor for the deploy hook and set it to expect a ping during deployments. If you deploy daily, a 24 hour interval works. If deployments are manual and irregular, use an on-demand monitor that your deploy pipeline starts and completes.
+
+For multi-server Laravel apps, include the hostname in the ping and create one monitor per server or one monitor that records expected hosts. A single success ping from node A should not hide a failed `optimize:clear` on node B.
+
+## See also
+
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
+- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache)

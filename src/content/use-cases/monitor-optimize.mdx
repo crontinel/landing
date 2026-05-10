@@ -100,3 +100,9 @@ Route::get('/health/bootstrap', function () {
 This endpoint is fast because it loads the cached config directly, bypassing the full Laravel bootstrap. If it returns anything other than 200, your cached config is broken.
 
 The `php artisan optimize` command is one of those commands that is invisible when it works and catastrophic when it fails. Monitoring the cache file existence, size, and modification time, plus a health check that exercises the cached config, covers the most common failure modes.
+
+## See also
+
+- [Monitoring php artisan optimize:clear after deployments](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
+- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache)

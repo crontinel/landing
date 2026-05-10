@@ -1,0 +1,95 @@
+---
+title: "How to Monitor Laravel cache:clear Cron Job Failures"
+description: "Learn why a Laravel cache:clear cron job fails in production, how to catch missed scheduled runs, and how to alert before stale cache turns into a user-facing outage."
+date: 2026-05-11
+canonical: "https://crontinel.com/use-cases/monitor-laravel-cache-clear-cron-job-failed/"
+---
+
+A Laravel `cache:clear` cron job usually gets added after one bad deploy. Someone clears stale application cache manually, the site recovers, and the team schedules the command so it will never happen again. Then the scheduled command fails six weeks later because the PHP path changed, the cache store is unavailable, or the cron user cannot write to storage. Nobody notices until the same stale value breaks production again.
+
+A `Laravel cache:clear cron job failed` incident is frustrating because the command feels simple. It is just clearing cache. But in production, that one command touches your cache driver, filesystem permissions, scheduler, deploy user, and sometimes Redis itself.
+
+## How cache:clear actually works
+
+`php artisan cache:clear` flushes the default cache store configured in `config/cache.php`:
+
+```bash
+php artisan cache:clear
+```
+
+If your application uses Redis, Laravel sends a flush command for the configured cache connection. If you use the file driver, Laravel deletes files under `storage/framework/cache/data`. If you use Memcached, DynamoDB, or a custom store, the command goes through that driver instead.
+
+That means the command can pass locally and fail in production for reasons that have nothing to do with Laravel code. The production cron user may not have the same `.env` values as the web user. Redis may require TLS or a password. The file cache directory may be owned by `www-data` while cron runs as `deploy`.
+
+## Common failure modes
+
+**Wrong PHP or Artisan path.** Cron often runs with a smaller PATH than your shell. `php artisan cache:clear` may work over SSH but fail from cron because `php` points to the wrong version or because cron starts in `/` instead of the project directory.
+
+**Cache store unavailable.** If Redis is restarting, the command exits with a connection error. If your cron wrapper discards stderr, the failure becomes invisible.
+
+**Permission errors on file cache.** The file cache driver needs access to `storage/framework/cache`. A deploy that changes ownership can make `cache:clear` fail even though the app still serves requests.
+
+**Clearing the wrong environment.** A cron entry that does not load the right `.env` file can clear the local or staging cache while production keeps serving stale values.
+
+## Building visibility into cache:clear
+
+Wrap the command so you capture the exit code, output, and runtime:
+
+```bash
+#!/usr/bin/env bash
+cd /var/www/app || exit 1
+START=$(date +%s)
+
+php artisan cache:clear 2>&1
+STATUS=$?
+DURATION=$(( $(date +%s) - START ))
+
+if [ "$STATUS" -eq 0 ]; then
+  curl -fsS "https://crontinel.example/ping/cache-clear/success?duration=${DURATION}"
+else
+  curl -fsS "https://crontinel.example/ping/cache-clear/fail?status=${STATUS}"
+  exit "$STATUS"
+fi
+```
+
+For Laravel Scheduler, keep the command in `routes/console.php` and add a success hook:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Http;
+
+Schedule::command('cache:clear')
+    ->dailyAt('03:10')
+    ->onSuccess(fn () => Http::get(config('services.crontinel.cache_clear')))
+    ->onFailure(fn () => Http::get(config('services.crontinel.cache_clear_failed')));
+```
+
+The important part is not the ping itself. It is the absence of a ping. If the job never starts, exits early, or hangs before reaching `onSuccess`, Crontinel can alert because the expected heartbeat did not arrive.
+
+## Detecting when cache:clear fails
+
+Monitor both outcomes: failure pings and missed success pings. A failure ping catches non-zero exits. A missed heartbeat catches the worse cases, like cron not running, the scheduler being disabled, or a deploy replacing the crontab.
+
+Also log the cache driver and environment at runtime:
+
+```php
+logger()->info('cache clear monitor', [
+    'store' => config('cache.default'),
+    'env' => app()->environment(),
+    'server' => gethostname(),
+]);
+```
+
+That one log line makes it much easier to tell whether the job cleared the right cache on the right server.
+
+## Quick setup with Crontinel
+
+Create a Crontinel monitor for the expected schedule, then ping it only after `cache:clear` succeeds. Set the grace period a little longer than the slowest normal run. If the command usually finishes in 5 seconds, a 5 minute grace period is enough.
+
+Use separate monitors for deploy-time cache clears and scheduled maintenance cache clears. They fail for different reasons, and you will want different alert messages when one goes quiet.
+
+## See also
+
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
+- [Monitoring php artisan optimize:clear after deployments](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)

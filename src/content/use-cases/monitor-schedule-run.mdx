@@ -79,3 +79,9 @@ This command, available in Laravel 10 and later, prints every registered task wi
 For ongoing confidence, pair `schedule:list` with a post-deploy step in your CI pipeline that asserts the expected number of tasks are registered. A missing `use` statement or a syntax error in your console routes file can silently prevent task registration without causing a build failure.
 
 Production scheduler monitoring isn't about watching logs after something breaks. It's about knowing within minutes that `schedule:run` stopped, before your users tell you.
+
+## See also
+
+- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+- [How to monitor Laravel cache:prune-stale-tags in production](/use-cases/monitor-laravel-cache-prune-stale-tags)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)

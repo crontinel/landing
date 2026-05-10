@@ -1,0 +1,96 @@
+---
+title: "How to Monitor Laravel cache:prune-stale-tags in Production"
+description: "Monitor Laravel's cache:prune-stale-tags command so stale tagged cache metadata does not build up silently when the scheduler, cache driver, or cron job fails."
+date: 2026-05-11
+canonical: "https://crontinel.com/use-cases/monitor-laravel-cache-prune-stale-tags/"
+---
+
+Laravel's `cache:prune-stale-tags` command is easy to forget because the site keeps working when it stops. Tagged cache entries still read and write. Redis still responds. Users do not see an immediate error. The cost shows up later, when stale tag metadata keeps growing and cache operations get slower or harder to reason about.
+
+That is why `how to monitor Laravel cache:prune-stale-tags command` is a production question, not just a scheduling question. You need to know the command ran, finished, and kept up with the amount of tagged cache your app creates.
+
+## How cache:prune-stale-tags works
+
+Laravel supports cache tags for stores such as Redis and Memcached. Tags let you group cached values and flush a group without flushing the whole cache:
+
+```php
+Cache::tags(['tenant:42', 'reports'])->put('summary', $data, now()->addHour());
+Cache::tags(['tenant:42'])->flush();
+```
+
+Over time, tag metadata can include references to cache entries that have expired or been deleted. The prune command removes stale tag references:
+
+```bash
+php artisan cache:prune-stale-tags
+```
+
+This is a maintenance command. It does not replace `cache:clear`, and it does not mean your application cache is unhealthy. It keeps tag bookkeeping from drifting forever.
+
+If your app does not use cache tags, the command may not matter. If you use tags heavily for tenants, reports, permissions, feature flags, or API responses, it deserves monitoring.
+
+## Common failure modes
+
+**The command is never scheduled.** Teams add tagged cache logic but never add the prune command to Laravel Scheduler. The app works for months, then Redis memory or tag lookup behavior becomes suspicious.
+
+**The scheduler stops running.** `cache:prune-stale-tags` is usually hidden behind `schedule:run`. If cron stops invoking the scheduler, this command fails along with every other scheduled task.
+
+**The cache driver differs by environment.** A staging app might use file cache while production uses Redis. The command appears harmless in staging but exercises real Redis tag data in production.
+
+**The command takes longer as stale data grows.** If pruning falls behind for long enough, the next successful run can take much longer than usual. A short cron timeout or process manager limit can kill it halfway through.
+
+## Building visibility into cache pruning
+
+Schedule the command explicitly and prevent overlap:
+
+```php
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Http;
+
+Schedule::command('cache:prune-stale-tags')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->onSuccess(function () {
+        Http::get(config('services.crontinel.cache_prune'));
+    })
+    ->onFailure(function () {
+        Http::get(config('services.crontinel.cache_prune_failed'));
+    });
+```
+
+The `withoutOverlapping()` call matters when pruning gets slow. Without it, a stuck prune can stack up behind the next hourly run. With it, you can detect a missing heartbeat instead of creating more work.
+
+For a more useful signal, log duration and cache driver:
+
+```php
+$started = microtime(true);
+Artisan::call('cache:prune-stale-tags');
+
+Http::get(config('services.crontinel.cache_prune'), [
+    'duration_ms' => (int) ((microtime(true) - $started) * 1000),
+    'store' => config('cache.default'),
+    'host' => gethostname(),
+]);
+```
+
+A sudden jump from 300 ms to 45 seconds tells you pruning is falling behind before it becomes a larger Redis problem.
+
+## Detecting failed cache:prune-stale-tags runs
+
+Use two checks. First, alert when the command exits with a non-zero status. That catches Redis connection errors, PHP fatal errors, and missing configuration.
+
+Second, alert when the success heartbeat is late. This catches the cases where the command never started: cron was removed, `schedule:run` stopped, the deploy skipped scheduler setup, or a previous overlapping run held the lock.
+
+If you run multiple app servers, use `onOneServer()` and include the hostname in the ping. That gives you one expected heartbeat instead of one heartbeat per node.
+
+## Quick setup with Crontinel
+
+Create an hourly Crontinel monitor named `cache:prune-stale-tags`. Set the grace period based on your normal prune duration. For most apps, 10 minutes is generous. For high-volume tagged cache, start with 30 minutes, then tighten it after you have a week of runtime data.
+
+Do not monitor this command by checking whether Redis is online. Redis can be perfectly healthy while stale tag metadata piles up. Monitor the maintenance command itself.
+
+## See also
+
+- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
