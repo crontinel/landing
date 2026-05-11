@@ -1,8 +1,5 @@
 {
   "pending": [
-    "cache-clear",
-    "cache-prune",
-    "optimize-clear",
     "route-cache",
     "route-clear",
     "config-cache",
@@ -53,7 +50,10 @@
     "scout-flush",
     "migrate",
     "optimize",
-    "event-cache"
+    "event-cache",
+    "cache-clear",
+    "cache-prune",
+    "optimize-clear"
   ],
   "in_progress": []
 }
