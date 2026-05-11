@@ -1,6 +1,5 @@
 {
   "pending": [
-    "route-cache",
     "route-clear",
     "config-cache",
     "config-clear",
@@ -26,6 +25,7 @@
     "inspire"
   ],
   "completed": [
+    "route-cache",
     "schedule-run",
     "queue-work",
     "queue-restart",
