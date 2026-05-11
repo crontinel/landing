@@ -1,10 +1,9 @@
 {
-  "pending": [
+  "pending": [],
+  "submitted": [
     "https://crontinel.com/use-cases/monitor-laravel-cache-clear-cron-job-failed",
     "https://crontinel.com/use-cases/monitor-laravel-cache-prune-stale-tags",
-    "https://crontinel.com/use-cases/monitor-php-artisan-optimize-clear-after-deployment"
-  ],
-  "submitted": [
+    "https://crontinel.com/use-cases/monitor-php-artisan-optimize-clear-after-deployment",
     "https://crontinel.com/blog/how-to-set-up-laravel-cron-monitoring",
     "https://crontinel.com/vs/crontinel-vs-cronitor",
     "https://crontinel.com/blog/redis-connection-lost-horizon",
