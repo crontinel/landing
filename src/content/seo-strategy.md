@@ -9,12 +9,12 @@ Auto-generated: 2026-05-12 02:20 UTC - updated after second SEO pipeline run
 - 7517 bytes, ~730 words body, 4 failure modes, 2 code samples
 
 **GSC findings:**
-- Pages ARE indexed (GSC URL Inspection shows "Submitted and indexed" for blog pages)
-- The "0 indexed" in sitemap list is a reporting lag, not actual indexing status
-- Canonical URLs resolve correctly (no trailing slash, canonical = user canonical)
+- Pages are indexed once Google crawls the canonical slash URLs from the sitemap
+- The prior "0 indexed" sitemap view was a lagging report, not the actual page coverage state
+- Canonical URLs should normalize to trailing slash for this deploy target
 - robots.txt allows all crawlers (no blocking issues)
 
-**Critical finding:** All trailing-slash URLs (`/blog/.../`) return noindex meta because Cloudflare Pages SSR mode generates redirect pages for trailing slashes. The non-trailing-slash canonical URLs (which Google uses) return 200 and are indexed. This is NOT a bug - it's the expected Cloudflare Pages SSR behavior. The non-trailing-slash versions are what matters for SEO and they are indexed.
+**Critical finding:** The site had a slash-policy mismatch: no-slash requests were getting redirected to slash, while some slash URLs were serving redirect/noindex artifacts. The fix is to align Astro, the sitemap, and canonical URLs on trailing slash so Google lands on the real content pages instead of redirect pages.
 
 **GitHub auth blocked:** Cannot push to main - GitHub token is invalid in osxkeychain. CI deploy won't trigger. Commit is local only. Harun needs to re-authenticate `gh` or push manually.
 

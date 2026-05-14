@@ -3,6 +3,8 @@ import { getCollection } from 'astro:content';
 export async function GET() {
   const site = 'https://crontinel.com';
 
+  const toUrl = (path: string) => (path === '/' ? '/' : path.endsWith('/') ? path : `${path}/`);
+
   const staticPages = [
     { url: '/', priority: '1.0', changefreq: 'weekly' },
     { url: '/pricing', priority: '0.9', changefreq: 'monthly' },
@@ -35,7 +37,7 @@ export async function GET() {
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${allPages.map((page) => `  <url>
-    <loc>${site}${page.url}</loc>
+    <loc>${site}${toUrl(page.url)}</loc>
     <lastmod>${today}</lastmod>
     <changefreq>${page.changefreq}</changefreq>
     <priority>${page.priority}</priority>
