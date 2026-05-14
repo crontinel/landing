@@ -1,6 +1,6 @@
 ---
 title: "Laravel Cron and Queue Monitoring Tools: What Each One Actually Does"
-description: "A honest breakdown of every Laravel cron and queue monitoring tool in 2025: ping monitors, APM tools, and purpose-built options. What each one monitors, what it misses, and when to use it."
+description: "An honest breakdown of every Laravel cron and queue monitoring tool in 2025: ping monitors, APM tools, Laravel Forge, and purpose-built options. What each one monitors, what it misses, and when to use it."
 date: 2026-04-06
 tags: ["laravel", "monitoring"]
 ---
@@ -89,9 +89,30 @@ $schedule->command('backups:run')
 
 ### Laravel Forge Heartbeats
 
-**What it monitors:** Simple HTTP ping monitoring for URLs you define. Forge checks whether a URL returns a 200 status code on a configurable interval. You can create a heartbeat URL in your application that checks basic dependencies (database reachable, Redis available) and Forge pings it.
+**What it monitors:** Simple HTTP ping monitoring for URLs you define. Forge checks whether a URL returns a 200 status code on a configurable interval. You can create a heartbeat URL in your application that checks basic dependencies such as database reachability or Redis connectivity, and Forge pings it.
 
 **What it misses:** Everything queue and cron specific. Forge Heartbeats don't know about Horizon, queue depths, or scheduled task execution. A heartbeat URL that checks Redis connectivity will succeed even when Horizon is paused or the queue is backed up with 10,000 pending jobs.
+
+If you searched for Laravel Forge queue monitoring, this is the practical distinction: Forge can tell you whether a health endpoint responds, but it does not inspect `horizon:status`, worker throughput, failed jobs, or queue depth by itself. To monitor queues from Forge, you need to expose your own health endpoint that checks Redis and Horizon state, then make Forge ping that endpoint. That works for a basic "is the queue system alive?" check, but it still will not show which queue is stuck or whether a scheduled job was skipped.
+
+A minimal custom endpoint usually checks three things:
+
+```php
+use Illuminate\Support\Facades\Redis;
+use Laravel\Horizon\Horizon;
+
+Route::get('/health/queues', function () {
+    $waiting = Redis::llen('queues:default');
+    $horizonStatus = Horizon::status();
+
+    abort_if($horizonStatus !== 'running', 503, 'Horizon is not running');
+    abort_if($waiting > 500, 503, 'Default queue is backed up');
+
+    return response()->json(['ok' => true]);
+});
+```
+
+That endpoint gives Forge something useful to ping. For a deeper comparison of the tradeoffs, see the [Crontinel vs Forge Heartbeats](/vs/crontinel-vs-forge-heartbeats/) breakdown.
 
 **Best use case:** Basic infrastructure health checks for teams already using Laravel Forge. Good as a first line of defense against complete server or application outages. Not a standalone solution for background job monitoring.
 
