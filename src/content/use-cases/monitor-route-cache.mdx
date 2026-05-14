@@ -1,0 +1,96 @@
+---
+title: "Monitoring route:cache in Laravel Production"
+description: "Watch the Laravel route:cache command in production to catch stale routes, silent failures, and deployment issues before they take your site down."
+date: 2026-05-12
+---
+
+Your deploy script runs successfully. The new code is on every server. Your CI pipeline shows green. Then the support tickets start: users getting 404s on pages that should exist, API endpoints that worked in staging now returning routing errors, old URLs that were removed still resolving. The problem is that `php artisan route:cache` ran before the new routes were registered, and the cached file is serving stale routes to every request. You spend the next hour diagnosing why the routes look correct in the code but are wrong in production.
+
+This is the most common way `route:cache` breaks production. It runs without errors, the exit code is zero, and nothing looks wrong until users start hitting the wrong endpoints.
+
+## How route:cache Actually Works
+
+Laravel's router compiles every route definition, including route groups, middleware assignments, name prefixes, and controller references, into a single serialized PHP file stored at `bootstrap/cache/routes-v7.php`. The file name includes a version number that changes with each Laravel upgrade, so `route:clear` always knows which file to delete.
+
+When a request hits your application, Laravel loads this cached file instead of parsing `routes/web.php` and `routes/api.php` on every request. This is significantly faster in high-traffic production environments because route matching happens entirely in PHP, without any file I/O or regex compilation.
+
+The catch is that the cache captures a snapshot of your routes at the moment `route:cache` ran. If you added a new route, renamed a controller, or changed a route parameter pattern after the cache was built, those changes are invisible until you rebuild the cache. Named routes are also frozen into the cache, so any conflict or duplication that would only surface at runtime is silently baked into the cached file.
+
+## Common Failure Modes
+
+**Stale cache after partial deployments.** In a rolling deployment where servers update one at a time, a server that has not yet received the new code still runs `route:cache` with the old routes. Until all nodes update, some requests route through the stale cache and others through the new code, causing inconsistent behavior that is difficult to reproduce and debug.
+
+**Named route conflicts hide in the cache.** If two routes share the same name, Laravel normally throws an exception at runtime. But `route:cache` skips this validation. The command succeeds, the cache file is written, and the conflict only surfaces when a user tries to generate a URL with `route()` and gets an ambiguous match exception. This happens more often than expected in large teams where route naming conventions are not enforced.
+
+**Route:cache fails on syntax errors but the deploy continues.** If a route definition has a PHP syntax error or references a non-existent controller, `route:cache` exits with an error. Most deploy scripts handle this correctly, but some tools that wrap artisan commands swallow the error or continue anyway, leaving you with no route cache or a partial cache from a previous successful run.
+
+**Shared hosting and permission issues.** The `bootstrap/cache` directory must be writable by the web server user. On shared hosting environments or when deploying as a different user than the web server runs under, `route:cache` can fail silently because the file is created but then truncated or permissions prevent it from being read.
+
+## Building Visibility Into route:cache
+
+The most direct approach is a deploy hook that pings your monitoring system after `route:cache` runs successfully:
+
+```php
+// In your deploy script or CI pipeline
+php artisan route:cache
+
+curl -fsS "https://your-crontinel-endpoint/ping/route-cache?host=$(hostname)&time=$(date +%s)"
+```
+
+If this ping does not arrive within a few minutes of your deploy notification, the cache command did not run on that server. Set up a Crontinel monitor that expects this ping on a schedule that matches your deployment frequency.
+
+You can also monitor the cache file directly. After `route:cache` runs, the file `bootstrap/cache/routes-v7.php` should exist and its modification time should be recent. A check that asserts the file was created or updated within the expected deploy window catches cases where the command ran but was interrupted or produced an empty file.
+
+For Laravel apps with health check endpoints, add a route that verifies the cached routes include expected endpoints:
+
+```php
+Route::get('/health/routes', function () {
+    $routeFile = base_path('bootstrap/cache/routes-v7.php');
+    if (!file_exists($routeFile)) {
+        return response()->json(['status' => 'error', 'reason' => 'no_route_cache'], 503);
+    }
+    $mtime = filemtime($routeFile);
+    $expectedAge = 3600; // routes older than 1 hour are suspicious
+    if (time() - $mtime > $expectedAge) {
+        return response()->json(['status' => 'warning', 'route_cache_age' => $mtime]);
+    }
+    return response()->json(['status' => 'ok', 'route_cache_age' => $mtime]);
+})->middleware('auth.basic');
+```
+
+This catches stale cache before users report it.
+
+## Detecting When route:cache Fails
+
+The fastest detection is an automated health check that verifies the route cache file exists, is not empty, and was recently modified. Pair this with a post-deploy verification that explicitly calls `php artisan route:list` and checks that expected routes are present.
+
+Crontinel monitors the absence of a ping, so if your deploy hook should have triggered a `route:cache` ping but it never arrived, you get an alert within minutes. This covers all failure modes: the command did not run, it failed with an error, or it ran on the wrong server in a multi-node setup.
+
+You can also add a scheduled task that periodically verifies the route cache is fresh:
+
+```php
+// In routes/console.php
+Schedule::call(function () {
+    $routeFile = base_path('bootstrap/cache/routes-v7.php');
+    if (!file_exists($routeFile) || (time() - filemtime($routeFile)) > 7200) {
+        Http::get('https://your-crontinel-endpoint/alert/stale-route-cache');
+    }
+})->everyFiveMinutes();
+```
+
+This catches cases where a deploy did not include `route:cache` or where the cache was cleared but never rebuilt.
+
+## Quick Setup with Crontinel
+
+Create a Crontinel monitor that expects a ping from your deploy script after `route:cache` runs. If you deploy multiple times per day, set the monitor to expect pings on that schedule. If deployments are irregular, use an on-demand monitor that your CI pipeline activates.
+
+The monitor should fire an alert if no ping arrives within 30 minutes of your deploy completion. That catches the exact scenario where the command silently failed, the deploy script continued, and stale routes are now live.
+
+Add your monitoring endpoint URL to your deploy script, and treat a missing ping as a deployment failure that requires immediate investigation.
+
+## See also
+
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
+- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache)
+- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)

@@ -4,7 +4,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const url = new URL(context.request.url);
 
   // Redirect HTTP to HTTPS (except localhost dev)
-  if (url.protocol === 'http:' && url.hostname !== 'localhost') {
+  if (url.protocol === 'http:' && !['localhost', '127.0.0.1', '::1'].includes(url.hostname)) {
     url.protocol = 'https:';
     return Response.redirect(url.toString(), 301);
   }
@@ -15,10 +15,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return Response.redirect(url.toString(), 301);
   }
 
-  // Strip trailing slash (canonical: no trailing slash, except root /)
+  // Keep canonical URLs on slash form to match the static site output and sitemap.
   if (url.pathname !== '/' && url.pathname.endsWith('/')) {
-    url.pathname = url.pathname.slice(0, -1);
-    return Response.redirect(url.toString(), 301);
+    return next();
   }
 
   // Redirect /docs to docs.crontinel.com
