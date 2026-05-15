@@ -22,8 +22,8 @@ const breadcrumb = {
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
-    { "@type": "ListItem", "position": 2, "name": "Comparisons", "item": "https://crontinel.com/vs" },
-    { "@type": "ListItem", "position": 3, "name": page.data.title, "item": `https://crontinel.com/vs/${page.id}` }
+    { "@type": "ListItem", "position": 2, "name": "Comparisons", "item": "https://crontinel.com/vs/" },
+    { "@type": "ListItem", "position": 3, "name": page.data.title, "item": `https://crontinel.com/vs/${page.id}/` }
   ]
 };
 ---
@@ -37,7 +37,7 @@ const breadcrumb = {
   <Nav />
 
   <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">
-    <a href="/vs" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← All comparisons</a>
+    <a href="/vs/" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← All comparisons</a>
     <div class="inline-block text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-700 px-3 py-1 rounded-full mb-4">
       Crontinel vs {page.data.competitor}
     </div>
