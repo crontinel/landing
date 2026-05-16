@@ -27,7 +27,7 @@ jobs:
         run: npm run build
         env:
           PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}
-
+          PUBLIC_BING_VERIFICATION_CODE: ${{ secrets.PUBLIC_BING_VERIFICATION_CODE }}
       - name: Ensure .assetsignore excludes _worker.js
         run: |
           echo "_worker.js" > dist/.assetsignore
