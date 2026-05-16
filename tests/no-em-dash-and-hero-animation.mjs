@@ -38,6 +38,10 @@ if (offenders.length > 0) {
 }
 
 const index = readFileSync('src/pages/index.astro', 'utf8');
+const base = readFileSync('src/layouts/Base.astro', 'utf8');
+const deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
+const wrangler = readFileSync('wrangler.json', 'utf8');
+
 const scriptIncluded = /<script\b[^>]+src=["']\/src\/main\.js["'][^>]*><\/script>/.test(index);
 const heroHooks = [
   'id="hb-line"',
@@ -49,11 +53,21 @@ const heroHooks = [
 ];
 const missingHooks = heroHooks.filter((hook) => !index.includes(hook));
 
-if (!scriptIncluded || missingHooks.length > 0) {
-  console.error('Landing hero animation wiring is incomplete.');
+const gaChecks = [
+  ['Base layout reads the GA measurement ID', /PUBLIC_GA_MEASUREMENT_ID/.test(base)],
+  ['Base layout loads gtag.js', base.includes('https://www.googletagmanager.com/gtag/js?id=')],
+  ['Base layout gates GA on cookie consent', base.includes("localStorage.getItem('cookie_consent') === 'accepted'")],
+  ['Deploy workflow passes the GA secret', deployWorkflow.includes('PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}')],
+  ['Wrangler config contains the GA measurement ID', wrangler.includes('PUBLIC_GA_MEASUREMENT_ID')],
+];
+const gaFailures = gaChecks.filter(([, pass]) => !pass).map(([label]) => label);
+
+if (!scriptIncluded || missingHooks.length > 0 || gaFailures.length > 0) {
+  console.error('Landing homepage or analytics wiring is incomplete.');
   if (!scriptIncluded) console.error('Missing /src/main.js script include on the homepage.');
   if (missingHooks.length > 0) console.error(`Missing hero hooks: ${missingHooks.join(', ')}`);
+  if (gaFailures.length > 0) console.error(`GA readiness checks failed: ${gaFailures.join(', ')}`);
   process.exit(1);
 }
 
-console.log('Landing copy punctuation and hero animation wiring verified.');
+console.log('Landing copy punctuation, hero animation wiring, and GA4 wiring verified.');
