@@ -55,6 +55,7 @@ const missingHooks = heroHooks.filter((hook) => !index.includes(hook));
 
 const gaChecks = [
   ['Base layout reads the GA measurement ID', /PUBLIC_GA_MEASUREMENT_ID/.test(base)],
+  ['Base layout falls back to the provided GA measurement ID', base.includes("G-R9Z5Y2H6X4")],
   ['Base layout loads gtag.js', base.includes('https://www.googletagmanager.com/gtag/js?id=')],
   ['Base layout gates GA on cookie consent', base.includes("localStorage.getItem('cookie_consent') === 'accepted'")],
   ['Deploy workflow passes the GA secret', deployWorkflow.includes('PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}')],
