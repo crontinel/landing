@@ -41,6 +41,7 @@ const index = readFileSync('src/pages/index.astro', 'utf8');
 const base = readFileSync('src/layouts/Base.astro', 'utf8');
 const deployWorkflow = readFileSync('.github/workflows/deploy.yml', 'utf8');
 const wrangler = readFileSync('wrangler.json', 'utf8');
+const bingAuth = readFileSync('public/BingSiteAuth.xml', 'utf8');
 
 const scriptIncluded = /<script\b[^>]+src=["']\/src\/main\.js["'][^>]*><\/script>/.test(index);
 const heroHooks = [
@@ -62,6 +63,7 @@ const gaChecks = [
   ['Base layout emits the Bing meta tag', base.includes('meta name="msvalidate.01"')],
   ['Deploy workflow passes the GA secret', deployWorkflow.includes('PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}')],
   ['Deploy workflow passes the Bing secret', deployWorkflow.includes('PUBLIC_BING_VERIFICATION_CODE: ${{ secrets.PUBLIC_BING_VERIFICATION_CODE }}')],
+  ['Bing XML verification file is published at the site root', bingAuth.includes('F5CFE3E385F65BC74C13B13CE18388F7')],
   ['Wrangler config contains the GA measurement ID', wrangler.includes('PUBLIC_GA_MEASUREMENT_ID')],
   ['Wrangler config has the provided GA measurement ID', wrangler.includes('G-KJDPL4R7LZ')],
 ];
