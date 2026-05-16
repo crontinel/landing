@@ -58,7 +58,10 @@ const gaChecks = [
   ['Base layout falls back to the provided GA measurement ID', base.includes("G-KJDPL4R7LZ")],
   ['Base layout loads gtag.js', base.includes('https://www.googletagmanager.com/gtag/js?id=')],
   ['Base layout gates GA on cookie consent', base.includes("localStorage.getItem('cookie_consent') === 'accepted'")],
+  ['Base layout reads the Bing verification code', /PUBLIC_BING_VERIFICATION_CODE/.test(base)],
+  ['Base layout emits the Bing meta tag', base.includes('meta name="msvalidate.01"')],
   ['Deploy workflow passes the GA secret', deployWorkflow.includes('PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}')],
+  ['Deploy workflow passes the Bing secret', deployWorkflow.includes('PUBLIC_BING_VERIFICATION_CODE: ${{ secrets.PUBLIC_BING_VERIFICATION_CODE }}')],
   ['Wrangler config contains the GA measurement ID', wrangler.includes('PUBLIC_GA_MEASUREMENT_ID')],
   ['Wrangler config has the provided GA measurement ID', wrangler.includes('G-KJDPL4R7LZ')],
 ];
