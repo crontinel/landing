@@ -59,6 +59,7 @@ const gaChecks = [
   ['Base layout gates GA on cookie consent', base.includes("localStorage.getItem('cookie_consent') === 'accepted'")],
   ['Deploy workflow passes the GA secret', deployWorkflow.includes('PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}')],
   ['Wrangler config contains the GA measurement ID', wrangler.includes('PUBLIC_GA_MEASUREMENT_ID')],
+  ['Wrangler config has the provided GA measurement ID', wrangler.includes('G-R9Z5Y2H6X4')],
 ];
 const gaFailures = gaChecks.filter(([, pass]) => !pass).map(([label]) => label);
 
