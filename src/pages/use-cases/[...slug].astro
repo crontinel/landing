@@ -22,8 +22,8 @@ const breadcrumb = {
   "@type": "BreadcrumbList",
   "itemListElement": [
     { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
-    { "@type": "ListItem", "position": 2, "name": "Use Cases", "item": "https://crontinel.com/use-cases" },
-    { "@type": "ListItem", "position": 3, "name": page.data.title, "item": `https://crontinel.com/use-cases/${page.id}` }
+    { "@type": "ListItem", "position": 2, "name": "Use Cases", "item": "https://crontinel.com/use-cases/" },
+    { "@type": "ListItem", "position": 3, "name": page.data.title, "item": `https://crontinel.com/use-cases/${page.id}/` }
   ]
 };
 ---
@@ -37,7 +37,7 @@ const breadcrumb = {
   <Nav />
 
   <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">
-    <a href="/use-cases" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← All use cases</a>
+    <a href="/use-cases/" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← All use cases</a>
     <h1 class="text-3xl font-bold text-white mb-8">{page.data.title}</h1>
     <article class="prose prose-invert prose-gray text-sm leading-relaxed max-w-none
       prose-headings:text-white prose-headings:font-semibold
