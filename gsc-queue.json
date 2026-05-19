@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/use-cases/monitor-route-clear/"
+  ],
   "submitted": [
     "https://crontinel.com/blog/laravel-queue-depth-alert",
     "https://crontinel.com/blog/what-is-cron-monitoring-laravel/",
