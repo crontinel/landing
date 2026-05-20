@@ -1,6 +1,5 @@
 {
   "pending": [
-    "route-clear",
     "config-cache",
     "config-clear",
     "view-cache",
@@ -53,7 +52,8 @@
     "event-cache",
     "cache-clear",
     "cache-prune",
-    "optimize-clear"
+    "optimize-clear",
+    "route-clear"
   ],
   "in_progress": []
 }
