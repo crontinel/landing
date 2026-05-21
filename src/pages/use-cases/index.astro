@@ -20,6 +20,16 @@ const useCases = [
     signals: ['Run recorded on every schedule:run', 'Exit code and duration tracked', 'Late detection: command didn\'t run on expected schedule'],
   },
   {
+    title: 'Webhook-heavy SaaS products',
+    description: 'Payment callbacks, customer integrations, and delivery retries need queue-aware monitoring. Catch delivery failures before an API change turns into a support wave.',
+    signals: ['Webhook queue depth above threshold', 'Failed delivery jobs surfaced immediately', 'Retries and timeouts tracked per endpoint'],
+  },
+  {
+    title: 'Teams needing a public status page',
+    description: 'When cron jobs, queue workers, or webhook delivery slows down, a status page keeps customers informed while the team fixes the incident.',
+    signals: ['Cron and queue incidents reflected publicly', 'Updates can point to missed runs or retries', 'One place for customer-facing incident notes'],
+  },
+  {
     title: 'Multi-tenant platforms',
     description: 'A single Horizon crash affects all tenants. Connect multiple apps to Crontinel\'s SaaS dashboard to monitor everything in one place.',
     signals: ['One dashboard for all your apps', 'Per-app API keys', 'Team access for your engineering org'],
