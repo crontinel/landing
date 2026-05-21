@@ -1,0 +1,73 @@
+---
+title: "Webhook Monitoring for Laravel and API Teams"
+description: "Monitor webhook delivery failures, retries, and stalled callback queues before customers notice. Crontinel turns webhook jobs into visible incidents instead of silent breaks."
+date: 2026-05-21
+---
+
+Webhook monitoring sounds simple until the first silent failure.
+
+A payment provider sends a callback that never reaches your app. A customer endpoint starts timing out after a deploy. A retry queue backs up because one downstream service changed its TLS config. The webhook was "sent," but nothing useful happened on the other side.
+
+That is why webhook monitoring matters. It is not just about sending webhooks. It is about knowing when delivery stops, slows down, or starts failing in a way your users will feel.
+
+## What webhook monitoring should catch
+
+A good webhook monitor should surface more than a single success or failure flag. For Laravel teams, the useful signals are usually:
+
+- delivery failure rate
+- retry storms
+- stalled or growing webhook queues
+- long execution times
+- repeated timeouts against the same endpoint
+- jobs that fail after a deploy or config change
+
+If the only signal you have is "the job was dispatched," you are still guessing.
+
+## Why generic checks miss the problem
+
+Many teams watch webhook health indirectly through uptime checks or log searches. That is better than nothing, but it misses a lot of real failure modes:
+
+- the job runs but the endpoint returns 500
+- the queue grows slowly and nobody notices for hours
+- the worker dies and the retry loop never recovers
+- a provider changes payload requirements and every delivery starts failing
+
+These are exactly the cases where a Laravel-native monitor helps, because it can track the queue, the worker, and the job history together.
+
+## What to monitor in Laravel
+
+If your app sends webhooks, track the queue group that handles them separately from your general background jobs.
+
+Useful alerts include:
+
+- webhook queue depth above a threshold
+- oldest webhook job age above a threshold
+- failed webhook jobs per minute
+- repeated failures for the same endpoint
+- missing scheduled dispatches for webhook sync jobs
+
+For inbound webhooks, you can still use the same monitoring pattern. Watch the job or task that processes the callback, and alert if it stops running or starts failing.
+
+## How Crontinel helps
+
+Crontinel tracks Laravel scheduler runs, queue depth, failed jobs, and Horizon state. That means webhook delivery problems show up as a real incident, not as a vague log line somewhere.
+
+A SaaS team can use Crontinel to watch webhook delivery queues and alert on the first signs of backlog growth. A self-hosted team can keep the data inside its own infrastructure and still get the same signal.
+
+## Quick setup idea
+
+A simple pattern looks like this:
+
+```php
+Schedule::job(new SyncWebhooksJob)->everyMinute();
+
+// In Crontinel, alert on the webhook queue depth and failed-job rate
+```
+
+Then route the alert to Slack, email, PagerDuty, or a webhook endpoint. If your webhook pipeline starts failing, you get told before a customer opens a ticket.
+
+## See also
+
+- [SaaS Background Job Monitoring for Laravel Applications](/use-cases/saas-background-job-monitoring/)
+- [Webhook integration for alert routing](/integrations/webhook/)
+- [Failed job retry monitoring](/use-cases/failed-job-retry/)

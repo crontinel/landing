@@ -1,0 +1,75 @@
+---
+title: "Laravel Status Page for Cron and Queue Incidents"
+description: "Show customers and teammates when cron jobs, queue workers, or webhook delivery is delayed. Crontinel makes it easy to publish a Laravel status page for incidents that matter."
+date: 2026-05-21
+---
+
+When a cron job misses its window or a queue worker stops processing, the internal team usually finds out first. But customers still need to know what is happening.
+
+That is where a Laravel status page helps. It gives you a simple public place to show that a background job incident is in progress, what part of the system is affected, and when things are back to normal.
+
+## Why status pages matter for Laravel apps
+
+Background job failures are often invisible from the outside.
+
+- a billing job stops after a deploy
+- a queue worker crashes and retries stall
+- webhook delivery backs up for one tenant
+- a nightly sync misses its window
+
+To your users, these problems look like missing emails, delayed payments, or stale dashboards. A status page turns that uncertainty into a visible update.
+
+## What to show on the page
+
+A useful Laravel status page should stay short and practical:
+
+- what is affected
+- when the issue started
+- whether cron, queue, or webhook delivery is impacted
+- whether the incident is ongoing or resolved
+- a link to updates or a support channel
+
+You do not need a giant incident platform to do this well. You need a page that stays up to date when something breaks.
+
+## How Crontinel fits
+
+Crontinel already sees the signals that should drive a status page:
+
+- missed scheduled runs
+- failed cron commands
+- queue depth spikes
+- worker crashes
+- Horizon pause and resume state
+- webhook delivery failures
+
+Once those signals trigger, you can publish a customer-facing update instead of waiting for support tickets to pile up.
+
+## Good status page angles
+
+If you are writing SEO or support copy around this topic, the strongest angles are usually:
+
+- Laravel status page for background jobs
+- status page for cron jobs
+- status page for queue incidents
+- public status page for webhook delivery failures
+
+Those phrases match how teams actually search when they want to explain downtime or delayed work.
+
+## Setup idea
+
+Use Crontinel to alert on the background signal, then point the alert to your incident workflow.
+
+```php
+// Example: a scheduled health check that can drive a status page update
+Schedule::call(function () {
+    // Check critical jobs, queue depth, and webhook delivery health
+})->everyFiveMinutes();
+```
+
+Pair that with Slack or PagerDuty so your team can update the status page quickly.
+
+## See also
+
+- [Production cron job alerting](/use-cases/production-cron-job-alerting/)
+- [SaaS Background Job Monitoring for Laravel Applications](/use-cases/saas-background-job-monitoring/)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)

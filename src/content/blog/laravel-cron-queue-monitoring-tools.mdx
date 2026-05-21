@@ -150,4 +150,6 @@ No single tool covers everything. Here's a practical starting point for most Lar
 
 The categories that overlap the least are ping monitors (external, process-level) and Laravel-native tools (internal, content-aware). Running one of each covers the failure modes the other misses. Adding an APM tool on top gives you the exception-level detail for post-incident investigation.
 
+If you are comparing open source, self hosted, and free cron monitoring options, the strongest generic heartbeat tools are still worth understanding, but Laravel-native monitoring closes the gap they cannot see. See [Open Source, Self Hosted, and Free Cron Monitoring for Laravel Teams](/blog/open-source-self-hosted-free-cron-monitoring/) for a focused breakdown.
+
 The failure mode that all of these miss without explicit instrumentation is a scheduled task that runs, exits successfully, but produces no useful output. That's a code correctness problem, not an infrastructure monitoring problem. Monitoring tells you the job ran. It can't tell you the job was right.

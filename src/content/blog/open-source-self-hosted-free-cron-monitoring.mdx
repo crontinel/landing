@@ -1,0 +1,73 @@
+---
+title: "Open Source, Self Hosted, and Free Cron Monitoring for Laravel Teams"
+description: "Compare open source, self hosted, and free cron monitoring options for Laravel. See what each path gives you, where generic heartbeat tools stop short, and when a Laravel-native monitor is worth it."
+date: 2026-05-21
+tags: ["laravel", "cron", "monitoring", "open source"]
+---
+
+When teams search for *open source cron job monitoring*, *self hosted cron monitoring*, or *free cron monitoring*, they are usually trying to solve the same problem from three different angles:
+
+- They want control over their data.
+- They want to avoid another recurring bill.
+- They want to know when a Laravel scheduler task actually failed, not just whether a ping arrived.
+
+Those goals overlap, but the trade-offs are not the same.
+
+## Open source cron monitoring
+
+Open source tools are attractive because the code is visible, auditable, and easier to adapt. If you have compliance requirements or want to run your own stack, open source can be a great fit.
+
+The downside is that many open source cron monitors still stop at the same generic heartbeat model: ping sent, ping missing, alert fired. That works for dead-man switches, but it does not tell you *which* Laravel command failed, whether a queue worker died, or whether a deployment broke the expected schedule.
+
+## Self hosted cron monitoring
+
+Self hosted monitoring is the right choice when data residency or internal policy matters more than convenience.
+
+You keep the service inside your own infrastructure, which can be useful if you already operate your own Postgres, Redis, or Kubernetes stack. The trade-off is maintenance. You now own updates, uptime, backups, and alert delivery.
+
+If your team wants self hosting *and* Laravel-specific monitoring, Crontinel's OSS package can run locally while still tracking cron runs, queue health, Horizon state, and missed schedules.
+
+## Free cron monitoring
+
+Free cron monitoring is often the first stop for small teams. It is good enough when you just need a simple "did the job ping back" alert.
+
+That said, free tiers usually become limiting when you need any of the following:
+
+- Per-command run history
+- Exit codes and durations
+- Queue depth and Horizon visibility
+- Multiple apps or environments
+- Public status pages
+
+If you outgrow the free tier, you usually do not want to start over from scratch. You want a path that keeps the signal you already depend on.
+
+## What Laravel teams should compare
+
+For Laravel apps, the real question is not just open source vs free vs self hosted. It is whether the monitor understands the scheduler and background jobs you already run.
+
+A useful checklist:
+
+- Does it know which command should have run?
+- Does it record exit code and duration?
+- Can it tell you when a queue worker died quietly?
+- Can it monitor Horizon supervisors, paused state, and failed jobs?
+- Can it scale from one app to multiple apps without a mess of separate dashboards?
+
+If the answer is no, you are probably looking at a generic heartbeat tool, not a Laravel monitor.
+
+## Where Crontinel fits
+
+Crontinel covers the middle ground well:
+
+- OSS package for teams that want to run it themselves
+- SaaS option for teams that do not want to manage the infrastructure
+- Free tier for one app with 7-day history
+- Laravel-native monitoring for cron, queue, and Horizon events
+
+That combination matters because it lets you start free, self host if needed, and still keep the Laravel-specific signals that generic uptime tools miss.
+
+## See also
+
+- [thenping.me is dead, and what changed](/blog/thenping-me-is-dead/)
+- [Laravel cron queue monitoring tools](/blog/laravel-cron-queue-monitoring-tools/)
+- [What is cron monitoring for Laravel?](/blog/what-is-cron-monitoring-laravel/)
