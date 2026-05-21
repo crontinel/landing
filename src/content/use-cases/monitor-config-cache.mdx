@@ -1,0 +1,107 @@
+---
+title: "Monitoring config:cache in Laravel Production"
+description: "Watch Laravel's config:cache command in production so stale environment values, broken config files, and missed deploy hooks do not quietly break your app."
+date: 2026-05-21
+canonical: "https://crontinel.com/use-cases/monitor-config-cache/"
+---
+
+`php artisan config:cache` is one of the most useful Laravel deploy commands, and one of the easiest to trust too much. It takes every file in `config/`, resolves the environment values, and writes one compiled PHP array to `bootstrap/cache/config.php`. After that, production reads the cached file instead of parsing config files on every request.
+
+That speedup is great until the command runs at the wrong point in a deploy. A bad `.env` value gets frozen into the cache. A new config file has a syntax error. One server rebuilds the cache and another keeps yesterday's copy. The app may still boot, but mail, queues, payments, Redis, or feature flags can be pointed at the wrong place. Monitoring `config:cache` gives you a deploy signal before users find the broken setting.
+
+## How config:cache works
+
+When you run:
+
+```bash
+php artisan config:cache
+```
+
+Laravel first clears the existing config cache, loads every `config/*.php` file, evaluates `env()` calls while the application is bootstrapping, and writes the combined result to `bootstrap/cache/config.php`. Once that file exists, calls like `config('queue.default')` read from the cached array.
+
+This is why Laravel docs warn against calling `env()` outside config files. After `config:cache` runs, `env()` no longer behaves like it does locally. If a package, job, or custom class reads `env('REDIS_HOST')` directly, it can see a different value than `config('database.redis.default.host')` in production.
+
+In a clean deploy, the sequence is boring:
+
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan config:cache
+php artisan route:cache
+php artisan queue:restart
+```
+
+The risk is timing. `config:cache` must run after the right release directory, dependencies, and environment file are in place, and it has to run on every host that will serve traffic.
+
+## Common failure modes
+
+**The cache contains old environment values.** A deploy updates `.env`, but `config:cache` runs before the new file is present. Laravel writes the old database, Redis, mail, or API credentials into `config.php`. The deploy looks green, but production keeps using the previous settings.
+
+**One node keeps a stale config cache.** In a multi-server setup, a hook can fail on one host while the other hosts rebuild correctly. Users then see intermittent failures depending on which server handles the request. These bugs feel random because they are tied to load balancing, not code paths.
+
+**A config file has a syntax or bootstrap error.** A missing comma in `config/services.php` or a class reference from a package that was not installed can make `config:cache` fail. If the deploy script ignores the exit code, the release may continue with no fresh cache or with the old cache still in place.
+
+**Secrets rotate but workers keep old values.** Queue workers and Horizon processes can keep running after `config:cache` succeeds. The web app reads the new cached config, while old workers still hold the previous config in memory until `queue:restart` or `horizon:terminate` runs.
+
+## Building visibility into config:cache
+
+Treat config caching as a deploy verification step, not just an optimization. A simple wrapper should fail loudly, verify the cache file, then ping Crontinel only after success:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www/current
+START=$(date +%s)
+
+php artisan config:cache
+php artisan config:show app.name >/dev/null
+
+test -s bootstrap/cache/config.php
+
+curl -fsS "https://crontinel.example/ping/config-cache?host=$(hostname)&release=$RELEASE_ID&duration=$(( $(date +%s) - START ))"
+```
+
+The `test -s` check catches the obvious failure: no cache file or an empty cache file. The `config:show` call forces Laravel to boot with the cached config, which catches syntax errors that a file existence check misses.
+
+Include safe metadata in the ping: hostname, release ID, environment, cache modification time, and one or two non-secret config values such as the queue driver. Do not send secrets. If a deploy starts and this ping never arrives from one host, you know exactly where to look.
+
+## Detecting when config:cache fails
+
+Monitor both the command and the state it leaves behind. The command can exit successfully and still produce the wrong outcome if it ran in the wrong directory or against the wrong environment file.
+
+A production health check can expose safe metadata:
+
+```php
+Route::get('/_deploy/config-cache', function () {
+    $file = base_path('bootstrap/cache/config.php');
+
+    return response()->json([
+        'host' => gethostname(),
+        'release' => trim(@file_get_contents(base_path('REVISION'))),
+        'config_cached' => file_exists($file),
+        'config_cache_mtime' => file_exists($file) ? filemtime($file) : null,
+        'environment' => app()->environment(),
+        'queue_driver' => config('queue.default'),
+    ]);
+})->middleware('auth.basic');
+```
+
+Call that endpoint on every server after deployment. If one host reports an old release, no config cache, or a different queue driver, take it out of rotation and rebuild the cache there.
+
+For queue-heavy apps, pair this with [`queue:restart` monitoring](/use-cases/monitor-queue-restart/). A fresh config cache only helps workers after they restart and reload the application.
+
+## Quick setup with Crontinel
+
+Create a Crontinel monitor named `production config:cache completed`. Ping it after `php artisan config:cache` succeeds and after the cache file has been verified. Include `host` and `release` in the ping so a missing server stands out during a rolling deploy.
+
+If you deploy irregularly, start the monitor at the beginning of the deploy and require the ping before the deploy is marked healthy. If you deploy on a schedule, set the expected window to match that schedule with a short grace period.
+
+Config cache failures rarely announce themselves as "config cache failed." They look like Redis errors, mail failures, bad payment callbacks, or workers using yesterday's credentials. A missing `config:cache` heartbeat tells you the deploy is not finished yet.
+
+## See also
+
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize/)
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
+- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
+- [Monitoring queue:restart in Laravel production](/use-cases/monitor-queue-restart/)
