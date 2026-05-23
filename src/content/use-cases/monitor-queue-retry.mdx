@@ -1,6 +1,6 @@
 ---
-title: "Monitoring queue:retry in Laravel Production"
-description: "Monitor Laravel's queue:retry command in production with instant alerts for failures, stuck retries, and unexpected execution patterns."
+title: "How to Monitor php artisan queue:retry in Production"
+description: "Monitor Laravel's queue:retry command in production. Get alerts when retry storms, repeated failures, or bad batches make recovery worse."
 date: 2026-04-07
 ---
 
@@ -8,7 +8,7 @@ The file write was denied. Here's the MDX body:
 
 Your deploy went out at 2 PM. By 4 PM, 3,200 jobs are sitting in the `failed_jobs` table because a third-party payment API changed its response format. You fix the parsing logic, deploy the patch, and run `php artisan queue:retry all`. The jobs flood back onto the queue. Half of them fail again because the original payloads contain malformed data that your fix didn't account for. Now you have 1,600 new entries in `failed_jobs`, your queue workers are burning cycles on doomed retries, and legitimate jobs dispatched by real users are waiting behind the wreckage.
 
-This is the `queue:retry` problem in production. The command itself is simple. Knowing whether it actually worked is the hard part.
+This is the `queue:retry` problem in production. The command itself is simple. Knowing whether it actually helped is the hard part.
 
 ## What queue:retry Actually Does
 
@@ -91,3 +91,10 @@ Manually checking `php artisan queue:failed` after every retry is not sustainabl
 Crontinel tracks retry outcomes alongside your normal queue metrics. When you run `queue:retry`, it correlates the re-queued jobs with their processing results and flags jobs that enter a fail-retry-fail loop. Instead of discovering at 6 PM that your 2 PM retry made things worse, you get an alert within minutes of the second failure.
 
 The `queue:retry` command is a recovery tool, not a monitoring tool. It puts jobs back on the queue and walks away. Production systems need the follow-through: confirmation that retried jobs succeeded, early warning when they don't, and enough context to decide whether the next step is another retry or a code fix.
+
+## See also
+
+- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
+- [How to Monitor php artisan queue:flush in Production](/use-cases/monitor-queue-flush/)
+- [How to Monitor php artisan queue:forget in Production](/use-cases/monitor-queue-forget/)
+- [How to Monitor php artisan queue:monitor in Production](/use-cases/monitor-queue-monitor/)

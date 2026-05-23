@@ -1,10 +1,14 @@
 ---
-title: "Monitoring queue:monitor in Laravel Production"
-description: "Monitor Laravel's queue:monitor command in production with real-time alerts, failure tracking, and uptime checks to keep your job queues running smoothly."
+title: "How to Monitor php artisan queue:monitor in Production"
+description: "Monitor Laravel queue:monitor in production so you catch backed-up queues, QueueBusy events, and scheduler failures before the backlog turns into an incident."
 date: 2026-04-09
 ---
 
-Your queue workers are running, Horizon looks healthy, and then a developer messages at 2 AM: "Why are there 40,000 jobs sitting in the `notifications` queue?" You check `queue:monitor` and realize it's been throwing a size threshold warning to stderr for six hours straight, but nobody saw it because the output was going to a systemd journal that nobody watches. This is the most common failure mode with `queue:monitor` in production: the command works exactly as designed, but its output has no audience.
+`php artisan queue:monitor` is useful, but it is easy to trust too much. It can warn about a backed-up queue while still missing the larger problem: workers that are slow, paused, or silently stopped.
+
+If you're searching for how to monitor `php artisan queue:monitor` in production, the real goal is to catch backed-up queues, slow workers, and silent scheduler failures before the backlog turns into an incident.
+
+The dangerous part is that the command only checks queue size, so it can exit 0 while your queue health is already getting worse.
 
 ## What queue:monitor actually does
 
@@ -83,3 +87,10 @@ A reasonable production configuration combines `queue:monitor` for size-based al
 5. If you use Horizon, check `horizon:status` for paused state separately
 
 The `queue:monitor` command is a useful primitive, not a complete monitoring solution. Knowing its boundaries lets you build around them instead of discovering the gaps at 2 AM.
+
+## See also
+
+- [Laravel Queue Monitoring: Depth, Failures, and Stuck Jobs](/use-cases/laravel-queue-monitoring/)
+- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
+- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
+- [Laravel Horizon Monitoring](/use-cases/laravel-horizon-monitoring/)

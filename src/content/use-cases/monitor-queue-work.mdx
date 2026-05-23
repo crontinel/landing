@@ -1,12 +1,14 @@
 ---
-title: "Monitoring queue:work in Laravel Production"
-description: "Monitor Laravel queue:work in production with instant alerts for failed jobs, stuck workers, and memory leaks before they impact your users."
+title: "How to Monitor php artisan queue:work in Production"
+description: "Monitor Laravel queue:work in production so you catch crashed workers, stale deploys, and memory leaks before your jobs start piling up."
 date: 2026-04-07
 ---
 
-You deploy a new feature on Tuesday. By Wednesday afternoon, support tickets start rolling in: emails aren't sending, webhook payloads are missing, and PDF exports are stuck. You SSH into your production server and find that `queue:work` crashed six hours ago after a database connection timeout. The process died, Supervisor restarted it, and the new instance hit the same timeout because the connection pool was exhausted. Your queue has been cycling through crash-restart loops, processing nothing, for half a business day.
+`php artisan queue:work` is a long-running daemon, which means it can look fine from the outside while actually crashing, restarting, or drifting stale after a deploy.
 
-This is how `queue:work` fails in production. Not with a bang, but with a silent restart loop that looks healthy from the outside.
+If you're searching for how to monitor `php artisan queue:work` in production, the real goal is to catch crashed workers, stale deploys, and memory leaks before your jobs start piling up.
+
+The dangerous part is that a worker can keep bouncing in crash-restart loops while Supervisor still reports it as alive.
 
 ## How queue:work Behaves in Production
 

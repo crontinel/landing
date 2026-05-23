@@ -1,13 +1,15 @@
 ---
-title: "How to Monitor Laravel cache:clear Cron Job Failures"
-description: "Learn why a Laravel cache:clear cron job fails in production, how to catch missed scheduled runs, and how to alert before stale cache turns into a user-facing outage."
+title: "How to Monitor php artisan cache:clear Cron Job Failures"
+description: "Monitor php artisan cache:clear cron jobs in production so you catch missed runs, non-zero exits, and stale cache before users see the breakage."
 date: 2026-05-11
 canonical: "https://crontinel.com/use-cases/monitor-laravel-cache-clear-cron-job-failed/"
 ---
 
-A Laravel `cache:clear` cron job usually gets added after one bad deploy. Someone clears stale application cache manually, the site recovers, and the team schedules the command so it will never happen again. Then the scheduled command fails six weeks later because the PHP path changed, the cache store is unavailable, or the cron user cannot write to storage. Nobody notices until the same stale value breaks production again.
+`php artisan cache:clear` looks simple until cron makes it fail in production. The job can succeed locally, then miss a run, exit non-zero, or clear the wrong cache store once it is scheduled on the real server.
 
-A `Laravel cache:clear cron job failed` incident is frustrating because the command feels simple. It is just clearing cache. But in production, that one command touches your cache driver, filesystem permissions, scheduler, deploy user, and sometimes Redis itself.
+If you're searching for how to monitor `php artisan cache:clear` cron job failures, the real goal is to know when the job misses a scheduled run, fails loudly, or silently stops firing at all.
+
+The dangerous part is that the command touches the cache driver, filesystem permissions, scheduler, deploy user, and sometimes Redis itself.
 
 ## How cache:clear actually works
 
@@ -90,6 +92,7 @@ Use separate monitors for deploy-time cache clears and scheduled maintenance cac
 
 ## See also
 
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
-- [Monitoring php artisan optimize:clear after deployments](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize) - catch stale config and cache refresh failures together
+- [Monitoring php artisan optimize:clear after deployments](/use-cases/monitor-php-artisan-optimize-clear-after-deployment) - detect deploy-time maintenance failures
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring) - broader scheduled task monitoring for production apps
+- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side

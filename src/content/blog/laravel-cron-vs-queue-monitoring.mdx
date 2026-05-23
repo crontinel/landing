@@ -1,6 +1,6 @@
 ---
-title: "Laravel Cron vs Queue Monitoring - What's the Difference?"
-description: "Generic uptime monitors miss scheduler failures. Queue depth monitors miss Horizon supervisor death. Here's why you need both, and what each one actually covers."
+title: "Laravel Cron vs Queue Monitoring: What Each One Actually Covers"
+description: "Compare Laravel cron monitoring and queue monitoring. Learn what each one catches, what it misses, and why Horizon needs its own monitoring."
 date: 2026-04-26
 tags: ["laravel", "cron", "queues", "monitoring"]
 ---
@@ -8,6 +8,8 @@ tags: ["laravel", "cron", "queues", "monitoring"]
 If you've set up cron monitoring for your Laravel app, you might think you have queue monitoring covered too. You don't. And if you've set up Horizon alerting, you might think your scheduled tasks are covered. They're not.
 
 These are different systems with different failure modes, and monitoring one doesn't tell you anything about the other.
+
+If you're trying to answer "cron monitoring vs queue monitoring" or "what does Horizon monitoring cover?", the short version is that you need separate visibility for each layer.
 
 ## What a cron monitor actually watches
 
@@ -104,3 +106,10 @@ CRONTINEL_SLACK_WEBHOOK=https://hooks.slack.com/...
 Scheduler events are captured automatically. Horizon monitoring runs on each polling cycle - no per-supervisor configuration needed.
 
 The monitoring gap between "cron ran" and "jobs processed" is where silent failures live. Covering both layers closes it.
+
+## See also
+
+- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side
+- [Laravel Horizon monitoring](/use-cases/laravel-horizon-monitoring/) - track paused supervisors, queue depth, and worker health
+- [Crontinel vs Cronitor](/vs/crontinel-vs-cronitor/) - see why Laravel-native monitoring covers more than heartbeat pings
+- [How to set up Laravel cron monitoring](/blog/how-to-set-up-laravel-cron-monitoring/) - install and alert setup for production

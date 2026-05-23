@@ -4,9 +4,9 @@ description: "Monitor Laravel queues in production. Alert on queue depth, failed
 date: 2026-04-07
 ---
 
-Laravel queues are the foundation of most production application's background processing. Emails, invoices, webhooks, data imports, report generation: all of these typically run through queued jobs. When queues degrade, customers feel it.
+Laravel queues are the backbone of most production background processing. Emails, invoices, webhooks, data imports, and report generation all depend on them. When queues degrade, customers feel it.
 
-Queue depth alone doesn't tell you if something is wrong. A queue with 500 jobs can be healthy if you have 20 workers and jobs complete in 100ms each. The same queue with 2 workers and a downstream API timing out is a problem.
+Queue depth alone doesn't tell you if something is wrong. A queue with 500 jobs can be healthy if you have 20 workers and the jobs complete in 100ms each. The same queue with 2 workers and a downstream API timing out is a problem.
 
 Meaningful queue monitoring requires more than a job count.
 
@@ -91,3 +91,10 @@ php artisan migrate
 ```
 
 Add your alert configuration and connect to the dashboard. Queue monitoring starts on the next polling cycle, with no changes to your job classes needed.
+
+## See also
+
+- [How to Monitor php artisan queue:monitor in Production](/use-cases/monitor-queue-monitor/)
+- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
+- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
+- [Laravel Horizon Monitoring](/use-cases/laravel-horizon-monitoring/)

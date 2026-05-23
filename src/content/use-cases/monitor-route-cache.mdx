@@ -1,12 +1,14 @@
 ---
-title: "Monitoring route:cache in Laravel Production"
-description: "Watch the Laravel route:cache command in production to catch stale routes, silent failures, and deployment issues before they take your site down."
+title: "How to Monitor php artisan route:cache in Production"
+description: "Monitor Laravel route:cache in production so you catch stale routes, partial cache rebuilds, and deploy-time failures before users hit the wrong endpoints."
 date: 2026-05-12
 ---
 
-Your deploy script runs successfully. The new code is on every server. Your CI pipeline shows green. Then the support tickets start: users getting 404s on pages that should exist, API endpoints that worked in staging now returning routing errors, old URLs that were removed still resolving. The problem is that `php artisan route:cache` ran before the new routes were registered, and the cached file is serving stale routes to every request. You spend the next hour diagnosing why the routes look correct in the code but are wrong in production.
+`php artisan route:cache` is one of those commands that looks boring until it breaks production. It can rebuild a cache file successfully while still locking in stale routes from the wrong release, and that stale snapshot is what users hit later.
 
-This is the most common way `route:cache` breaks production. It runs without errors, the exit code is zero, and nothing looks wrong until users start hitting the wrong endpoints.
+If you're searching for how to monitor `php artisan route:cache` in production, the real goal is to confirm the cache was rebuilt on the active release, on the right node, and inside the deploy window.
+
+The dangerous part is that the command usually exits 0 and the failure only appears once real traffic starts using the cached routes.
 
 ## How route:cache Actually Works
 
@@ -90,9 +92,9 @@ Add your monitoring endpoint URL to your deploy script, and treat a missing ping
 
 ## See also
 
-- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)
-- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
-- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache)
-- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/) - keep route clear and route cache in sync
+- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/) - catch stale config and cache refresh failures together
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize) - catch stale config and cache refresh failures together
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment) - detect deploy-time maintenance failures
+- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache) - keep cached event discovery in sync
+- [How to monitor a Laravel cache:clear cron job failure](/use-cases/monitor-laravel-cache-clear-cron-job-failed) - broader cache maintenance monitoring

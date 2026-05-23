@@ -1,12 +1,12 @@
 ---
-title: "Monitoring queue:forget in Laravel Production"
-description: "Monitor Laravel's queue:forget command in production. Get instant alerts when jobs are manually removed from your queues with Crontinel."
+title: "How to Monitor php artisan queue:forget in Production"
+description: "Monitor Laravel's queue:forget command in production. Get alerts when failed jobs are manually removed and their diagnostics disappear before review."
 date: 2026-04-10
 ---
 
-You are debugging a payment processing issue on a Tuesday morning. You pull up the `failed_jobs` table to inspect the exception traces, and three of the five entries you saw yesterday are gone. No one on the team recalls deleting them. There is no log entry, no Slack notification, nothing in your deployment history. Someone ran `php artisan queue:forget` on those job IDs, and now the payloads, exception messages, and retry metadata are permanently deleted. You are left reconstructing the failure from application logs alone, assuming those logs captured enough detail in the first place.
+You are debugging a production queue issue and the evidence is gone before you can review it. The failed job was in `failed_jobs` yesterday, but now the row has disappeared, and the likely cause is `php artisan queue:forget`. That command deletes one failed job at a time, which makes it easy to miss during routine cleanup and impossible to recover after the fact.
 
-This happens more often than teams realize. `queue:forget` is a surgical command: it removes one failed job at a time, which makes it feel safe. But that precision also makes it invisible. Nobody notices three rows disappearing from a table with dozens of entries, and Laravel provides zero built-in tracking for when it runs.
+That is why `queue:forget` needs monitoring. It looks harmless, but it silently removes the payload, exception trace, retry metadata, and any other context you needed to understand the failure. In production, every forget operation should be treated as an audit-worthy event.
 
 ## How queue:forget Works
 
@@ -98,6 +98,9 @@ The technical controls matter, but the operational pattern matters more. Treat `
 
 The `queue:forget` command exists for a reason: not every failed job deserves a retry. But in production, every deletion deserves a record.
 
----
+## See also
 
-That's approximately 850 words. It follows the same structure and tone as your existing `queue:flush` and `queue:monitor` pages. When you're ready, I can write it to the file at `src/content/use-cases/monitor-queue-forget.mdx`.
+- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
+- [How to Monitor php artisan queue:flush in Production](/use-cases/monitor-queue-flush/)
+- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
+- [Laravel Queue Monitoring](/use-cases/laravel-queue-monitoring/)

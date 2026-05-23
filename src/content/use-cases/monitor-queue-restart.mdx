@@ -1,12 +1,14 @@
 ---
-title: "Monitoring queue:restart in Laravel Production"
-description: "Monitor Laravel's queue:restart command in production with instant alerts for failures, missed runs, and slow execution using Crontinel."
+title: "How to Monitor php artisan queue:restart in Production"
+description: "Monitor Laravel queue:restart in production so you catch workers that never come back, cache mismatches, and silent queue stalls after deploys."
 date: 2026-04-07
 ---
 
-Running `queue:restart` in production seems harmless until you realize it does not actually restart your workers. It sets a flag in cache that tells each worker to terminate after finishing its current job. If your cache driver is misconfigured, if a worker is stuck on a long-running job, or if your process manager fails to bring workers back, you end up with zero active workers and a queue that silently fills up.
+`php artisan queue:restart` is not a restart. It is a stop signal that depends on your process manager to bring workers back. That means a deploy can look complete while the queue quietly stops processing.
 
-This is not a hypothetical. It happens when teams deploy new code and run `php artisan queue:restart` as part of their deployment script, assuming workers will bounce back immediately. Sometimes they do. Sometimes they don't.
+If you're searching for how to monitor `php artisan queue:restart` in production, the real goal is to catch workers that never come back, cache mismatches, and silent queue stalls after deploys.
+
+The dangerous part is that the command can succeed even when the queue is already broken.
 
 ## What queue:restart Actually Does
 
@@ -87,3 +89,10 @@ The `sleep` duration should match or exceed your longest `--timeout` value. If y
 In Laravel 11 and 12, if you are using Horizon, `php artisan horizon:terminate` is the better alternative. Horizon manages its own worker lifecycle and provides built-in metrics on worker status. But many teams run workers directly with Supervisor, and for those setups, `queue:restart` plus proper monitoring is the path that works.
 
 The core lesson: treat `queue:restart` as a "stop" command, not a "restart" command. Everything after the stop is your responsibility to verify.
+
+## See also
+
+- [Laravel Horizon Monitoring for Paused Supervisors, Queue Depth, and Failed Jobs](/use-cases/laravel-horizon-monitoring/)
+- [How to Monitor php artisan queue:monitor in Production](/use-cases/monitor-queue-monitor/)
+- [How to Monitor php artisan queue:work in Production](/use-cases/monitor-queue-work/)
+- [Laravel Queue Monitoring: Depth, Failures, and Stuck Jobs](/use-cases/laravel-queue-monitoring/)

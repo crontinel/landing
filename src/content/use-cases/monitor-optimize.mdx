@@ -1,12 +1,12 @@
 ---
-title: "Monitoring optimize in Laravel Production"
-description: "Watch Laravel's optimize command run in production to catch config cache failures, bootstrap errors, and deployment issues before they take your site down."
+title: "How to Monitor php artisan optimize in Production"
+description: "Monitor Laravel's optimize command in production so you catch config cache failures, route cache problems, and bootstrap errors before they break deploys."
 date: 2026-05-09
 ---
 
-Your deploy script runs `php artisan optimize` to regenerate the production bootstrap cache. The command exits with status 0, so your CI pipeline proceeds. An hour later, you start getting support tickets: users can't log in, API requests are returning 500 errors, and your monitoring dashboard is showing latency spikes. The optimize command ran, but it cached a stale config value from the old deployment because the `.env` file changed during the deploy and the old cached config won.
+`php artisan optimize` is easy to trust and hard to verify. It can finish successfully while still leaving you with a stale config cache, a broken route cache, or a partially written bootstrap file that only fails once real traffic hits the app.
 
-Or the opposite: the optimize command failed silently because a new package's config file had a syntax error, but your deploy script didn't check the exit code, so it continued deploying with no cached config at all.
+The dangerous part is that the deploy looks green: the command exits 0, the pipeline continues, and the failure shows up later as login errors, 500s, or a site that only breaks on one instance.
 
 These are the ways `php artisan optimize` quietly breaks production.
 

@@ -1,14 +1,14 @@
 ---
-title: "Laravel Horizon Monitoring: Supervisors, Queue Depth, and Failed Jobs"
-description: "Monitor Laravel Horizon in production. Get alerted when supervisors pause, queues back up, or failed jobs spike, without polling the dashboard manually."
+title: "Laravel Horizon Monitoring for Paused Supervisors, Queue Depth, and Failed Jobs"
+description: "Monitor Laravel Horizon in production so you catch paused supervisors, queue backlogs, and failed-job spikes without staring at the dashboard manually."
 date: 2026-04-07
 ---
 
-Laravel Horizon gives you a real-time dashboard for your queue workers. It's excellent for seeing current state. It does not alert you when that state goes wrong.
+Laravel Horizon gives you a real-time dashboard for your queue workers. It's good for debugging. It is not a pager.
 
-A Horizon supervisor can pause at 2am. Jobs can pile up to thousands. Customers can start seeing delayed responses. And Horizon's dashboard sits there showing you exactly what's happening, to anyone who thinks to look.
+If you're searching for Laravel Horizon monitoring, this page covers the signals that matter most: paused supervisors, queue depth, oldest job age, and failed-job spikes.
 
-Crontinel reads the same Redis keys Horizon writes and fires alerts when they indicate trouble. No polling the dashboard. No checking at odd hours.
+A Horizon supervisor can pause at 2am. Jobs can pile up to thousands. Customers can start seeing delayed responses. And the dashboard will only help if somebody is already looking at it.
 
 ## What Horizon writes to Redis
 
@@ -99,5 +99,8 @@ All of these produce Redis state changes that Crontinel detects without any appl
 
 ## See also
 
-- [Monitoring horizon:purge in Laravel production](/use-cases/monitor-horizon-purge) - clean up stale job records before Redis fills up
-- [Monitoring horizon:work in Laravel production](/use-cases/monitor-horizon-work)
+- [Laravel cron vs queue monitoring](/blog/laravel-cron-vs-queue-monitoring/) - understand which layer each monitor covers
+- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side
+- [Crontinel vs Cronitor](/vs/crontinel-vs-cronitor/) - compare Laravel-native monitoring with ping-based tools
+- [Laravel queue monitoring](/use-cases/laravel-queue-monitoring/) - monitor backlog, failures, and worker health
+- [PagerDuty integration](/integrations/pagerduty/) - route urgent incidents to on-call
