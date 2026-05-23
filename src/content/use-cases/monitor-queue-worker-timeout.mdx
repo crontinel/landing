@@ -1,0 +1,62 @@
+---
+title: "Laravel Queue Worker Timeout Monitoring"
+description: "Monitor Laravel queue worker timeouts, hanging jobs, and stale workers before your queue backs up. Crontinel catches timeout patterns after deploys and slow downstream calls."
+date: 2026-05-23
+---
+
+A queue worker can look healthy while still doing the wrong thing.
+
+It may still be running in Supervisor or Horizon, but individual jobs can hang, hit timeout limits, or keep retrying until throughput drops to a crawl. By the time users notice, the queue is already behind.
+
+## What queue worker timeouts look like
+
+The common failure modes are usually:
+
+- jobs that exceed the configured `--timeout`
+- workers that stay alive but stop making progress
+- slow downstream calls that block the worker pool
+- deploys that leave workers running stale code
+- timeout settings that are shorter than the real job runtime
+
+If you only watch whether the process exists, you miss the failure.
+
+## Why heartbeat checks are not enough
+
+A heartbeat tells you a process reported in.
+
+That is useful, but it does not tell you whether the worker is actually clearing the queue. A worker can ping successfully while the job queue grows, retries pile up, and the oldest job keeps getting older.
+
+That is why timeout monitoring should include queue depth, failed jobs, and oldest job age, not just a single "still alive" signal.
+
+## What to monitor in Laravel
+
+For queue worker timeouts, track:
+
+- oldest job age per queue
+- queue depth per queue
+- failed jobs per minute
+- worker restart events after deploys
+- repeated timeout errors on the same job class
+
+If those signals rise together, your workers are probably hanging on a downstream dependency or a bad job configuration.
+
+## Example worker config
+
+```bash
+php artisan queue:work redis --sleep=3 --tries=3 --timeout=90 --max-time=3600
+```
+
+The important part is not the exact number. It is that your monitoring knows when jobs are nearing that limit and when the queue is not recovering after a restart.
+
+## How Crontinel helps
+
+Crontinel watches cron runs, queue depth, failed jobs, and Horizon state.
+
+That means a worker timeout does not stay buried inside logs. You get a visible alert when the queue stops moving, when failures spike, or when the worker pool stops recovering after a deploy.
+
+## See also
+
+- [How to Monitor php artisan queue:work in Production](/use-cases/monitor-queue-work/)
+- [Webhook Monitoring for Laravel and API Teams](/use-cases/webhook-monitoring/)
+- [Crontinel vs Laravel Forge Heartbeats](/vs/crontinel-vs-forge-heartbeats/)
+- [Open Source, Self Hosted, and Free Cron Monitoring for Laravel Teams](/blog/open-source-self-hosted-free-cron-monitoring/)
