@@ -15,6 +15,11 @@ const useCases = [
     signals: ['Per-supervisor pause detection', 'Failed jobs per minute threshold', 'Queue depth alert per queue name'],
   },
   {
+    title: 'Queue worker timeouts and stalled jobs',
+    description: 'A worker can stay alive while jobs hang, timeout, or stop draining the queue. Watch the timeout pattern before the backlog becomes visible.',
+    signals: ['Oldest job age spike', 'Timeout errors above baseline', 'Worker restart without throughput recovery'],
+  },
+  {
     title: 'Scheduled report generation',
     description: 'Daily exports, weekly digests, monthly statements. If a scheduled command exits non-zero or stops running, you\'ll know before your users do.',
     signals: ['Run recorded on every schedule:run', 'Exit code and duration tracked', 'Late detection: command didn\'t run on expected schedule'],
