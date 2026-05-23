@@ -1,16 +1,14 @@
 ---
-title: "Laravel Cron Monitoring: Know When Scheduled Tasks Fail or Miss"
-description: "Monitor every Laravel scheduled task in production. Get alerted when a command fails, exits with a bad status code, or stops running entirely, without modifying each task."
+title: "Laravel Cron Monitoring for Scheduled Tasks, Missed Runs, and Failures"
+description: "Monitor every Laravel scheduled task in production so you catch missed runs, non-zero exits, and silent scheduler outages without instrumenting each task individually."
 date: 2026-04-07
 ---
 
-Laravel's task scheduler runs all your scheduled commands through a single cron entry:
+Laravel cron monitoring starts with one cron line and a lot of hidden failure modes. The scheduler can look healthy while specific jobs stop running, exit non-zero, or get skipped entirely after a reboot, deploy, or permission change.
 
-```bash
-* * * * * cd /var/www/html && php artisan schedule:run >> /dev/null 2>&1
-```
+If you're searching for Laravel cron monitoring, this page shows the failure modes that matter most: missed runs, bad exit codes, and silent scheduler outages.
 
-That one cron entry fans out to every command registered in your `Kernel.php` (or `routes/console.php` on Laravel 11+). When everything works, it's elegant. When something breaks, the failure is often invisible.
+The important part is that you do not need to instrument every task by hand to catch the problem.
 
 ## Why cron failures go undetected
 
@@ -107,5 +105,7 @@ Silent cron failures are a common source of production incidents that never show
 
 ## See also
 
-- [Monitoring model:prune in Laravel production](/use-cases/monitor-model-prune) - catch stale data cleanup failures before disk fills up
-- [Monitoring Spatie laravel-backup in production](/use-cases/monitor-db-backup) - detect silent backup failures before you need a restore
+- [Laravel cron vs queue monitoring](/blog/laravel-cron-vs-queue-monitoring/) - understand which layer each monitor covers
+- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side
+- [Laravel Horizon monitoring](/use-cases/laravel-horizon-monitoring/) - track paused supervisors, queue depth, and worker health
+- [Crontinel vs Cronitor](/vs/crontinel-vs-cronitor/) - compare Laravel-native monitoring with ping-based tools

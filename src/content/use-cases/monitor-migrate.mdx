@@ -1,14 +1,14 @@
 ---
-title: "Monitoring migrate in Laravel Production"
-description: "Watch Laravel migration runs in production to catch failures, long-running migrations, and rollback issues before they take your site down or corrupt data."
+title: "How to Monitor php artisan migrate in Production"
+description: "Monitor Laravel migrate runs in production so you catch failures, long-running schema changes, and rollback problems before they take your site down or corrupt data."
 date: 2026-05-09
 ---
 
-Your deploy pipeline runs `php artisan migrate` against the production database at 2am. By morning, the site is returning 500 errors. The migration ran but one of the up() methods references a column that doesn't exist in the down() method, making it impossible to roll back cleanly. The developer who deployed didn't notice because they were watching the deploy log scroll past too fast to read the error.
+`php artisan migrate` is one of the riskiest deploy steps in a Laravel app. It can run for minutes, fail halfway through, or succeed while still causing lock contention and rollout problems on the live database.
 
-Or worse: the migration ran fine, but it took 47 minutes because it was rebuilding a 50-million-row table, and your load balancer kept serving requests to a database that was locked for most of that time.
+If you're searching for how to monitor `php artisan migrate` in production, the real goal is to catch failures, long-running schema changes, and rollback problems before they take your site down or corrupt data.
 
-These are the real costs of running migrations without visibility.
+The dangerous part is that a migration can exit non-zero, take far longer than expected, or leave the app in a state that only shows up under live traffic.
 
 ## How migrate Actually Works
 

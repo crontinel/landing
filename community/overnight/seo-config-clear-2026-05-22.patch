@@ -1,0 +1,207 @@
+From 204df7c95c27bfdf9ef84feaefefaaace2b1929c Mon Sep 17 00:00:00 2001
+From: HarunRRayhan <harun.b13@gmail.com>
+Date: Fri, 22 May 2026 02:03:33 +0600
+Subject: [PATCH] seo: add config clear monitoring page
+
+---
+ gsc-queue.json                                |   5 +-
+ pseo-queue.json                               |   4 +-
+ .../use-cases/monitor-config-cache.mdx        |   1 +
+ .../use-cases/monitor-config-clear.mdx        | 104 ++++++++++++++++++
+ src/content/use-cases/monitor-optimize.mdx    |   1 +
+ ...rtisan-optimize-clear-after-deployment.mdx |   1 +
+ 6 files changed, 112 insertions(+), 4 deletions(-)
+ create mode 100644 src/content/use-cases/monitor-config-clear.mdx
+
+diff --git a/gsc-queue.json b/gsc-queue.json
+index 8120d30..d16a88d 100644
+--- a/gsc-queue.json
++++ b/gsc-queue.json
+@@ -1,6 +1,6 @@
+ {
+   "pending": [
+-    "https://crontinel.com/use-cases/monitor-config-cache/"
++    "https://crontinel.com/use-cases/monitor-config-clear/"
+   ],
+   "submitted": [
+     "https://crontinel.com/blog/laravel-queue-depth-alert",
+@@ -172,7 +172,8 @@
+     "https://crontinel.com/use-cases/monitor-horizon-continue",
+     "https://crontinel.com/blog/what-happens-when-laravel-scheduler-stops-running",
+     "https://crontinel.com/use-cases/monitor-queue-work",
+-    "https://crontinel.com/use-cases/monitor-route-clear/"
++    "https://crontinel.com/use-cases/monitor-route-clear/",
++    "https://crontinel.com/use-cases/monitor-config-cache/"
+   ],
+   "last_push": "2026-05-11"
+ }
+diff --git a/pseo-queue.json b/pseo-queue.json
+index 5293a71..30aed8a 100644
+--- a/pseo-queue.json
++++ b/pseo-queue.json
+@@ -1,6 +1,5 @@
+ {
+   "pending": [
+-    "config-clear",
+     "view-cache",
+     "view-clear",
+     "event-clear",
+@@ -53,7 +52,8 @@
+     "cache-prune",
+     "optimize-clear",
+     "route-clear",
+-    "config-cache"
++    "config-cache",
++    "config-clear"
+   ],
+   "in_progress": []
+ }
+diff --git a/src/content/use-cases/monitor-config-cache.mdx b/src/content/use-cases/monitor-config-cache.mdx
+index ce05f31..8277c25 100644
+--- a/src/content/use-cases/monitor-config-cache.mdx
++++ b/src/content/use-cases/monitor-config-cache.mdx
+@@ -101,6 +101,7 @@ Config cache failures rarely announce themselves as "config cache failed." They
+ 
+ ## See also
+ 
++- [Monitoring config:clear in Laravel production](/use-cases/monitor-config-clear/)
+ - [Monitoring optimize in Laravel production](/use-cases/monitor-optimize/)
+ - [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
+ - [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
+diff --git a/src/content/use-cases/monitor-config-clear.mdx b/src/content/use-cases/monitor-config-clear.mdx
+new file mode 100644
+index 0000000..1237a94
+--- /dev/null
++++ b/src/content/use-cases/monitor-config-clear.mdx
+@@ -0,0 +1,104 @@
++---
++title: "Monitoring config:clear in Laravel Production"
++description: "Watch Laravel's config:clear command during deploys, rollbacks, and emergency fixes so stale cached configuration does not survive in production."
++date: 2026-05-22
++canonical: "https://crontinel.com/use-cases/monitor-config-clear/"
++---
++
++`php artisan config:clear` is the command people reach for when production is reading the wrong Laravel configuration. A queue worker still points at the old Redis host. Mail is going to the wrong provider. A feature flag changed in `.env`, but the app behaves as if nothing happened.
++
++The command is simple: remove Laravel's cached config file so the app can load fresh values again. The failure mode is not simple. If `config:clear` runs on the wrong release, misses one server, fails because of permissions, or is followed by a broken `config:cache`, production can keep using stale values while the deploy pipeline says everything passed. Monitoring `config:clear` gives you proof that the reset step actually happened where traffic is running.
++
++## How config:clear works
++
++When you run:
++
++```bash
++php artisan config:clear
++```
++
++Laravel deletes the cached configuration file at `bootstrap/cache/config.php`. That file is created by `php artisan config:cache` and contains the merged output of every file in `config/`. Once it exists, Laravel reads config from that compiled PHP array instead of loading each config file on every request.
++
++Clearing the file does not validate your new configuration. It only removes the cached snapshot. On the next request or command, Laravel boots from the live config files and environment values again. In production, many teams run `config:clear` before rebuilding the cache:
++
++```bash
++php artisan config:clear
++php artisan config:cache
++php artisan queue:restart
++```
++
++That order matters. `config:clear` removes the old snapshot, `config:cache` writes the new one, and `queue:restart` makes long-running workers reload the app. If any step is skipped, your web requests and background jobs can disagree about which config is current.
++
++## Common failure modes
++
++**The command clears the old release.** Zero-downtime deploy tools often keep several release directories on disk. If the hook runs before the `current` symlink changes, `config:clear` succeeds in yesterday's release while the new release keeps its stale cache.
++
++**One app server misses the clear step.** In a multi-node setup, node A can remove `bootstrap/cache/config.php` while node B keeps the old file. Users then see different behavior based on the load balancer, which makes the issue feel random.
++
++**Permissions block the delete.** The deploy user may not own `bootstrap/cache/config.php`, especially after a manual fix or a deploy that ran as the web server user. Laravel exits non-zero, but weak shell scripts continue anyway.
++
++**Workers keep the previous config in memory.** `config:clear` only affects files on disk. Horizon and queue workers that already booted keep their current config until they restart. This is why config resets should usually be paired with [`queue:restart` monitoring](/use-cases/monitor-queue-restart/).
++
++## Building visibility into config:clear
++
++Treat `config:clear` as a production state change, not as a harmless cleanup command. A deploy wrapper should fail on errors, verify the cache file is gone, and ping Crontinel only after the check passes:
++
++```bash
++#!/usr/bin/env bash
++set -euo pipefail
++
++cd /var/www/current
++START=$(date +%s)
++
++php artisan config:clear
++
++if [ -f bootstrap/cache/config.php ]; then
++  echo "config cache still exists after config:clear"
++  exit 1
++fi
++
++curl -fsS "https://crontinel.example/ping/config-clear?host=$(hostname)&release=$RELEASE_ID&duration=$(( $(date +%s) - START ))"
++```
++
++The important part is the file check after the command. A green artisan exit code is useful, but the production question is simpler: does this host still have a config cache file after the clear step?
++
++Include safe metadata in the ping: hostname, release ID, environment name, and duration. Do not send `.env` values or secrets. If you deploy to multiple servers, expect a ping from each host. One success ping should not hide a node that missed the hook.
++
++## Detecting when config:clear fails
++
++A missing heartbeat tells you the hook did not complete. A post-deploy probe tells you whether the host is still serving the wrong state.
++
++Add a small protected endpoint that reports release and cache state:
++
++```php
++Route::get('/_deploy/config-state', function () {
++    $configCache = base_path('bootstrap/cache/config.php');
++
++    return response()->json([
++        'host' => gethostname(),
++        'release' => trim(@file_get_contents(base_path('REVISION'))),
++        'config_cache_exists' => file_exists($configCache),
++        'config_cache_mtime' => file_exists($configCache) ? filemtime($configCache) : null,
++        'queue_connection' => config('queue.default'),
++    ]);
++})->middleware('auth.basic');
++```
++
++Call that endpoint on every server after a deploy or emergency config fix. If one host reports an old release or a cache file that should have been removed, take it out of rotation and rerun the clear and rebuild sequence there.
++
++If the next step is `config:cache`, monitor that command separately. A successful clear followed by a failed rebuild can leave production uncached or partially configured. The safer deploy signal is two pings: `config:clear completed`, then `config:cache completed`.
++
++## Quick setup with Crontinel
++
++Create a Crontinel monitor named `production config:clear completed`. Ping it from the deploy script after `php artisan config:clear` succeeds and after `bootstrap/cache/config.php` is confirmed absent.
++
++For scheduled deployments, set the expected window to match your deploy cadence. For manual deploys and emergency fixes, start the monitor when the deploy begins and require the ping before the release is marked healthy.
++
++`config:clear` is usually used when something already feels suspicious. Making it visible gives your team a clean answer: every production host cleared the stale config, or one of them did not.
++
++## See also
++
++- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
++- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize/)
++- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
++- [Monitoring queue:restart in Laravel production](/use-cases/monitor-queue-restart/)
+diff --git a/src/content/use-cases/monitor-optimize.mdx b/src/content/use-cases/monitor-optimize.mdx
+index 8f60d32..1fc621e 100644
+--- a/src/content/use-cases/monitor-optimize.mdx
++++ b/src/content/use-cases/monitor-optimize.mdx
+@@ -103,6 +103,7 @@ The `php artisan optimize` command is one of those commands that is invisible wh
+ 
+ ## See also
+ 
++- [Monitoring config:clear in Laravel production](/use-cases/monitor-config-clear/)
+ - [Monitoring php artisan optimize:clear after deployments](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
+ - [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
+ - [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+diff --git a/src/content/use-cases/monitor-php-artisan-optimize-clear-after-deployment.mdx b/src/content/use-cases/monitor-php-artisan-optimize-clear-after-deployment.mdx
+index be0a59e..a306350 100644
+--- a/src/content/use-cases/monitor-php-artisan-optimize-clear-after-deployment.mdx
++++ b/src/content/use-cases/monitor-php-artisan-optimize-clear-after-deployment.mdx
+@@ -106,6 +106,7 @@ For multi-server Laravel apps, include the hostname in the ping and create one m
+ 
+ ## See also
+ 
++- [Monitoring config:clear in Laravel production](/use-cases/monitor-config-clear/)
+ - [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
+ - [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
+ - [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
+-- 
+2.50.1 (Apple Git-155)
+

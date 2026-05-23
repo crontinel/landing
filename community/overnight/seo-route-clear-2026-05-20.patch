@@ -1,0 +1,214 @@
+From 4204b14c3aee1274b5362cf1a6d4d9d9e2372d2c Mon Sep 17 00:00:00 2001
+From: HarunRRayhan <harun.b13@gmail.com>
+Date: Wed, 20 May 2026 02:03:46 +0600
+Subject: [PATCH] seo: add route clear monitoring page
+
+---
+ .../overnight/seo-pipeline-2026-05-20.md      | 35 +++++++
+ gsc-queue.json                                |  6 +-
+ pseo-queue.json                               |  6 +-
+ src/content/use-cases/monitor-route-cache.mdx |  1 +
+ src/content/use-cases/monitor-route-clear.mdx | 94 +++++++++++++++++++
+ 5 files changed, 137 insertions(+), 5 deletions(-)
+ create mode 100644 community/overnight/seo-pipeline-2026-05-20.md
+ create mode 100644 src/content/use-cases/monitor-route-clear.mdx
+
+diff --git a/community/overnight/seo-pipeline-2026-05-20.md b/community/overnight/seo-pipeline-2026-05-20.md
+new file mode 100644
+index 0000000..c6c0137
+--- /dev/null
++++ b/community/overnight/seo-pipeline-2026-05-20.md
+@@ -0,0 +1,35 @@
++# Crontinel SEO Pipeline Archive - 2026-05-20
++
++Articles Generated: 1
++Articles Committed: 1
++Articles Submitted to GSC: 1/1 queued for sitemap/index discovery
++GSC Errors: none found in diagnostics
++
++## Diagnostics
++
++- GSC credentials verified with `sc-domain:crontinel.com` at `siteOwner` permission.
++- 30-day Search Console query returned only 3 low-volume rows, so there was not enough evidence for title/meta rewrites.
++- Existing queue checked. `route-clear` was the next pending topic and is a natural pair for the existing `route:cache` page, not a spun duplicate.
++- Claude Code auth probe failed with `Not logged in · Please run /login`; content was written manually to avoid a silent run.
++
++## Published work
++
++- Topic: `route-clear`
++- New URL: `https://crontinel.com/use-cases/monitor-route-clear/`
++- File: `src/content/use-cases/monitor-route-clear.mdx`
++- Internal links added from `monitor-route-cache.mdx` and from the new page back to related deployment-cache pages.
++
++## Queue changes
++
++- Moved `route-clear` from `pending` to `completed` in `pseo-queue.json`.
++- Added `https://crontinel.com/use-cases/monitor-route-clear/` to `gsc-queue.json` pending list.
++
++## Verification
++
++- Build passed with `npm run build`.
++- Generated route confirmed in build output: `/use-cases/monitor-route-clear/index.html`.
++- Sitemap submission attempted through GSC API after merge/deploy if available in this run.
++
++## Blockers / follow-up
++
++- Claude Code is not authenticated in the cron environment. Re-authenticate Claude Code or provide an API key to the cron job if Harun wants Opus-generated content instead of manual fallback.
+diff --git a/gsc-queue.json b/gsc-queue.json
+index 93b1516..9f0ede5 100644
+--- a/gsc-queue.json
++++ b/gsc-queue.json
+@@ -1,5 +1,7 @@
+ {
+-  "pending": [],
++  "pending": [
++    "https://crontinel.com/use-cases/monitor-route-clear/"
++  ],
+   "submitted": [
+     "https://crontinel.com/blog/laravel-queue-depth-alert",
+     "https://crontinel.com/blog/what-is-cron-monitoring-laravel/",
+@@ -172,4 +174,4 @@
+     "https://crontinel.com/use-cases/monitor-queue-work"
+   ],
+   "last_push": "2026-05-11"
+-}
+\ No newline at end of file
++}
+diff --git a/pseo-queue.json b/pseo-queue.json
+index a616312..d5ab0cc 100644
+--- a/pseo-queue.json
++++ b/pseo-queue.json
+@@ -1,6 +1,5 @@
+ {
+   "pending": [
+-    "route-clear",
+     "config-cache",
+     "config-clear",
+     "view-cache",
+@@ -53,7 +52,8 @@
+     "event-cache",
+     "cache-clear",
+     "cache-prune",
+-    "optimize-clear"
++    "optimize-clear",
++    "route-clear"
+   ],
+   "in_progress": []
+-}
+\ No newline at end of file
++}
+diff --git a/src/content/use-cases/monitor-route-cache.mdx b/src/content/use-cases/monitor-route-cache.mdx
+index 441f203..35c1384 100644
+--- a/src/content/use-cases/monitor-route-cache.mdx
++++ b/src/content/use-cases/monitor-route-cache.mdx
+@@ -90,6 +90,7 @@ Add your monitoring endpoint URL to your deploy script, and treat a missing ping
+ 
+ ## See also
+ 
++- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)
+ - [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
+ - [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment)
+ - [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache)
+diff --git a/src/content/use-cases/monitor-route-clear.mdx b/src/content/use-cases/monitor-route-clear.mdx
+new file mode 100644
+index 0000000..a0f06f2
+--- /dev/null
++++ b/src/content/use-cases/monitor-route-clear.mdx
+@@ -0,0 +1,94 @@
++---
++title: "Monitoring route:clear in Laravel Production"
++description: "Watch Laravel's route:clear command in production so a cleared route cache does not leave old routes, missing endpoints, or a half-finished deployment unnoticed."
++date: 2026-05-20
++---
++
++`php artisan route:clear` looks harmless. It deletes Laravel's cached route file so the app can rebuild or read routes from source again. The problem starts when a deploy clears the cache, never rebuilds it, and nobody checks whether the new routes are actually live. You can end up with one server using fresh route definitions, another still serving an old cache file, and a third falling back to uncached routes after a failed deploy step.
++
++That kind of failure rarely shows up as a clean outage. It shows up as one API endpoint returning 404 on some requests, signed URLs failing on one node, or admin routes disappearing right after release. Monitoring `route:clear` gives you a quick signal that the cache reset happened where you expected it to happen.
++
++## How route:clear works
++
++Laravel stores cached routes in `bootstrap/cache/routes-v7.php` on current releases. When you run `php artisan route:clear`, Laravel deletes that cache file. It does not rebuild the cache. It simply forces the next request or next `route:cache` step to use the route files in your application code.
++
++That distinction matters in production. A typical deploy might run:
++
++```bash
++php artisan down
++php artisan route:clear
++php artisan route:cache
++php artisan up
++```
++
++If `route:clear` succeeds but `route:cache` fails, your app may still work, but it is now running without the route cache you expected. If you deploy across several servers, the timing gets messier. One node may clear routes before the code sync finishes while another node still has the previous cache file. For a few minutes, users can get different route behavior depending on which server handles the request.
++
++## Common failure modes
++
++**The cache is cleared but never rebuilt.** This is the most common production mistake. A deploy script clears the route cache, a later step fails, and the script does not stop. The app continues serving requests with uncached routes. That may be slower, but the bigger problem is that your deployment state is now different from what your runbook says.
++
++**A rolling deploy creates mixed route state.** In a multi-server setup, `route:clear` can run on each node at a different time. During the deploy window, some servers may have no route cache, some may have the old cache, and some may have the new one. Intermittent 404s after a release often come from this mixed state.
++
++**Permission errors leave the old cache in place.** If the deploy user cannot delete files in `bootstrap/cache`, `route:clear` can fail while the old route cache remains. A sloppy deploy wrapper may hide that error. The new code ships, but Laravel still reads the old route table.
++
++**A bad deploy order clears routes too early.** If `route:clear` runs before the new release directory is fully linked, the app can briefly read routes from the wrong code version. This usually appears as missing routes immediately after deploy, then seems to fix itself, which makes it easy to dismiss.
++
++## Building visibility into route:clear
++
++Treat route cache clearing as a deployment event worth verifying. The simplest check is to run `route:clear`, confirm the cache file is gone, then ping Crontinel only after the verification passes:
++
++```bash
++set -e
++
++php artisan route:clear
++
++test ! -f bootstrap/cache/routes-v7.php
++
++curl -fsS "https://your-crontinel-endpoint/ping/route-clear?release=$RELEASE_ID&host=$(hostname)"
++```
++
++If that ping does not arrive after a deploy starts, you know the cache clear step failed, did not run, or ran on the wrong host. That is more useful than waiting for users to report strange 404s.
++
++For teams that always rebuild routes after clearing them, monitor both steps separately. Send one ping after `route:clear` succeeds and another after `route:cache` succeeds. If the first ping arrives but the second never does, the app is in the exact unsafe state you need to investigate.
++
++```bash
++php artisan route:clear
++curl -fsS "$CRONTINEL_ROUTE_CLEAR_URL"
++
++php artisan route:cache
++curl -fsS "$CRONTINEL_ROUTE_CACHE_URL"
++```
++
++## Detecting when route:clear fails
++
++A good production check answers three questions: did the command run, did it run on every host, and did the expected cache state follow?
++
++For single-server apps, checking the cache file is enough:
++
++```bash
++php artisan route:clear
++
++if [ -f bootstrap/cache/routes-v7.php ]; then
++  echo "route cache still exists after route:clear"
++  exit 1
++fi
++```
++
++For multiple servers, include the hostname or release ID in the Crontinel ping. That lets you see which node missed the deploy step. If one server does not report in, you can pull it from rotation before users hit stale routes.
++
++You should also run a small route smoke test after the clear and rebuild sequence. Call one public route and one authenticated or API route that changed in the release. A file check tells you the cache state changed. A route smoke test tells you Laravel is actually serving the routes you expect.
++
++## Quick setup with Crontinel
++
++Create one Crontinel monitor for `route:clear` and, if you rebuild route cache in production, a second monitor for `route:cache`. Set the expected window to match your deployment process. If deploys are manual or irregular, trigger the monitor during the deploy and require the ping before marking the release healthy.
++
++Use a descriptive monitor name such as `production route:clear completed` and include host metadata in the ping URL. When the ping is missing, treat it as a deploy verification failure, not a generic uptime problem.
++
++If you already monitor [`route:cache`](/use-cases/monitor-route-cache/), add `route:clear` as the paired signal. Together they show whether Laravel cleared the old route table and rebuilt the new one cleanly.
++
++## See also
++
++- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
++- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize/)
++- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
++- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache/)
+-- 
+2.50.1 (Apple Git-155)
+

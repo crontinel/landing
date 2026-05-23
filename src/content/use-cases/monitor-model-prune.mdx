@@ -1,10 +1,14 @@
 ---
-title: "Monitoring model:prune in Laravel Production"
-description: "Catch when model:prune silently skips records, stops running, or produces incomplete cleanups - and why Laravel teams need monitoring around this command before old data bloats production storage."
+title: "How to Monitor php artisan model:prune in Production"
+description: "Monitor Laravel model:prune in production so you catch missed pruning runs, skipped models, and silent cleanup failures before old data fills the database."
 date: 2026-05-07
 ---
 
-You shipped a new feature six months ago. It generates session logs, activity records, temporary cache rows. The database table is up to 4 million rows. Your staging server, which gets a fresh database restore every night, shows the same query performance as production. Then you look at production directly: table size has tripled, your disk is at 82%, and the last `model:prune` run was never recorded. The Laravel scheduler had stopped firing three weeks earlier. You only find out because your DBA pinged you. This is the failure mode that proper model:prune monitoring is built to catch: a command that looks like it is running, exits with code 0, and leaves your storage to fill up until something breaks.
+`php artisan model:prune` can look successful while still leaving old rows behind. It may skip a model, use the wrong prune condition, or stop running entirely when the scheduler breaks.
+
+If you're searching for how to monitor `php artisan model:prune` in production, the real goal is to catch missed pruning runs, skipped models, and silent cleanup failures before old data fills the database.
+
+The dangerous part is that the command often exits 0 even when the table you expected to shrink barely changes.
 
 ## What model:prune Actually Does
 

@@ -1,12 +1,14 @@
 ---
-title: "Monitoring notifications:prune in Laravel Production"
-description: "Track Laravel's notifications:prune command in production to catch missed runs, slow executions, and silent failures before your notifications table balloons."
+title: "How to Monitor php artisan notifications:prune in Production"
+description: "Monitor Laravel notifications:prune in production so you catch missed runs, slow executions, and silent failures before the notifications table balloons."
 date: 2026-05-09
 ---
 
-You push a migration that adds a notifications table. Six months later, your database is 4GB and growing. Nobody scheduled the prune command, or it ran but hit a memory limit and silently skipped half the records. Your users get slower notification delivery because every query against the table is a full table scan on an unindexed timestamp column.
+`php artisan notifications:prune` is easy to ignore until the notifications table starts growing without bound. It can miss a run, take too long, or fail inside `schedule:run` without anything obvious surfacing.
 
-This is what happens when nobody watches the prune command.
+If you're searching for how to monitor `php artisan notifications:prune` in production, the real goal is to catch missed runs, slow executions, and silent failures before the notifications table balloons.
+
+The dangerous part is that the command may keep exiting 0 while the row count keeps climbing.
 
 ## How notifications:prune Actually Works
 

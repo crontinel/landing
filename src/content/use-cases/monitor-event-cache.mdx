@@ -1,12 +1,14 @@
 ---
-title: "Monitoring event:cache in Laravel Production"
-description: "Track Laravel's event:cache command in production to catch listener registration failures, deployment cache corruption, and missing event handlers before they break your app."
+title: "How to Monitor php artisan event:cache in Production"
+description: "Monitor Laravel event:cache in production so you catch missing listeners, stale event maps, and silent registration failures before customers do."
 date: 2026-05-09
 ---
 
-Your deployment adds a new event listener for `OrderShipped`. You test it locally, it works perfectly. You deploy to production. The `event:cache` command runs as part of your deploy script. Three days later, you notice that customer emails are not being sent after orders ship. The listener was registered, but it was never cached because the event class path in the service provider was wrong on one environment, and `event:cache` silently skipped it. Your application fell back to Laravel's auto-discovery, but that didn't find the listener either, and nobody noticed for three days.
+`php artisan event:cache` is one of those deploy steps that looks harmless until a listener goes missing in production. It can build a cache file successfully while still freezing the wrong event map, and that stale snapshot is what your app keeps using later.
 
-This is what happens when nobody watches `event:cache`.
+If you're searching for how to monitor `php artisan event:cache` in production, the real goal is to confirm the cache was rebuilt on the active release, the listener count matches your baseline, and the key events are still firing.
+
+The dangerous part is that the command can exit 0 while the broken listener only shows up after customers start triggering the event.
 
 ## How event:cache Actually Works
 
@@ -111,3 +113,10 @@ Event::listen(OrderShipped::class, function ($event) {
 If this ping stops arriving for a specific event that should fire regularly, the listener is not being invoked. Crontinel watches for the absence of these pings and alerts when a critical event goes silent.
 
 Event caching is one of those optimizations that works beautifully until it silently breaks. Monitoring the cache file modification time and comparing the registered listener count against a known-good baseline catches most failures before they become user-visible problems.
+
+## See also
+
+- [How to monitor Laravel route:cache in production](/use-cases/monitor-route-cache) - keep cached routes fresh across deploys
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment) - detect deploy-time maintenance failures
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring) - broader scheduled task monitoring for production apps
+- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side

@@ -4,8 +4,8 @@ import Base from '../layouts/Base.astro';
 export const prerender = true;
 
 const canonicalURL = new URL('/', 'https://crontinel.com').toString();
-const title = 'Crontinel // See your cron before it screams';
-const description = 'Crontinel watches the jobs, queues, workers, models and agents behind your app, so you hear about the failure before your users do.';
+const title = 'Laravel Cron Monitoring for Scheduled Tasks, Queues, and Horizon | Crontinel';
+const description = 'Crontinel monitors Laravel scheduled tasks, queues, Horizon workers, backups, and agent runs so you catch silent failures before users do.';
 ---
 
 <Base title={title} description={description} canonical={canonicalURL}>
@@ -167,11 +167,26 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
     .oss-pkgs { display: flex; flex-wrap: wrap; gap: 8px; }
     .oss-pkgs code { background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--accent); font-family: var(--font-mono); white-space: nowrap; }
 
+    .seo-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 28px; }
+    .seo-link-card {
+      display: block;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      text-decoration: none;
+      transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+    }
+    .seo-link-card:hover { transform: translateY(-1px); border-color: var(--accent); background: var(--bg-2); }
+    .seo-link-card h3 { margin: 0 0 8px; font-size: 16px; font-weight: 600; color: var(--text); }
+    .seo-link-card p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--text-2); }
+
     /* ── RESPONSIVE ───────────────────────────────────────────────── */
     @media (max-width: 640px) {
       .oss-compare-grid { grid-template-columns: 1fr; }
       .oss-callout { flex-direction: column; gap: 12px; }
       .proof-stat { padding: 0 16px; }
+      .seo-links { grid-template-columns: 1fr; }
     }
   </style>
 
@@ -231,13 +246,13 @@ const description = 'Crontinel watches the jobs, queues, workers, models and age
       </span>
 
       <h1 class="display h1" id="headline">
-        Your cron<br/>
+        Laravel cron<br/>
         is <span class="accent">lying</span><br/>
         to you.<span class="cursor"></span>
       </h1>
 
       <p class="hero-sub" id="sub">
-        Crontinel watches the jobs, queues, workers, models and agents behind your app,
+        Crontinel watches Laravel scheduled tasks, queue workers, Horizon supervisors, backups, and agent runs,
         so you hear about the failure <em>before</em> your users do.
       </p>
 
@@ -929,6 +944,34 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <div class="install-cmd"><span><span class="prompt">$</span> rails generate crontinel:install</span><button class="copy" data-copy="rails generate crontinel:install">COPY</button></div>
         <div class="install-cmd"><span><span class="prompt">$</span> bundle exec crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="bundle exec crontinel check">COPY</button></div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="learn">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Learn more</span>
+      <h2 class="display h2">Start with the pages people actually search for.</h2>
+      <p class="body">If you're comparing tools or looking for a specific Laravel failure mode, these are the strongest pages on the site.</p>
+    </div>
+    <div class="seo-links reveal">
+      <a class="seo-link-card" href="/blog/laravel-cron-vs-queue-monitoring/">
+        <h3>Laravel cron vs queue monitoring</h3>
+        <p>See what cron monitoring covers, what queue monitoring covers, and why you need both for Laravel production apps.</p>
+      </a>
+      <a class="seo-link-card" href="/use-cases/laravel-horizon-monitoring/">
+        <h3>Laravel Horizon monitoring</h3>
+        <p>Track paused supervisors, queue depth, and failing workers before the backlog becomes customer visible.</p>
+      </a>
+      <a class="seo-link-card" href="/vs/crontinel-vs-cronitor/">
+        <h3>Crontinel vs Cronitor</h3>
+        <p>Compare Laravel-native monitoring with generic heartbeat pings and dead-man switch alerting.</p>
+      </a>
+      <a class="seo-link-card" href="/integrations/pagerduty/">
+        <h3>PagerDuty integration</h3>
+        <p>Route urgent cron and queue incidents to on-call with deduped alerts and automatic resolution.</p>
+      </a>
     </div>
   </div>
 </section>

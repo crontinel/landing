@@ -5,7 +5,9 @@ date: 2026-05-11
 canonical: "https://crontinel.com/use-cases/monitor-php-artisan-optimize-clear-after-deployment/"
 ---
 
-`php artisan optimize:clear after deployment` is usually treated as cleanup. The deploy script runs it, the terminal scrolls past, and everyone assumes the old cache is gone. Then production keeps reading a stale config value, a removed route still appears cached on one server, or a view compiled from the previous release survives because the command failed on a single node.
+`php artisan optimize:clear after deployment` is only useful if you know it actually ran on the release that went live. The hook can succeed on paper while one server keeps serving stale config, a removed route remains cached, or a previous release's compiled view survives on the node that missed the cleanup.
+
+If you're searching for how to monitor `php artisan optimize:clear` after deployment, the real goal is to verify three things: the hook ran on the active release, every node executed it, and the expected cache files were really removed.
 
 The dangerous part is that `optimize:clear` often fails in the least visible place: inside a deploy hook, under a non-interactive shell, with stderr swallowed by the deployment tool.
 
@@ -106,7 +108,8 @@ For multi-server Laravel apps, include the hostname in the ping and create one m
 
 ## See also
 
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize)
-- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
-- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
-- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache)
+- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize) - catch stale config and cache refresh failures together
+- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/) - keep cached config aligned with deployments
+- [How to monitor Laravel cache:clear cron job failure](/use-cases/monitor-laravel-cache-clear-cron-job-failed) - broader cache maintenance monitoring
+- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache) - keep cached event discovery in sync
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring) - scheduled task monitoring across the app

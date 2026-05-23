@@ -1,14 +1,14 @@
 ---
-title: "Monitoring queue:failed in Laravel Production"
-description: "Monitor Laravel's `queue:failed` command in production with instant alerts, failure tracking, and smart retries to keep your job pipeline healthy."
+title: "How to Monitor php artisan queue:failed in Production"
+description: "Monitor Laravel queue:failed in production so you catch new failures, repeated job errors, and silent accumulation before users report it."
 date: 2026-04-10
 ---
 
----
+`php artisan queue:failed` is a useful diagnostic, but it is not a monitor. It can tell you what already failed while still missing the ongoing pattern: new failures appearing, the same job breaking repeatedly, or the table quietly filling up.
 
-Your queue workers have been processing jobs all week without incident. On Friday afternoon, you notice that order confirmation emails stopped going out three hours ago. You SSH into the production server and run `php artisan queue:failed`. Forty-seven failed jobs stare back at you, all with the same `ConnectionTimeoutException` against your SMTP provider. The jobs have been silently piling up since lunchtime, and nobody knew until a customer complained. The `failed_jobs` table had the answer the whole time, but no one was watching it.
+If you're searching for how to monitor `php artisan queue:failed` in production, the real goal is to catch new failures, repeated job errors, and silent accumulation before users report it.
 
-This is the core problem with `queue:failed` in production: it is a pull-based diagnostic tool in an environment that demands push-based alerting. You have to remember to check it, and by the time you do, the damage is already compounding.
+The dangerous part is that nobody gets alerted when new rows appear unless you build that check yourself.
 
 ## What queue:failed Actually Shows You
 
@@ -100,3 +100,10 @@ php artisan queue:prune-failed --hours=168
 This removes entries older than seven days. Pair it with your monitoring: alert on new failures first, then prune resolved ones on a schedule. The goal is a `failed_jobs` table where every row represents an actionable problem, not a historical archive of last quarter's transient errors.
 
 The `queue:failed` command gives you the raw data. What it cannot give you is the discipline of watching that data continuously and reacting before your users notice.
+
+## See also
+
+- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
+- [How to Monitor php artisan queue:flush in Production](/use-cases/monitor-queue-flush/)
+- [How to Monitor php artisan queue:forget in Production](/use-cases/monitor-queue-forget/)
+- [Laravel Queue Monitoring: Depth, Failures, and Stuck Jobs](/use-cases/laravel-queue-monitoring/)
