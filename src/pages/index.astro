@@ -995,6 +995,30 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <a class="btn btn-primary" href="https://app.crontinel.com/register">Start monitoring free <span class="arrow-i">&#8599;</span></a>
         <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">Read the source</a>
       </div>
+      <div class="mt-8 max-w-xl mx-auto rounded-2xl border border-gray-800 bg-gray-900 p-6 text-center">
+        <div class="inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-400 mb-4">
+          Launch updates
+        </div>
+        <h3 class="text-white text-lg font-semibold mb-2">Join the waitlist</h3>
+        <p class="text-gray-400 text-sm mb-6">Get launch updates and the first release notes when Crontinel is ready.</p>
+        <form id="waitlist-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <input
+            type="email"
+            id="waitlist-email"
+            placeholder="you@yourapp.com"
+            required
+            class="flex-1 bg-gray-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-green-500 transition-colors"
+          />
+          <button
+            type="submit"
+            id="waitlist-btn"
+            class="bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-semibold px-4 py-2.5 rounded-lg transition-colors text-sm whitespace-nowrap"
+          >
+            Notify me
+          </button>
+        </form>
+        <p id="waitlist-msg" class="mt-3 text-sm hidden"></p>
+      </div>
     </div>
   </div>
 </section>
@@ -1141,6 +1165,43 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     </div>
   </div>
 </aside>
+
+<script>
+  const form = document.getElementById('waitlist-form') as HTMLFormElement;
+  const emailInput = document.getElementById('waitlist-email') as HTMLInputElement;
+  const btn = document.getElementById('waitlist-btn') as HTMLButtonElement;
+  const msg = document.getElementById('waitlist-msg') as HTMLParagraphElement;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = 'Joining...';
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.value }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        msg.textContent = "You're on the list. We'll email you at launch.";
+        msg.className = 'mt-3 text-sm text-green-400';
+        form.reset();
+      } else {
+        msg.textContent = data.error ?? 'Something went wrong. Try again.';
+        msg.className = 'mt-3 text-sm text-red-400';
+        btn.disabled = false;
+        btn.textContent = 'Notify me';
+      }
+    } catch {
+      msg.textContent = 'Something went wrong. Try again.';
+      msg.className = 'mt-3 text-sm text-red-400';
+      btn.disabled = false;
+      btn.textContent = 'Notify me';
+    }
+  });
+</script>
 
 <script is:inline src="/src/main.js"></script>
 
