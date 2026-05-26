@@ -30,6 +30,21 @@ const useCases = [
     signals: ['Webhook queue depth above threshold', 'Failed delivery jobs surfaced immediately', 'Retries and timeouts tracked per endpoint'],
   },
   {
+    title: 'Cron heartbeat monitoring',
+    description: 'When schedule:run goes quiet, you need to know before the backlog grows. Heartbeat monitoring catches missing or late scheduler runs.',
+    signals: ['Missing schedule:run heartbeat', 'Late-run alerts with grace windows', 'Manual success does not hide scheduled failure'],
+  },
+  {
+    title: 'Incident alert routing',
+    description: 'Send warnings to Slack and pages to PagerDuty only when the failure really deserves escalation.',
+    signals: ['Severity-based alert routing', 'Slack, PagerDuty, and webhook fanout', 'Noise reduction for low-priority misses'],
+  },
+  {
+    title: 'Open source and self-hosted status pages',
+    description: 'When customers need a public update, a simple status page keeps cron, queue, and webhook incidents visible without a third-party vendor.',
+    signals: ['Public incident updates you control', 'Cron and queue state reflected clearly', 'Self-hosted or open source deployment fit'],
+  },
+  {
     title: 'Teams needing a public status page',
     description: 'When cron jobs, queue workers, or webhook delivery slows down, a status page keeps customers informed while the team fixes the incident.',
     signals: ['Cron and queue incidents reflected publicly', 'Updates can point to missed runs or retries', 'One place for customer-facing incident notes'],

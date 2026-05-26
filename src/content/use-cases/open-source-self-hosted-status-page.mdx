@@ -1,0 +1,84 @@
+---
+title: "Open Source and Self-Hosted Status Page for Laravel Incidents"
+description: "Build an open source or self hosted status page for Laravel cron, queue, and webhook incidents without relying on a third-party status vendor."
+date: 2026-05-26
+---
+
+When teams search for an *open source status page* or a *self hosted status page*, they are usually trying to solve the same problem: they want a public incident page they control.
+
+For Laravel apps, that page usually needs to explain delayed cron jobs, queue backlogs, or webhook delivery issues without making customers guess what happened.
+
+## Why status pages matter
+
+A status page is not just for outages. It is the easiest way to communicate when background work is delayed but the site is still technically up.
+
+Examples:
+
+- invoices were queued but not sent yet
+- nightly exports are late
+- webhook retries are backed up
+- a deploy paused Horizon longer than expected
+
+Without a status page, the support team has to answer the same question over and over. With one, you can publish a clear update once and point everyone to it.
+
+## What makes a good Laravel status page
+
+A useful status page should stay short and specific:
+
+- current incident summary
+- when it started
+- what is affected
+- whether cron, queue, or webhook delivery is impacted
+- when the issue was resolved
+
+That is true whether the page is open source, self hosted, or both.
+
+## How Crontinel feeds the page
+
+Crontinel already knows the signals that matter:
+
+- missed scheduler heartbeats
+- failed scheduled commands
+- queue depth spikes
+- worker stalls
+- Horizon pause state
+- webhook delivery failures
+
+Those signals are enough to drive a simple public page or to trigger an internal incident note before you update customers.
+
+## Open source vs self hosted
+
+People often search for these phrases together, but they are not identical.
+
+- **Open source** means the code is visible and auditable.
+- **Self hosted** means you control where the page runs and where the data lives.
+
+For regulated teams, the self hosted part matters because it keeps incident data close to the app. For engineering teams that want to inspect or extend the tooling, open source matters because it makes the workflow transparent.
+
+## A simple incident page shape
+
+A practical Laravel status page can be very small:
+
+- one headline for the current state
+- one paragraph for the current incident
+- a timeline of updates
+- a link back to your support or docs page
+
+You do not need a giant status platform to do that well. You need a reliable source of truth for incident state.
+
+## How to connect it to Crontinel
+
+A common setup is:
+
+1. Crontinel detects a missed heartbeat or failed job
+2. Your alert routing sends a Slack or webhook notification
+3. Your incident workflow updates the status page
+4. Customers see the same message your team sees
+
+That gives you a single operational source of truth instead of scattered messages across chat, email, and support tickets.
+
+## See also
+
+- [Laravel status page for cron and queue incidents](/use-cases/laravel-status-page/)
+- [Incident alert system for Laravel cron and queue failures](/use-cases/incident-alert-system/)
+- [Open source and self hosted cron monitoring for Laravel teams](/blog/open-source-self-hosted-free-cron-monitoring/)

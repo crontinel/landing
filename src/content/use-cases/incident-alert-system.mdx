@@ -1,0 +1,110 @@
+---
+title: "Incident Alert System for Laravel Cron and Queue Failures"
+description: "Route Laravel incident alerts to the right place with Slack, PagerDuty, and webhooks when cron jobs, queue workers, or scheduled tasks break."
+date: 2026-05-26
+---
+
+If you are searching for an *incident alert system*, you probably do not need more raw monitoring data. You need the right people to hear about the right failure at the right time.
+
+That is the gap Crontinel fills for Laravel teams. It turns cron failures, queue stalls, and missed heartbeats into routed alerts that match the severity of the incident.
+
+## What an incident alert system needs to do
+
+A useful incident alert system is not just a notification engine. It has to answer three questions quickly:
+
+- what failed
+- how bad it is
+- who should be notified
+
+For Laravel apps, that usually means different routing for different signals:
+
+- low severity: Slack message to the engineering channel
+- medium severity: Slack plus a ticket or incident note
+- high severity: PagerDuty page and webhook fanout to your incident workflow
+
+That is why incident alert routing matters as much as alert detection.
+
+## Why generic alerting is not enough
+
+Many teams start with one catch-all alert. Every failure goes to the same place. That works for the first week and becomes noise after that.
+
+A missed nightly cleanup does not deserve the same treatment as a billing job that stopped processing customer charges. Likewise, a single slow queue worker should not page the on-call engineer if a retry is already in progress.
+
+Crontinel lets you separate those paths so alerts stay useful instead of turning into background noise.
+
+## The routing pattern that works
+
+A practical Laravel incident alert system usually maps signals like this:
+
+### Slack
+
+Best for:
+
+- non-critical cron misses
+- queue depth warnings
+- heartbeat warnings during deploys
+- notification for the team channel
+
+### PagerDuty
+
+Best for:
+
+- billing or revenue jobs that stopped
+- repeated missed heartbeats
+- queue stalls that affect customers now
+- anything that needs an on-call response
+
+### Webhooks
+
+Best for:
+
+- incident automation
+- external status pages
+- Slack bots or ticketing tools
+- internal dashboards
+
+```php
+return [
+    'alerts' => [
+        'critical' => ['pagerduty'],
+        'warning' => ['slack'],
+        'incident' => ['slack', 'webhook'],
+    ],
+];
+```
+
+## How Crontinel helps with routing
+
+Crontinel watches the signals Laravel teams care about most:
+
+- cron heartbeat misses
+- late scheduled jobs
+- failed commands
+- queue worker stalls
+- Horizon pause and resume changes
+
+From there, it can route alerts based on the signal type, severity, or app. That means a heartbeat failure on staging can stay in Slack, while a production billing stall escalates to PagerDuty.
+
+## What to include in every alert
+
+The best alerts are short, but not vague. A good incident message should include:
+
+- the app or environment
+- the command or queue involved
+- the failure type
+- when it last succeeded
+- the next action the team should take
+
+That saves the person on call from opening five tabs just to understand what broke.
+
+## Why this page matters for SEO and support
+
+People search for "incident alert system" when they are already in selection mode. They know they need routing. They are deciding whether a generic alert tool is enough or whether they need something built for Laravel failures.
+
+If your team needs incident alert routing for cron and queue problems, you want a system that understands the difference between a warning, an outage, and a stale heartbeat.
+
+## See also
+
+- [Production cron job alerting for Laravel](/use-cases/production-cron-job-alerting/)
+- [Laravel status page for cron and queue incidents](/use-cases/laravel-status-page/)
+- [Open source and self-hosted cron monitoring for Laravel teams](/blog/open-source-self-hosted-free-cron-monitoring/)

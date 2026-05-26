@@ -968,17 +968,17 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <h3>Webhook monitoring for Laravel and API teams</h3>
         <p>Catch delivery failures, retry storms, and stalled callback queues before customers notice.</p>
       </a>
-      <a class="seo-link-card" href="/use-cases/monitor-queue-worker-timeout/">
-        <h3>Laravel queue worker timeout monitoring</h3>
-        <p>Watch for hung workers, timeout spikes, and queues that stop draining after a deploy.</p>
+      <a class="seo-link-card" href="/use-cases/cron-heartbeat-monitoring/">
+        <h3>Cron heartbeat monitoring for Laravel schedulers</h3>
+        <p>Catch the moment schedule:run stops arriving, runs late, or silently skips a job.</p>
       </a>
-      <a class="seo-link-card" href="/vs/crontinel-vs-forge-heartbeats/">
-        <h3>Crontinel vs Laravel Forge Heartbeats</h3>
-        <p>Compare heartbeat pings with Laravel-native queue and Horizon visibility.</p>
+      <a class="seo-link-card" href="/use-cases/incident-alert-system/">
+        <h3>Incident alert system for Laravel failures</h3>
+        <p>Route the right failures to Slack, PagerDuty, or webhooks without drowning the team in noise.</p>
       </a>
-      <a class="seo-link-card" href="/blog/open-source-self-hosted-free-cron-monitoring/">
-        <h3>Open source and self hosted cron monitoring</h3>
-        <p>Compare open source, self hosted, and free monitoring options for Laravel teams.</p>
+      <a class="seo-link-card" href="/use-cases/open-source-self-hosted-status-page/">
+        <h3>Open source and self hosted status pages</h3>
+        <p>Publish a simple public incident page for cron, queue, and webhook problems you control.</p>
       </a>
     </div>
   </div>
@@ -1000,7 +1000,13 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
           Launch updates
         </div>
         <h3 class="text-white text-lg font-semibold mb-2">Join the waitlist</h3>
-        <p class="text-gray-400 text-sm mb-6">Get launch updates and the first release notes when Crontinel is ready.</p>
+        <p class="text-gray-400 text-sm mb-4">Get launch updates and the first release notes when Crontinel is ready.</p>
+        <p class="mb-6 text-sm text-gray-300">
+          <span class="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-950 px-3 py-1.5" aria-live="polite">
+            <span class="h-2 w-2 rounded-full bg-green-400"></span>
+            <span id="waitlist-count">Loading current count...</span>
+          </span>
+        </p>
         <form id="waitlist-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
             type="email"
@@ -1171,6 +1177,38 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   const emailInput = document.getElementById('waitlist-email') as HTMLInputElement;
   const btn = document.getElementById('waitlist-btn') as HTMLButtonElement;
   const msg = document.getElementById('waitlist-msg') as HTMLParagraphElement;
+  const countLabel = document.getElementById('waitlist-count') as HTMLSpanElement;
+
+  const formatWaitlistCount = (count: number) => {
+    const safeCount = Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
+    const unit = safeCount === 1 ? 'person' : 'people';
+    return `${new Intl.NumberFormat('en-US').format(safeCount)} ${unit} already joined`;
+  };
+
+  const setWaitlistCount = (count: number) => {
+    if (countLabel) {
+      countLabel.textContent = formatWaitlistCount(count);
+    }
+  };
+
+  const refreshWaitlistCount = async () => {
+    try {
+      const res = await fetch('/api/waitlist-count', { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+
+      if (res.ok && data.ok && typeof data.count === 'number') {
+        setWaitlistCount(data.count);
+      } else if (countLabel) {
+        countLabel.textContent = 'Count unavailable';
+      }
+    } catch {
+      if (countLabel) {
+        countLabel.textContent = 'Count unavailable';
+      }
+    }
+  };
+
+  refreshWaitlistCount();
 
   form?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -1185,7 +1223,10 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-        msg.textContent = "You're on the list. We'll email you at launch.";
+        setWaitlistCount(data.count);
+        msg.textContent = data.alreadyJoined
+          ? `You're already on the list. ${formatWaitlistCount(data.count)}.`
+          : `You're on the list. ${formatWaitlistCount(data.count)}.`;
         msg.className = 'mt-3 text-sm text-green-400';
         form.reset();
       } else {

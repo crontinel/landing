@@ -1,0 +1,80 @@
+---
+title: "Cron Heartbeat Monitoring for Laravel Schedulers"
+description: "Use cron heartbeat monitoring to catch the moment schedule:run stops arriving, runs late, or silently skips a scheduled task in production."
+date: 2026-05-26
+---
+
+If you are searching for *cron heartbeat monitoring*, you are usually trying to solve a very specific problem: the command still exists, the server still looks healthy, but the scheduler has gone quiet.
+
+That is exactly the failure mode Crontinel is built for. A heartbeat tells you whether `schedule:run` arrived on time. If the expected ping never shows up, you know the cron entry, the scheduler, or the host itself is broken before users notice missing jobs.
+
+## What a cron heartbeat actually proves
+
+A heartbeat is not the same thing as a log line or a successful deploy. It is a time-based signal that says, "the scheduler ran when it was supposed to." That matters because many cron failures are silent:
+
+- the crontab entry was removed during deploy
+- the PHP binary path changed
+- the host rebooted and cron did not restart
+- the task started but crashed before it could finish
+
+A heartbeat monitor turns all of those into one visible question: did the expected ping arrive inside the grace window?
+
+## Why heartbeat monitoring beats manual checks
+
+Manual checks usually happen too late. Someone runs `php artisan schedule:run` in a shell, sees it work, and assumes the schedule is fine. But a manual run only proves the command can succeed right now. It does not prove the system-level cron entry is still firing every minute.
+
+That is why teams looking for a heartbeat monitoring system usually care about two things:
+
+1. the scheduler must be expected to ping on a fixed cadence
+2. the monitor must alert when the ping is missing, not just when the job throws
+
+Crontinel handles both. It watches for the absence of the heartbeat and records the late or missed run in the dashboard.
+
+## Common failure modes heartbeat monitoring catches
+
+### 1. The scheduler stopped entirely
+
+This is the classic silent outage. The app can still respond to HTTP requests, but `schedule:run` is no longer being invoked. The heartbeat stops, and the alert fires.
+
+### 2. The scheduler runs manually, but not on schedule
+
+This is the exact "runs manually but not on schedule" problem. The command works when you invoke it yourself, but the crontab entry never fires, or it fires from the wrong directory. A heartbeat catches that gap immediately.
+
+### 3. The job is late enough to matter
+
+A one-minute task that arrives four minutes late is not healthy just because it eventually ran. Heartbeat monitoring lets you define the acceptable window and treat lateness as a real incident.
+
+## What to monitor with Crontinel
+
+For Laravel teams, the most useful heartbeat checks are:
+
+- the top-level scheduler heartbeat for `schedule:run`
+- critical cron jobs like billing, export, cleanup, and sync tasks
+- long-running jobs that should report progress during execution
+- any task where "did not run" is worse than "ran and failed"
+
+```php
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::call(function () {
+    Http::post('https://monitor.crontinel.com/heartbeat/scheduler', [
+        'app' => config('app.name'),
+        'source' => 'schedule:run',
+    ]);
+})->everyMinute();
+```
+
+That pattern gives you a simple, durable signal that can drive an alert, a status page update, or both.
+
+## How this differs from generic uptime monitoring
+
+Generic uptime tools can tell you whether a URL returned 200. They do not know whether the scheduler actually executed the right work. A cron heartbeat system is better when the thing you care about is scheduler cadence, not just endpoint availability.
+
+Crontinel adds the missing context: command name, schedule, run history, lateness, and failure state.
+
+## See also
+
+- [How to monitor `php artisan schedule:run` in production](/use-cases/monitor-schedule-run/)
+- [Production cron job alerting for Laravel](/use-cases/production-cron-job-alerting/)
+- [What happens when your Laravel scheduler stops running](/blog/what-happens-when-laravel-scheduler-stops-running/)

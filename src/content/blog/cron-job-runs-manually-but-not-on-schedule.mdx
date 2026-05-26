@@ -1,0 +1,96 @@
+---
+title: "Laravel Cron Job Runs Manually but Not on Schedule"
+description: "If a Laravel cron job runs when you invoke it manually but not on schedule, the problem is usually the crontab, the working directory, or the scheduler heartbeat."
+date: 2026-05-26
+tags: ["laravel", "cron", "scheduler"]
+---
+
+If your Laravel cron job runs manually but does not run on schedule, the app is usually telling you something very specific: the command itself is fine, but the system that invokes it is broken.
+
+That difference matters. A manual run proves `php artisan your:command` can work in the current shell. It does not prove the cron daemon is firing, the working directory is correct, or the scheduler heartbeat is still arriving on time.
+
+## Why manual success is misleading
+
+A successful manual run can hide several production issues:
+
+- the crontab entry is missing or commented out
+- the server path is wrong in cron
+- the command depends on environment variables that are only loaded in your shell
+- the task is running from the wrong directory
+- the scheduler fires, but the expected minute is missed because the host is overloaded
+
+So when someone says "it works manually," the real question is not whether the command works. It is why the scheduled invocation does not.
+
+## The most common causes
+
+### 1. The crontab entry is missing
+
+This is the simplest failure and the one people miss first. A deploy, server rebuild, or infrastructure change can remove the cron entry entirely.
+
+Check whether the scheduler is still registered:
+
+```bash
+crontab -l | grep schedule:run
+```
+
+If that returns nothing, the command was never going to run on schedule.
+
+### 2. The working directory is wrong
+
+Manual shell sessions start where you expect. Cron does not. If your command depends on relative paths, the scheduled run can fail while the manual run succeeds.
+
+Use an explicit `cd` in the crontab entry:
+
+```bash
+* * * * * cd /var/www/app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### 3. Environment variables are missing
+
+Your terminal may have `APP_ENV`, database credentials, or a custom PHP path set already. Cron often does not. The command can run manually because the shell has the right values, while cron launches with a much smaller environment.
+
+### 4. The command is fine, but the schedule never fires
+
+This is the heartbeat problem. The artisan command works, but the upstream `schedule:run` invocation is late or missing. If you only test the command by hand, you miss the real issue.
+
+## How to diagnose it quickly
+
+Start by checking the scheduler itself:
+
+```bash
+php artisan schedule:list
+```
+
+That confirms your tasks are registered.
+
+Then verify the cron entry and logs on the host. If the command runs manually, add a temporary heartbeat ping to the scheduled version so you can see whether cron actually invokes it.
+
+```php
+Schedule::command('reports:generate')
+    ->dailyAt('02:00')
+    ->thenPing('https://monitor.crontinel.com/heartbeat/reports-generate');
+```
+
+If the manual command succeeds but the ping never arrives, the problem is the schedule, not the command.
+
+## Why Crontinel catches this sooner
+
+Crontinel watches the absence of the scheduled heartbeat. That means it can alert when the command is perfectly healthy but the cron entry never fires, which is the exact problem in this scenario.
+
+That is also why a "works manually" answer is incomplete. Manual success only proves the code path. Scheduled success proves the delivery path.
+
+## What to check next
+
+- confirm the `schedule:run` cron entry exists
+- confirm the working directory matches the app root
+- confirm the environment variables exist in cron
+- confirm the scheduler heartbeat is arriving on time
+- confirm the command has not drifted into a different timezone or deployment window
+
+If you are still seeing the problem after that, the next layer is usually host-level cron health, not Laravel itself.
+
+## See also
+
+- [How to monitor `php artisan schedule:run` in production](/use-cases/monitor-schedule-run/)
+- [Cron heartbeat monitoring for Laravel schedulers](/use-cases/cron-heartbeat-monitoring/)
+- [What happens when your Laravel scheduler stops running](/blog/what-happens-when-laravel-scheduler-stops-running/)
