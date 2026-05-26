@@ -1,7 +1,5 @@
 {
-  "pending": [
-    "https://crontinel.com/use-cases/monitor-config-cache/"
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/blog/laravel-queue-depth-alert",
     "https://crontinel.com/blog/what-is-cron-monitoring-laravel/",
@@ -172,7 +170,8 @@
     "https://crontinel.com/use-cases/monitor-horizon-continue",
     "https://crontinel.com/blog/what-happens-when-laravel-scheduler-stops-running",
     "https://crontinel.com/use-cases/monitor-queue-work",
-    "https://crontinel.com/use-cases/monitor-route-clear/"
+    "https://crontinel.com/use-cases/monitor-route-clear/",
+    "https://crontinel.com/use-cases/monitor-config-cache/"
   ],
-  "last_push": "2026-05-11"
+  "last_push": "2026-05-24"
 }

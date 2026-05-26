@@ -13,8 +13,8 @@ All 21 blog posts published. Topics cover cron monitoring, Horizon internals, qu
 - [x] crontinel-vs-healthchecks-io
 - [x] crontinel-vs-uptimerobot
 
-## Use-Case Pages (18 published)
-Covers: laravel-cron-monitoring, laravel-horizon-monitoring, laravel-queue-monitoring, multi-tenant-job-monitoring, production-cron-job-alerting, saas-background-job-monitoring, and 12 monitor-* pages covering specific Horizon/queue scenarios.
+## Use-Case Pages (21 published)
+Covers: laravel-cron-monitoring, laravel-horizon-monitoring, laravel-queue-monitoring, multi-tenant-job-monitoring, production-cron-job-alerting, saas-background-job-monitoring, cron-heartbeat-monitoring, incident-alert-system, open-source-self-hosted-status-page, and 12 monitor-* pages covering specific Horizon/queue scenarios.
 
 ## Integration Pages (4 published)
 - [x] /integrations/laravel-forge

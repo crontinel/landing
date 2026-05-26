@@ -968,17 +968,17 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <h3>Webhook monitoring for Laravel and API teams</h3>
         <p>Catch delivery failures, retry storms, and stalled callback queues before customers notice.</p>
       </a>
-      <a class="seo-link-card" href="/use-cases/monitor-queue-worker-timeout/">
-        <h3>Laravel queue worker timeout monitoring</h3>
-        <p>Watch for hung workers, timeout spikes, and queues that stop draining after a deploy.</p>
+      <a class="seo-link-card" href="/use-cases/cron-heartbeat-monitoring/">
+        <h3>Cron heartbeat monitoring for Laravel schedulers</h3>
+        <p>Catch the moment schedule:run stops arriving, runs late, or silently skips a job.</p>
       </a>
-      <a class="seo-link-card" href="/vs/crontinel-vs-forge-heartbeats/">
-        <h3>Crontinel vs Laravel Forge Heartbeats</h3>
-        <p>Compare heartbeat pings with Laravel-native queue and Horizon visibility.</p>
+      <a class="seo-link-card" href="/use-cases/incident-alert-system/">
+        <h3>Incident alert system for Laravel failures</h3>
+        <p>Route the right failures to Slack, PagerDuty, or webhooks without drowning the team in noise.</p>
       </a>
-      <a class="seo-link-card" href="/blog/open-source-self-hosted-free-cron-monitoring/">
-        <h3>Open source and self hosted cron monitoring</h3>
-        <p>Compare open source, self hosted, and free monitoring options for Laravel teams.</p>
+      <a class="seo-link-card" href="/use-cases/open-source-self-hosted-status-page/">
+        <h3>Open source and self hosted status pages</h3>
+        <p>Publish a simple public incident page for cron, queue, and webhook problems you control.</p>
       </a>
     </div>
   </div>
@@ -994,6 +994,36 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <div class="actions">
         <a class="btn btn-primary" href="https://app.crontinel.com/register">Start monitoring free <span class="arrow-i">&#8599;</span></a>
         <a class="btn btn-ghost" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">Read the source</a>
+      </div>
+      <div class="mt-8 max-w-xl mx-auto rounded-2xl border border-gray-800 bg-gray-900 p-6 text-center">
+        <div class="inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-400 mb-4">
+          Launch updates
+        </div>
+        <h3 class="text-white text-lg font-semibold mb-2">Join the waitlist</h3>
+        <p class="text-gray-400 text-sm mb-4">Get launch updates and the first release notes when Crontinel is ready.</p>
+        <p class="mb-6 text-sm text-gray-300">
+          <span class="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-950 px-3 py-1.5" aria-live="polite">
+            <span class="h-2 w-2 rounded-full bg-green-400"></span>
+            <span id="waitlist-count">Loading current count...</span>
+          </span>
+        </p>
+        <form id="waitlist-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
+          <input
+            type="email"
+            id="waitlist-email"
+            placeholder="you@yourapp.com"
+            required
+            class="flex-1 bg-gray-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-green-500 transition-colors"
+          />
+          <button
+            type="submit"
+            id="waitlist-btn"
+            class="bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-semibold px-4 py-2.5 rounded-lg transition-colors text-sm whitespace-nowrap"
+          >
+            Notify me
+          </button>
+        </form>
+        <p id="waitlist-msg" class="mt-3 text-sm hidden"></p>
       </div>
     </div>
   </div>
@@ -1141,6 +1171,78 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     </div>
   </div>
 </aside>
+
+<script>
+  const form = document.getElementById('waitlist-form') as HTMLFormElement;
+  const emailInput = document.getElementById('waitlist-email') as HTMLInputElement;
+  const btn = document.getElementById('waitlist-btn') as HTMLButtonElement;
+  const msg = document.getElementById('waitlist-msg') as HTMLParagraphElement;
+  const countLabel = document.getElementById('waitlist-count') as HTMLSpanElement;
+
+  const formatWaitlistCount = (count: number) => {
+    const safeCount = Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
+    const unit = safeCount === 1 ? 'person' : 'people';
+    return `${new Intl.NumberFormat('en-US').format(safeCount)} ${unit} already joined`;
+  };
+
+  const setWaitlistCount = (count: number) => {
+    if (countLabel) {
+      countLabel.textContent = formatWaitlistCount(count);
+    }
+  };
+
+  const refreshWaitlistCount = async () => {
+    try {
+      const res = await fetch('/api/waitlist-count', { headers: { 'Accept': 'application/json' } });
+      const data = await res.json();
+
+      if (res.ok && data.ok && typeof data.count === 'number') {
+        setWaitlistCount(data.count);
+      } else if (countLabel) {
+        countLabel.textContent = 'Count unavailable';
+      }
+    } catch {
+      if (countLabel) {
+        countLabel.textContent = 'Count unavailable';
+      }
+    }
+  };
+
+  refreshWaitlistCount();
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    btn.textContent = 'Joining...';
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.value }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setWaitlistCount(data.count);
+        msg.textContent = data.alreadyJoined
+          ? `You're already on the list. ${formatWaitlistCount(data.count)}.`
+          : `You're on the list. ${formatWaitlistCount(data.count)}.`;
+        msg.className = 'mt-3 text-sm text-green-400';
+        form.reset();
+      } else {
+        msg.textContent = data.error ?? 'Something went wrong. Try again.';
+        msg.className = 'mt-3 text-sm text-red-400';
+        btn.disabled = false;
+        btn.textContent = 'Notify me';
+      }
+    } catch {
+      msg.textContent = 'Something went wrong. Try again.';
+      msg.className = 'mt-3 text-sm text-red-400';
+      btn.disabled = false;
+      btn.textContent = 'Notify me';
+    }
+  });
+</script>
 
 <script is:inline src="/src/main.js"></script>
 
