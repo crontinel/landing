@@ -5,8 +5,8 @@ Run time: 2026-06-09 02:01 Dhaka
 ## Summary
 
 Articles Generated: 0
-Articles Committed: 0 new articles / 1 existing-page SEO refresh prepared for publish
-Articles Submitted to GSC: 0/0 new URLs
+Articles Committed: 0 new articles / 1 existing-page SEO refresh published
+Articles Submitted to GSC: 0 new URLs / sitemap resubmitted
 GSC Errors: none found in sitemap status
 
 No new page was generated. This was a conservative Google-safe run focused on improving an existing page with clear GSC evidence instead of adding another near-duplicate Laravel Artisan page.
@@ -15,14 +15,17 @@ No new page was generated. This was a conservative Google-safe run focused on im
 
 - Current canonical checkout branch: `feature/competitor-pages`; I did not switch it or disturb active feature work.
 - Used isolated worktree: `/private/tmp/crontinel-seo-main-20260605`.
-- Branch: `seo/route-cache-ctr-refresh-20260605`, ahead of `origin/main`.
+- Branch: `seo/route-cache-ctr-refresh-20260605`, merged through PR #88.
 - Claude Code auth in normalized cron shell: unavailable, `loggedIn: false`. I did not rely on Claude for generation.
 - GitHub CLI auth: healthy. `gh auth status` passed and `git push --dry-run` succeeded.
 - GSC credentials: service account has `siteOwner` access for `sc-domain:crontinel.com`.
 - GSC performance window checked: 2026-05-07 to 2026-06-06.
-- GSC sitemap status for `https://crontinel.com/sitemap.xml`: 0 warnings, 0 errors. Last downloaded by GSC: 2026-06-04T20:03:47Z.
+- GSC sitemap status for `https://crontinel.com/sitemap.xml`: 0 warnings, 0 errors.
 - Build verification: `npm run build` passed and prerendered `/use-cases/monitor-route-cache/index.html`.
 - Quality checks: 890 body words, no humanizer/Claude meta artifacts, no body H1, no em dashes, `git diff --check` passed.
+- Live route verification: `https://crontinel.com/use-cases/monitor-route-cache/` returned HTTP 200 and contained the updated title/body.
+- Live sitemap verification: `https://crontinel.com/sitemap.xml` returned HTTP 200 and contains the route-cache URL.
+- Live app health: `https://app.crontinel.com/` returned HTTP 302 to `/login`, which is healthy.
 
 ## GSC observations
 
@@ -38,7 +41,7 @@ Route-cache query evidence is narrow and useful:
 
 The broader `laravel-cron-queue-monitoring-tools` post still has more impressions, but the query mix is broad and not clear enough for another aggressive title/meta rewrite tonight.
 
-## Work prepared
+## Work published
 
 Refreshed the existing `monitor-route-cache` use-case page instead of publishing a new page:
 
@@ -46,6 +49,17 @@ Refreshed the existing `monitor-route-cache` use-case page instead of publishing
 - Reworked the intro and headings around the actual `bootstrap/cache/routes-v7.php` query intent.
 - Added deploy-hook and file-age checks for route cache freshness.
 - Kept internal links limited to closely related cache/deploy monitoring pages.
+
+GitHub workflow:
+
+- PR: https://github.com/crontinel/landing/pull/88
+- Merge commit: `d9651b8`
+- Cloudflare check: passed
+
+GSC:
+
+- Sitemap submission succeeded for `https://crontinel.com/sitemap.xml`.
+- Post-submit status: pending recrawl, 0 warnings, 0 errors.
 
 ## Queue/state decision
 
