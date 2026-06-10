@@ -5,46 +5,34 @@ import Footer from '../../components/Footer.astro';
 
 const comparisons = [
   {
-    name: 'Cronitor',
-    slug: 'cronitor',
-    tagline: 'Generic ping monitor. No Laravel awareness.',
-    verdict: 'Misses Horizon failures entirely.',
-  },
-  {
-    name: 'Healthchecks.io',
-    slug: 'healthchecksio',
-    tagline: 'Dead-simple dead-man switch. Nothing more.',
-    verdict: 'Can\'t see queue depth or failed jobs.',
+    name: 'Datadog',
+    slug: 'crontinel-vs-datadog',
+    tagline: 'Full observability platform. Strong, but broader than most teams need.',
+    verdict: 'Best when you need APM, logs, infrastructure, and synthetic tests.',
   },
   {
     name: 'Better Stack',
-    slug: 'better-stack',
-    tagline: 'Uptime and log aggregation. Not Laravel-specific.',
-    verdict: 'Won\'t catch a paused Horizon supervisor.',
-  },
-  {
-    name: 'Laravel Telescope',
-    slug: 'telescope',
-    tagline: 'Great for debugging. Not for monitoring.',
-    verdict: 'No alerting, no thresholds, no production visibility.',
-  },
-  {
-    name: 'Datadog',
-    slug: 'datadog',
-    tagline: 'Full observability platform. Requires DIY setup for queues.',
-    verdict: 'Queue monitoring needs custom metrics and days of config.',
+    slug: 'crontinel-vs-better-stack',
+    tagline: 'Uptime plus incident workflows, status pages, and logs.',
+    verdict: 'Best when you want one vendor for monitoring and incident response.',
   },
   {
     name: 'UptimeRobot',
     slug: 'crontinel-vs-uptimerobot',
-    tagline: 'HTTP uptime monitoring. No background job visibility.',
-    verdict: 'Your site returns 200 while 14k jobs are stuck.',
+    tagline: 'Popular uptime monitor for simple external checks.',
+    verdict: 'Best when you only need external uptime checks.',
   },
   {
-    name: 'Forge Heartbeats',
-    slug: 'crontinel-vs-forge-heartbeats',
-    tagline: 'Ping-based cron check. No queue or Horizon monitoring.',
-    verdict: 'Knows the job ran. Not whether it succeeded.',
+    name: 'Pingdom',
+    slug: 'crontinel-vs-pingdom',
+    tagline: 'Classic uptime and website performance monitoring.',
+    verdict: 'Best when you want a classic uptime tool with transaction checks.',
+  },
+  {
+    name: 'Alternatives',
+    slug: 'crontinel-alternatives',
+    tagline: 'Shortlist other tools by use case, team size, and budget.',
+    verdict: 'Best when you want to compare the broader market quickly.',
   },
 ];
 ---
@@ -61,25 +49,28 @@ const comparisons = [
 </script>
 
 <Base
-  title="Crontinel vs Alternatives  |  Laravel Monitoring Comparison"
-  description="How Crontinel compares to Cronitor, Healthchecks.io, Better Stack, Telescope, Datadog, UptimeRobot, and Forge Heartbeats for Laravel queue and cron monitoring."
+  title="Crontinel Competitors and Comparisons"
+  description="Compare Crontinel with Datadog, Better Stack, UptimeRobot, Pingdom, and other monitoring tools."
 >
   <Nav />
 
   <main class="max-w-4xl mx-auto px-4 sm:px-6 py-16" id="main-content">
     <div class="text-center mb-14">
+      <div class="inline-block text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-700 px-3 py-1 rounded-full mb-4">
+        Comparison hub
+      </div>
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">
-        Crontinel vs the alternatives
+        Crontinel Competitors and Comparisons
       </h1>
       <p class="text-gray-400 max-w-xl mx-auto">
-        Generic monitors watch for HTTP pings. Crontinel reads app internals: Horizon Redis keys, queue tables, scheduler events. That's a different class of tool.
+        Compare Crontinel with the most common monitoring tools, alternatives, and use case pages so you can pick the right fit fast.
       </p>
     </div>
 
     <div class="grid sm:grid-cols-2 gap-4">
       {comparisons.map((c) => (
         <a
-          href={`/vs/${c.slug}`}
+          href={`/vs/${c.slug}/`}
           class="group block bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 rounded-xl p-6 transition-colors"
         >
           <div class="flex items-start justify-between mb-3">
@@ -102,20 +93,17 @@ const comparisons = [
             <tr class="border-b border-gray-800 text-left">
               <th class="pb-3 text-gray-400 font-medium w-1/3">Capability</th>
               <th class="pb-3 text-gray-400 font-medium text-center">Crontinel</th>
-              <th class="pb-3 text-gray-400 font-medium text-center">Others</th>
+              <th class="pb-3 text-gray-400 font-medium text-center">Generalist tools</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-800/50">
             {[
-              ['Knows Horizon is paused (not just stopped)', true, false],
-              ['Per-supervisor status', true, false],
-              ['Queue depth per queue', true, false],
-              ['Oldest job age', true, false],
-              ['Cron run history (exit code + duration)', true, false],
-              ['Auto-records runs (no wrapping needed)', true, false],
-              ['Slack + email alerts', true, 'some'],
-              ['Works without outbound HTTP from your app', true, false],
-              ['Open source / self-hostable', true, false],
+              ['Knows a job is late or missed', true, false],
+              ['Tracks cron schedule and duration', true, false],
+              ['Covers external uptime checks', true, true],
+              ['Requires heavy platform setup', false, true],
+              ['Works well for small teams', true, 'sometimes'],
+              ['Uses a narrow, focused workflow', true, false],
             ].map(([cap, ours, theirs]) => (
               <tr>
                 <td class="py-3 text-gray-300">{cap}</td>
@@ -125,7 +113,7 @@ const comparisons = [
                 <td class="py-3 text-center">
                   {theirs === true
                     ? <span class="text-green-400">✓</span>
-                    : theirs === 'some'
+                    : theirs === 'sometimes'
                     ? <span class="text-yellow-400 text-xs">some</span>
                     : <span class="text-red-400">✗</span>
                   }

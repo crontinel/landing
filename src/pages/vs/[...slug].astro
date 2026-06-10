@@ -42,6 +42,10 @@ const breadcrumb = {
     { "@type": "ListItem", "position": 3, "name": page.data.title, "item": `https://crontinel.com/vs/${page.id}/` }
   ]
 };
+
+const badgeText = page.data.competitor === 'Alternatives'
+  ? 'Best Crontinel Alternatives'
+  : `Crontinel vs ${page.data.competitor}`;
 ---
 
 <script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} />
@@ -55,7 +59,7 @@ const breadcrumb = {
   <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">
     <a href="/vs/" class="text-sm text-gray-400 hover:text-gray-300 mb-8 inline-block">← All comparisons</a>
     <div class="inline-block text-xs font-semibold text-gray-400 bg-gray-800 border border-gray-700 px-3 py-1 rounded-full mb-4">
-      Crontinel vs {page.data.competitor}
+      {badgeText}
     </div>
     <h1 class="text-3xl font-bold text-white mb-8">{page.data.title}</h1>
     <article class="prose prose-invert prose-gray text-sm leading-relaxed max-w-none
