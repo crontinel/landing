@@ -50,9 +50,13 @@ Changes:
 - Added a quick comparison table covering Cronitor, Healthchecks.io, Better Stack, Telescope, Forge Heartbeats, and Crontinel.
 - Kept the article as one refresh only. No new queue page was generated.
 
-## GSC submission
+## Deployment and GSC submission
 
-After merge and deployment, submit `https://crontinel.com/sitemap.xml` to GSC and verify sitemap status remains at 0 warnings and 0 errors.
+- PR #93 was merged to `main` via squash merge.
+- Live URL verified: `https://crontinel.com/blog/laravel-cron-queue-monitoring-tools/` returned HTTP 200 with the new title and quick comparison section.
+- Live sitemap verified: `https://crontinel.com/sitemap.xml` returned HTTP 200 and contains the refreshed URL.
+- GSC sitemap submission succeeded for `https://crontinel.com/sitemap.xml`.
+- GSC sitemap status after submission: `isPending: true`, 0 warnings, 0 errors, 109 submitted URLs.
 
 ## Blockers / decisions
 
