@@ -7,7 +7,7 @@ Run time: 2026-06-13 20:00 UTC / 2026-06-14 02:00 Dhaka
 Articles Generated: 0
 Articles Committed: 0
 Articles Submitted to GSC: 0 (no new URLs; sitemap already healthy from last night's resubmit)
-GSC Errors: none — sitemap status shows 0 warnings, 0 errors, 109 submitted URLs, last downloaded 2026-06-12T20:09:00Z
+GSC Errors: none. Sitemap status shows 0 warnings, 0 errors, 109 submitted URLs, last downloaded 2026-06-12T20:09:00Z
 
 No new page was published tonight. This was a healthy no-work night. The only page with material GSC signal, `https://crontinel.com/blog/laravel-cron-queue-monitoring-tools/`, was refreshed in last night's run (2026-06-13, commit `352b3a0`). Re-rewriting it again 24 hours later would be the kind of "rewrite titles/meta repeatedly without enough data" pattern the conservative pacing policy is meant to avoid. The other GSC-visible pages are either recently touched or have too little impression volume to justify a confident change.
 
