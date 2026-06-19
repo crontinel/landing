@@ -7,7 +7,6 @@
     "storage-link",
     "db-seed",
     "db-wipe",
-    "migrate-fresh",
     "migrate-rollback",
     "scout-import",
     "scout-sync-index-settings",
@@ -55,5 +54,5 @@
     "route-clear",
     "config-cache"
   ],
-  "in_progress": []
+  "in_progress": ["migrate-fresh"]
 }
