@@ -1,0 +1,138 @@
+---
+title: "Detect When Laravel migrate:fresh Runs in Production"
+description: "A production migrate:fresh drops every table. Here's how to monitor for accidental destructive database commands and get alerted before you lose data."
+date: 2026-06-20
+---
+
+Someone on your team types `migrate:fresh --force` on the production server. Within seconds, every table in your database is gone. The migrations run back, but the data those tables held — user accounts, orders, billing records — is gone.
+
+Teams with shared deploy access, CI pipelines using `--force`, or rollback scripts that call `migrate:fresh` as a reset step have lost production data this way. The Laravel docs even warn you: `migrate:fresh` drops all tables before re-running migrations.
+
+You can detect it before the damage is done, or at least know the second it happens.
+
+## How migrate:fresh actually works
+
+When you run `php artisan migrate:fresh`, Laravel does two things in sequence:
+
+1. **Drops every table** — It queries `SHOW TABLES` (MySQL) or equivalent, iterates through every table including the `migrations` table, and runs `DROP TABLE IF EXISTS` on each one. No confirmation beyond `--force`. No "are you sure?" when running non-interactively.
+
+2. **Runs all migrations** — After every table is dropped, it runs `php artisan migrate`, applying every migration file in `database/migrations/` as if it were a fresh install.
+
+The chain looks like this:
+
+```
+MigrateFreshCommand
+  -> dropAllTables()          // queries information_schema, drops everything
+  -> call('migrate', [...] )  // now run all migrations from scratch
+```
+
+The `dropAllTables()` method connects to your database and runs raw `DROP TABLE` statements for every table. There's no filtering, no "protect these tables" option, and no dry-run mode (unlike `migrate` which supports `--pretend`).
+
+Laravel fires events you can listen for:
+
+```php
+Illuminate\Database\Console\Migrations\FreshCommand  // the command class
+Illuminate\Database\Events\MigrationsStarting         // fired before migrations run
+Illuminate\Database\Events\MigrationsEnded            // fired after migrations complete
+```
+
+The `FreshCommand` itself does not fire a dedicated event. But `MigrationsStarting` and `MigrationsEnded` fire during step 2 — after the tables are already dropped.
+
+## Why migrate:fresh is different from a regular migration
+
+A normal `php artisan migrate` failure leaves your database partially migrated. The data is still there. You roll back, fix the migration, and re-run.
+
+A `migrate:fresh` failure in step 1 (dropping tables) is irreversible — the drop already happened. A failure in step 2 (running migrations) leaves you with no tables and an error. Your app returns 500 errors for every request because the schema is gone.
+
+The difference for monitoring:
+
+- With regular migrate, you monitor for duration and success/failure
+- With migrate:fresh, you monitor for the command being called at all — its mere presence in production is the incident
+
+## How to detect migrate:fresh in production
+
+### Method 1: Listen for the command event
+
+Override the `migrate:fresh` command to send an alert before it runs:
+
+```php
+// In AppServiceProvider::boot()
+Artisan::starting(function ($command) {
+    if ($command->getName() === 'migrate:fresh') {
+        // Immediately send an alert — tables are about to be dropped
+        Http::timeout(3)->post(config('services.monitor.alert_url'), [
+            'message' => 'migrate:fresh called on ' . gethostname(),
+            'severity' => 'critical',
+        ]);
+    }
+});
+```
+
+This fires before any tables are dropped. You cannot stop the command at this point, but you know exactly who ran it and when.
+
+### Method 2: Use a wrapper script
+
+Rename the real `artisan` to `artisan.bin` and replace it with a wrapper that checks arguments:
+
+```bash
+#!/bin/bash
+# artisan — wrapper that intercepts dangerous commands
+if [[ "$*" == *"migrate:fresh"* ]] || [[ "$*" == *"db:wipe"* ]]; then
+    echo "[ALERT] Destructive command blocked: php artisan $*"
+    curl -s --max-time 3 "https://heartbeat.crontinel.com/ping/your-ping-id?state=down&msg=migrate:fresh+blocked"
+    exit 1
+fi
+exec "$(dirname "$0")/artisan.bin" "$@"
+```
+
+### Method 3: Monitor the process name
+
+Use Crontinel to track if the `migrate:fresh` artisan command process appears on your production server:
+
+```bash
+# Crontinel heartbeat check — runs every minute
+pgrep -f "artisan migrate:fresh" && curl -fsS --retry 3 \
+  "https://heartbeat.crontinel.com/ping/your-ping-id?state=down&msg=migrate:fresh+detected"
+```
+
+If the command is running, the heartbeat fails and Crontinel fires an alert. You find out within a minute of the command starting.
+
+## Building a complete detection strategy
+
+No single method catches every scenario. Combine them:
+
+1. **Command wrapper** — blocks accidental interactive runs and logs who triggered it
+2. **Artisan event listener** — catches programmatic calls (CI pipelines, deploy scripts)
+3. **Process monitor** — catches any runs that slip through both layers
+
+Set up the alert to notify your on-call channel immediately. `migrate:fresh` in production is a P0 incident.
+
+```php
+// config/services.php
+return [
+    'monitor' => [
+        'alert_url' => env('MIGRATE_FRESH_ALERT_URL'),
+        'alert_level' => 'critical',
+    ],
+];
+```
+
+## Quick setup with Crontinel
+
+Crontinel can watch for `migrate:fresh` runs in two ways:
+
+1. **Heartbeat check** — Set up a ping that your event listener hits every time a migration finishes. If `migrate:fresh` runs, the alert fires instantly.
+2. **Webhook alert** — Point the `Artisan::starting` listener at a Crontinel webhook URL. Crontinel delivers the alert to Slack, PagerDuty, or Telegram.
+
+```php
+Artisan::starting(function ($command) {
+    if ($command->getName() === 'migrate:fresh') {
+        Http::post('https://heartbeat.crontinel.com/ping/your-ping-id/alert', [
+            'status' => 'down',
+            'msg' => 'migrate:fresh detected in production',
+        ]);
+    }
+});
+```
+
+With Crontinel, you get notified within seconds — not when someone notices the site is down.
