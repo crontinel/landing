@@ -52,7 +52,8 @@
     "cache-prune",
     "optimize-clear",
     "route-clear",
-    "config-cache"
+    "config-cache",
+    "migrate-fresh"
   ],
-  "in_progress": ["migrate-fresh"]
+  "in_progress": []
 }
