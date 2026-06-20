@@ -10,7 +10,6 @@
     "migrate-rollback",
     "scout-import",
     "scout-sync-index-settings",
-    "reverb-start",
     "pulse-check",
     "pulse-restart",
     "pennant-purge",
@@ -55,5 +54,7 @@
     "config-cache",
     "migrate-fresh"
   ],
-  "in_progress": []
+  "in_progress": [
+    "reverb-start"
+  ]
 }
