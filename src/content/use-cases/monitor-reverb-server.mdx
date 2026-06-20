@@ -1,0 +1,121 @@
+---
+title: "How to Monitor Laravel Reverb Server in Production"
+description: "Laravel Reverb is a long-lived WebSocket server that can crash or stop without you noticing. Here is how to detect when Reverb goes down, set up health checks, and get alerted before your users do."
+date: 2026-06-21
+---
+
+You deploy Laravel Reverb for real-time broadcasting. Everything works in staging. Then in production, three days later, a customer emails support saying the live order notification bell stopped working. You check the server. Reverb is still running, but it has been silently dropping connections for hours. Or worse, the process crashed at 3 AM during a memory spike, and nobody noticed until the morning standup.
+
+Reverb is an event-driven WebSocket server built on ReactPHP. It runs as a long-lived process, separate from your web server and queue workers. When it stops, whether from an unhandled exception, an OOM kill, or a port conflict, your real-time features go dark silently. There is no built-in health endpoint, no restart mechanism, and no log that says "I stopped working."
+
+## How reverb:start actually works
+
+Laravel Reverb (`php artisan reverb:start`) boots a ReactPHP event loop that listens on two ports: one for WebSocket connections (default 8080) and one for the Pusher-compatible HTTP API (default 8081). It uses your Laravel broadcasting configuration to authenticate private and presence channels, then publishes events through the configured queue driver.
+
+Unlike a typical HTTP server where every request starts fresh, Reverb maintains persistent TCP connections. Each connected client holds an open socket in the event loop. Memory usage grows with the number of concurrent connections, and the process stays alive until you send SIGTERM, the supervisor restarts it, or it crashes.
+
+Reverb does not ship a health endpoint. There is no `/ping` URL, no status page, and no way to ask "are you alive?" without attempting a WebSocket handshake. The only external signal that Reverb is working is that connected clients stay connected and messages publish successfully.
+
+## Common failure modes
+
+**Process crash from an unhandled exception.** Reverb runs a single PHP process. If an unhandled exception occurs during message handling, say a malformed broadcast payload or a serialization error in an event listener, the entire process can terminate. Without a process supervisor that auto-restarts it, Reverb stays down until someone manually starts it again.
+
+**OOM kill under connection load.** The default PHP `memory_limit` applies to the Reverb process. If you have thousands of concurrent connections and a listener on each channel that holds references to large objects, memory grows until the kernel OOM killer terminates the process. You see `Killed` in the log with no other error message.
+
+**Port conflict after deployment.** If your deploy script restarts Reverb while the old process is still releasing the port, the new process fails to bind with `Address already in use`. The deploy succeeds and the web server is fine, but Reverb never started. Real-time features stay dead until the next deploy.
+
+**Supervisor misconfiguration.** If you run Reverb via Supervisor, a misconfigured `numprocs` or `process_name` directive can cause Supervisor to silently skip the Reverb program. `supervisorctl status` shows `FATAL` or the process never appears, but this is easy to miss in a busy deploy window.
+
+## Building visibility into Reverb
+
+One way to know if Reverb is alive is to check a heartbeat endpoint. Since Reverb does not ship one, you can add a health route to your Laravel application that confirms the broadcasting system works:
+
+```php
+// routes/web.php
+Route::get('/_reverb/health', function () {
+    $connection = false;
+    try {
+        $socket = @fsockopen(
+            config('reverb.host', '0.0.0.0'),
+            config('reverb.port', 8080),
+            $errno, $errstr, 3
+        );
+        if ($socket) {
+            fclose($socket);
+            $connection = true;
+        }
+    } catch (Throwable $e) {
+        // Socket check failed
+    }
+
+    return response()->json([
+        'reverb_running' => $connection,
+        'timestamp' => now()->toIso8601String(),
+    ]);
+});
+```
+
+This route attempts a raw TCP socket connection to the Reverb WebSocket port. If the connection succeeds, the Reverb process is running and accepting connections. Crontinel can then ping this endpoint every minute and alert you when it returns `reverb_running: false`.
+
+For a passive approach, set up a Crontinel heartbeat monitor on the Reverb process itself:
+
+```php
+// In your Reverb service provider or a custom command
+$this->app->terminating(function () {
+    // Crontinel heartbeat ping
+    Http::timeout(5)->get('https://crontinel.com/api/ping/reverb');
+});
+```
+
+This sends a heartbeat every time the Reverb request lifecycle completes. If Crontinel stops receiving heartbeats, Reverb is down.
+
+## Detecting when Reverb fails
+
+Socket-level health checks tell you the process is running but not that it is working correctly. To detect degraded behavior, add a synthetic WebSocket connection test:
+
+```php
+// App\Console\Commands\CheckReverbHealth.php
+class CheckReverbHealth extends Command
+{
+    protected $signature = 'reverb:health';
+    protected $description = 'Verify Reverb WebSocket accepts connections';
+    
+    public function handle()
+    {
+        $connected = false;
+        try {
+            $ws = new WebSocket\Client("ws://".config('reverb.host').":".config('reverb.port'));
+            $ws->send(json_encode(['event' => 'ping', 'data' => []]));
+            $response = $ws->receive();
+            $connected = $response !== false;
+            $ws->close();
+        } catch (Exception $e) {
+            $connected = false;
+        }
+        
+        if (!$connected) {
+            Http::post(config('services.crontinel.webhook'), [
+                'alert' => 'Reverb health check failed',
+                'severity' => 'critical',
+            ]);
+        }
+    }
+}
+```
+
+Run this as a scheduled Laravel command every minute. When it detects a failure, push the alert to your on-call system. The difference worth watching is between "Reverb process is running" and "Reverb is accepting and responding to WebSocket connections." A process can be alive in the process table but stuck in a state where it no longer handles new connections.
+
+## Quick setup with Crontinel
+
+A practical way to protect against a silent Reverb outage is a Crontinel heartbeat monitor pointed at your Reverb health endpoint.
+
+```
+Crontinel heartbeat → GET https://your-app.com/_reverb/health
+Interval: 1 minute
+Expected response: {"reverb_running": true}
+Alert if: Missing or reverb_running = false
+```
+
+Add this as a new check in your Crontinel dashboard. You get notified via Slack, email, or PagerDuty the instant Reverb goes down. No waiting for a customer to email support.
+
+For teams that want redundancy, pair this with a process-level supervisor check. Supervisor monitors the Reverb process and restarts it on crash. Crontinel monitors the health endpoint and alerts you if the supervisor itself fails. Two layers: one for uptime, one for visibility.
