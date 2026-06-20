@@ -1,44 +1,48 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-05-12 02:20 UTC - updated after second SEO pipeline run
+Auto-generated: 2026-06-21 02:10 UTC — updated after monitor-reverb-server
 
-## Run Summary (2026-05-12)
+## Run Summary (2026-06-21)
 
-**Topic published:** monitor-route-cache.mdx
-- Keyword: "monitor laravel route:cache in production" (stale cache after deploy is the primary failure scenario)
-- Angle: route cache staleness after deployment, named route conflicts hidden in cache, syntax error handling
-- 7517 bytes, ~730 words body, 4 failure modes, 2 code samples
+**Topic published:** monitor-reverb-server.mdx
+- Keyword: "how to monitor Laravel Reverb server in production"
+- Angle: Reverb is a long-lived WebSocket process that silently fails; health-check endpoint and Crontinel heartbeat are the monitoring strategy
+- 7193 bytes, ~700 words body, 4 failure modes, 3 code samples
 
-**GSC findings:**
-- Pages are indexed once Google crawls the canonical slash URLs from the sitemap
-- The prior "0 indexed" sitemap view was a lagging report, not the actual page coverage state
-- Canonical URLs should normalize to trailing slash for this deploy target
-- robots.txt allows all crawlers (no blocking issues)
+**GSC findings (pre-publish):**
+- Site has `siteOwner` permission on sc-domain:crontinel.com
+- Sitemap submitted successfully (0 errors)
+- No existing search data for Reverb/WebSocket queries — clean topic gap
+- Top organic page (28 days): blog/laravel-cron-queue-monitoring-tools (2 clicks, 196 impressions, ctr=1.02%)
+- Homepage: 61 impressions, 0 clicks (pos 8.5) — title/meta may need improvement but need more data
+- General: site still young, impressions growing slowly, clicks minimal
 
-**Critical finding:** The site had a slash-policy mismatch: no-slash requests were getting redirected to slash, while some slash URLs were serving redirect/noindex artifacts. The fix is to align Astro, the sitemap, and canonical URLs on trailing slash so Google lands on the real content pages instead of redirect pages.
-
-**GitHub auth blocked:** Cannot push to main - GitHub token is invalid in osxkeychain. CI deploy won't trigger. Commit is local only. Harun needs to re-authenticate `gh` or push manually.
+**Claude Code auth:** unavailable tonight (loggedIn: false) — article written directly
 
 ## Winning Patterns (replicate these)
-- Articles with a specific real-world failure scenario in the opening hook (not generic intro) get higher engagement
+- Articles with a specific real-world failure scenario in the opening hook get higher engagement
 - "See also" sections with 4-5 related links improve internal link equity
-- Long-tail keywords like "how to detect when Laravel backup:clean fails" outperform generic "Laravel backup monitoring"
+- Long-tail keywords like "how to monitor Laravel Reverb server in production" target low-competition niches
 - Problem-first structure: hook with the failure, then technical explanation, then monitoring solution
-- route:cache article: Named route conflicts "silently baked into cached file" is a unique insight not covered by generic Laravel docs
 
 ## Improvement Needed
-- GSC URL inspection API requires live pages - sitemap submission is the reliable fallback when Cloudflare Pages hasn't rebuilt yet
-- GitHub auth is broken in this environment - commits are local only until Harun re-authenticates
+- GSC CTR on existing content is very low (mostly <1%) — title/meta descriptions likely need rework but need more impression data
+- Monitor-reverb-server is brand new, no GSC data yet — check after 7 days
 
 ## Content Rules (accumulated learning)
 - Keyword must appear in H1, first paragraph, and at least one H2
-- Hook: real failure scenario in 80-120 words, specific detail (table names, command names, exact symptoms)
+- Hook: real failure scenario in 80-120 words, specific detail (process names, port numbers, exact symptoms)
 - Include a code snippet showing Crontinel integration (actual Laravel code, not generic examples)
-- "See also" section at end with 4-5 links to related articles
-- Word count target: 650-850 words (trim if over, expand if under)
+- Word count target: 650-850 words
 - Run gitleaks before commit, fix any reported secrets
+- Sentence case for H2 headings (per humanizer skill)
+- Avoid em dashes and promotional framing ("most reliable", "fastest")
 
 ## Queue Notes
-- route-cache marked complete
-- Remaining topics: notifications-prune, scout-import, scout-flush, reverb-start, pulse-check, config-cache, view-cache, event-clear, storage-link, db-seed, db-wipe, migrate-fresh, migrate-rollback, schedule-work, schedule-interrupt, passport-purge, sanctum-prune-expired
-- Next run: pick from notifications-prune or scout-flush (both have clear search intent for Laravel devs)
-- Total queue: 24 topics pending
+- reverb-start marked completed
+- Remaining pending: config-clear, view-cache, view-clear, event-clear, storage-link, db-seed, db-wipe, migrate-rollback, scout-import, scout-sync-index-settings, pulse-check, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-work, schedule-interrupt, about, inspire
+- Next strong candidates: scout-import (complements existing scout-flush), pulse-check (Laravel Pulse — monitoring the monitor meta topic)
+- Self-improvement check for monitor-reverb-server: due 2026-06-28 (7 days after publish)
+
+## Pending GSC improvements
+- monitor-route-cache has 72 impressions, 0 clicks — title rewrite candidate once enough data
+- monitor-horizon-purge has 34 impressions, 0 clicks — same pattern
