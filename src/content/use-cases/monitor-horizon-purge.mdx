@@ -1,7 +1,7 @@
 ---
-title: "Monitoring horizon:purge in Laravel Production"
-description: "Detect when horizon:purge silently fails to clean stale jobs, why it exits without error, and how to build monitoring that catches incomplete purges before Redis fills up."
-date: 2026-05-07
+title: "horizon:purge Not Cleaning Jobs? Detect Silent Failures"
+description: "horizon:purge can exit with code 0 while Redis memory keeps climbing. Here is exactly how to tell if it is actually working — and how to get alerted when it isn't."
+date: 2026-06-22
 ---
 
 You push a new feature that generates a lot of short-lived jobs. A week later, Redis memory usage has climbed 40% and your ops team is asking questions. You check the Horizon dashboard: the job metrics show tens of thousands of completed jobs that were never cleaned up. `horizon:purge` was scheduled to run daily, the scheduler was firing, and yet the old job records are still sitting in Redis taking up space. The command exits with code 0 every time. Nothing in the logs. No error. Just a silent failure that nobody noticed until the memory bill arrived.

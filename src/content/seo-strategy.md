@@ -1,22 +1,22 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-06-21 02:10 UTC — updated after monitor-reverb-server
+Auto-generated: 2026-06-22 20:14 UTC — title/meta rewrites for zero-click pages + GSC submission
 
-## Run Summary (2026-06-21)
+## Run Summary (2026-06-22)
 
-**Topic published:** monitor-reverb-server.mdx
-- Keyword: "how to monitor Laravel Reverb server in production"
-- Angle: Reverb is a long-lived WebSocket process that silently fails; health-check endpoint and Crontinel heartbeat are the monitoring strategy
-- 7193 bytes, ~700 words body, 4 failure modes, 3 code samples
+**Improvements applied:**
+- `monitor-route-cache.mdx`: Title/meta rewrite — now leads with "bootstrap/cache/routes-v7.php Explained" to match actual search queries (people searching about routes-v7.php file, not monitoring)
+- `monitor-horizon-purge.mdx`: Title/meta rewrite — now problem-focused hook ("horizon:purge Not Cleaning Jobs?") to improve CTR at position 7.7 (35 imp, 0 clicks)
 
-**GSC findings (pre-publish):**
-- Site has `siteOwner` permission on sc-domain:crontinel.com
-- Sitemap submitted successfully (0 errors)
-- No existing search data for Reverb/WebSocket queries — clean topic gap
-- Top organic page (28 days): blog/laravel-cron-queue-monitoring-tools (2 clicks, 196 impressions, ctr=1.02%)
-- Homepage: 61 impressions, 0 clicks (pos 8.5) — title/meta may need improvement but need more data
-- General: site still young, impressions growing slowly, clicks minimal
+**GSC actions:**
+- monitor-reverb-server URL submitted to GSC via sitemap resubmit
+- Queue updated: 0 pending, 177 submitted
+- Sitemap re-submitted successfully (full webmasters scope)
 
-**Claude Code auth:** unavailable tonight (loggedIn: false) — article written directly
+**GSC findings:**
+- sc-domain:crontinel.com: siteOwner — full scope
+- Top page: blog/laravel-cron-queue-monitoring-tools (2 clicks, 189 imp, ctr=1.1%)
+- Zero-click candidates identified: monitor-route-cache (73 imp, 0 clicks), monitor-horizon-purge (35 imp, 0 clicks), homepage (59 imp, 0 clicks)
+- monitor-route-cache queries are about "bootstrap/cache/routes-v7.php file" — intent mismatch fixed
 
 ## Winning Patterns (replicate these)
 - Articles with a specific real-world failure scenario in the opening hook get higher engagement
@@ -26,7 +26,9 @@ Auto-generated: 2026-06-21 02:10 UTC — updated after monitor-reverb-server
 
 ## Improvement Needed
 - GSC CTR on existing content is very low (mostly <1%) — title/meta descriptions likely need rework but need more impression data
-- Monitor-reverb-server is brand new, no GSC data yet — check after 7 days
+- Monitor-route-cache title rewrite applied 2026-06-22 — check CTR change after 7 days (2026-06-29)
+- Monitor-horizon-purge title rewrite applied 2026-06-22 — check CTR change after 7 days (2026-06-29)
+- Monitor-reverb-server: check GSC data debut after 2026-06-28 (7 days post-publish)
 
 ## Content Rules (accumulated learning)
 - Keyword must appear in H1, first paragraph, and at least one H2
@@ -39,10 +41,11 @@ Auto-generated: 2026-06-21 02:10 UTC — updated after monitor-reverb-server
 
 ## Queue Notes
 - reverb-start marked completed
+- monitor-reverb-server URL submitted to GSC
 - Remaining pending: config-clear, view-cache, view-clear, event-clear, storage-link, db-seed, db-wipe, migrate-rollback, scout-import, scout-sync-index-settings, pulse-check, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-work, schedule-interrupt, about, inspire
 - Next strong candidates: scout-import (complements existing scout-flush), pulse-check (Laravel Pulse — monitoring the monitor meta topic)
-- Self-improvement check for monitor-reverb-server: due 2026-06-28 (7 days after publish)
+- Self-improvement check for monitor-reverb-server: due 2026-06-28
+- Self-improvement check for title rewrites: due 2026-06-29
 
 ## Pending GSC improvements
-- monitor-route-cache has 72 impressions, 0 clicks — title rewrite candidate once enough data
-- monitor-horizon-purge has 34 impressions, 0 clicks — same pattern
+- Homepage: 59 impressions, 0 clicks (pos 10.1) — need more impression data before changing meta
