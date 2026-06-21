@@ -1,12 +1,8 @@
 {
   "pending": [
-    {
-      "url": "https://crontinel.com/use-cases/monitor-reverb-server/",
-      "topic": "monitor-reverb-server",
-      "enqueued_at": "2026-06-21T00:00:00Z"
-    }
   ],
   "submitted": [
+    "https://crontinel.com/use-cases/monitor-reverb-server/",
     "https://crontinel.com/use-cases/monitor-migrate-fresh/",
     "https://crontinel.com/blog/laravel-queue-depth-alert",
     "https://crontinel.com/blog/what-is-cron-monitoring-laravel/",

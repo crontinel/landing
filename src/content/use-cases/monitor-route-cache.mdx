@@ -1,7 +1,7 @@
 ---
-title: "Monitor Laravel route:cache and routes-v7.php"
-description: "Laravel route:cache writes routes-v7.php. Monitor that file after deploys so stale routes, missing routes, and failed cache rebuilds do not reach users."
-date: 2026-06-05
+title: "bootstrap/cache/routes-v7.php Explained — Laravel Route Cache Monitoring"
+description: "What is bootstrap/cache/routes-v7.php? Learn how Laravel route:cache creates it, what can go wrong during rolling deploys, and how to get alerted when the cache is stale or missing."
+date: 2026-06-22
 ---
 
 When `php artisan route:cache` runs, Laravel writes the compiled route table to `bootstrap/cache/routes-v7.php`. If that file is stale, empty, built from the wrong release, or missing from one app server, users can hit routes that no longer match your deployed code.
