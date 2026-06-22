@@ -2,6 +2,7 @@
   "pending": [
   ],
   "submitted": [
+    "https://crontinel.com/use-cases/monitor-schedule-work/",
     "https://crontinel.com/use-cases/monitor-reverb-server/",
     "https://crontinel.com/use-cases/monitor-migrate-fresh/",
     "https://crontinel.com/blog/laravel-queue-depth-alert",
@@ -180,5 +181,5 @@
     "https://crontinel.com/vs/crontinel-vs-pingdom/",
     "https://crontinel.com/vs/crontinel-alternatives/"
   ],
-  "last_push": "2026-06-20"
+  "last_push": "2026-06-23"
 }
