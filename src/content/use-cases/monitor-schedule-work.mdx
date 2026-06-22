@@ -1,0 +1,104 @@
+---
+title: "Monitoring php artisan schedule:work in Laravel Production"
+description: "Monitor Laravel's schedule:work daemon in production so you catch process crashes, memory leaks, and silent failures before your scheduled tasks stop running."
+date: 2026-06-23
+---
+
+You set up `php artisan schedule:work` as a daemon so you wouldn't need a cron entry. It works for weeks. Then a deploy restarts Supervisor, the daemon doesn't come back, and none of your scheduled tasks ran for six hours. The dashboard looked fine. Uptime monitors showed the server was up. But your daily report never sent.
+
+`schedule:work` simplifies deployment by removing the system-level cron entry, but it swaps one failure mode for another. A missing crontab is easy to spot. A dead daemon that looks like it should be running is harder to catch.
+
+## How schedule:work Actually Works
+
+`php artisan schedule:work` runs the Laravel scheduler as a foreground daemon. Instead of relying on `* * * * * php artisan schedule:run >> /dev/null 2>&1` in your system crontab, the daemon calls `schedule:run` internally every minute:
+
+```php
+// Inside Illuminate\Console\Scheduling\ScheduleWorkCommand
+while (true) {
+    $this->call('schedule:run');
+    sleep(60 - time() % 60); // sleep until the start of the next minute
+}
+```
+
+The entire scheduler lifecycle depends on a single PHP process instead of a system cron daemon. If that process exits unexpectedly, every scheduled task stops with it. There is no cron daemon watching from outside.
+
+In production, `schedule:work` is typically managed by a process supervisor like Supervisor, systemd, or a container runtime. The supervisor restarts the daemon if it crashes, but restarts aren't instant and the gap between crash and restart is invisible to most monitoring tools.
+
+## Common Failure Modes
+
+**Uncaught exception exits the daemon.** A task that throws an uncaught `Throwable` inside the daemon loop can kill the entire process. With the cron approach a single `schedule:run` invocation fails and the next one runs a minute later. With the daemon, the process stops completely until the supervisor restarts it. `ErrorException` from memory exhaustion and database `QueryException` from transient connection drops are the usual culprits.
+
+**Memory leak accumulates over days.** Each `schedule:run` iteration inside the daemon inherits the process memory space. A task that leaks — say a long-running collection that never gets dereferenced or queued jobs loaded into an in-memory array — slowly consumes RAM until the OOM killer terminates the process. On a server with 512 MB of PHP memory limit, a 2 MB per-minute leak kills the daemon in about four hours.
+
+**Supervisor stops the process group.** A Supervisor config with `stopasgroup=true` signals all child processes when the main process stops. During a deploy that runs `supervisorctl restart`, the daemon gets terminated mid-iteration. If `startsecs` takes too long, the daemon lands in `FATAL` state and never restarts.
+
+**Container restart without process handoff.** In Docker or Kubernetes, SIGTERM kills a `schedule:work` daemon running as PID 1 when the container restarts. If your deployment pipeline restarts the container without waiting for the current scheduler iteration to finish, tasks scheduled for that minute get missed. Docker's default stop timeout of 10 seconds may not be enough for long-running scheduled commands.
+
+## Building Visibility Into schedule:work
+
+Start by logging the daemon's lifecycle events. Supervisor's `stdout_logfile` captures output, but add a heartbeat to every scheduled task to track execution:
+
+```php
+// App\Console\Kernel.php
+Schedule::command('reports:generate')
+    ->dailyAt('02:00')
+    ->thenPing('https://hc.crontinel.com/ping/reports-generate')
+    ->pingBefore('https://hc.crontinel.com/start/reports-generate');
+```
+
+For the daemon itself, add a catch-all heartbeat that fires every minute:
+
+```php
+Schedule::call(function () {
+    Http::timeout(5)->get('https://hc.crontinel.com/heartbeat/scheduler-daemon');
+})->everyMinute();
+```
+
+This single heartbeat acts as a dead-man's switch for the entire `schedule:work` process. If the daemon crashes, the heartbeat stops firing within one minute.
+
+Wrap the daemon's start in your deploy script to confirm it actually came up:
+
+```bash
+php artisan schedule:work > /var/log/schedule-work.log 2>&1 &
+SCHEDULE_PID=$!
+sleep 5
+if kill -0 $SCHEDULE_PID 2>/dev/null; then
+    echo "schedule:work daemon started (PID $SCHEDULE_PID)"
+else
+    echo "ERROR: schedule:work daemon failed to start" >&2
+    exit 1
+fi
+```
+
+## Detecting When schedule:work Fails
+
+The cron approach and the daemon approach fail differently, so your monitoring strategy needs to account for both. With the cron setup, a missing crontab entry means `schedule:run` never fires and every task stays silent. With `schedule:work`, the daemon either runs or it doesn't. There is no partial failure mode.
+
+A deadline-based check on your per-minute heartbeat catches this. A monitoring service like Crontinel watches for the heartbeat signal and alerts when it does not arrive within a configurable grace period.
+
+Set the grace period to at least 3 minutes (two missed heartbeats plus one minute of tolerance) to avoid false alarms during deploys. If the grace period expires without a heartbeat, the daemon has likely crashed and needs investigation.
+
+Pair this with a process check that runs every few minutes as a secondary signal:
+
+```bash
+pgrep -f "artisan schedule:work" > /dev/null || echo "ALERT: schedule:work daemon not running"
+```
+
+This combination, a dead-man's heartbeat for precision and a process check for redundancy, covers both the "daemon crashed" and "supervisor failed to restart" scenarios.
+
+## Quick Setup with Crontinel
+
+Set up a check that expects a heartbeat every minute and configure the grace period to match your tolerance:
+
+1. Create a heartbeat check in Crontinel with a 3-minute grace period
+2. Add the `everyMinute()` heartbeat task to your Laravel scheduler
+3. Deploy and verify the dashboard shows the heartbeat as "OK"
+4. Test by stopping the `schedule:work` process. Crontinel alerts within 3 minutes
+
+The setup takes about five minutes and gives you real-time visibility into whether your scheduler daemon is actually running, not just whether the server is up.
+
+## See also
+
+- [How to monitor php artisan schedule:run in production](/use-cases/monitor-schedule-run)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)
+- [SAAS background job monitoring](/use-cases/saas-background-job-monitoring)
