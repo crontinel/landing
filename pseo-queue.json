@@ -15,7 +15,6 @@
     "pennant-purge",
     "passport-purge",
     "sanctum-prune-expired",
-    "schedule-work",
     "schedule-interrupt",
     "about",
     "inspire"
@@ -51,6 +50,7 @@
     "route-cache",
     "route-clear",
     "schedule-run",
+    "schedule-work",
     "scout-flush",
     "telescope-clear",
     "telescope-prune"
