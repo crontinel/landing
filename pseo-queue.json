@@ -10,7 +10,6 @@
     "migrate-rollback",
     "scout-import",
     "scout-sync-index-settings",
-    "pulse-check",
     "pulse-restart",
     "pennant-purge",
     "passport-purge",
@@ -53,7 +52,8 @@
     "schedule-work",
     "scout-flush",
     "telescope-clear",
-    "telescope-prune"
+    "telescope-prune",
+    "pulse-check"
   ],
   "in_progress": []
 }

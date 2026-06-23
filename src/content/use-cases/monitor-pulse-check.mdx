@@ -1,0 +1,99 @@
+---
+title: "Monitor Laravel Pulse Health in Production"
+description: "Your Pulse dashboard shows data from yesterday and you don't realize it until someone asks why the failed jobs graph flatlined. Here is how to catch Pulse outages before they cost you a morning of debugging."
+date: 2026-06-24
+---
+
+You set up Laravel Pulse for real-time insight. Queue throughput, slow requests, failed jobs all on one dashboard. Then someone notices the numbers stopped changing. The dashboard shows data from last deployment, not from right now. Pulse lost its database connection twelve hours ago during a brief PostgreSQL restart, and nobody caught it because Pulse has no built-in "I stopped working" alert.
+
+When Pulse stops recording, the dashboard stays frozen at its last snapshot. No errors, no warnings, just stale data that looks normal until you look closely.
+
+## How pulse:check actually works
+
+`php artisan pulse:check` verifies Pulse can communicate with its configured storage driver. Pulse stores ingested data in database tables (`pulse_entries`, `pulse_aggregates`, `pulse_values`) or a Redis stream, depending on your `config/pulse.php` settings. The command attempts a read from the storage backend, validates the connection with a lightweight query or ping, and returns exit code 0 if everything works. Exit code 1 means Pulse cannot connect, with an error message describing the failure.
+
+```php
+$exitCode = Artisan::call('pulse:check');
+if ($exitCode !== 0) {
+    Log::channel('alert')->critical('Pulse health check failed', [
+        'output' => Artisan::output(),
+        'storage' => config('pulse.storage.driver'),
+    ]);
+}
+```
+
+The check completes in under a second. It does not process records or run the full Pulse work cycle. Its only job is confirming Pulse can still read and write data.
+
+## Common failure modes
+
+The first and most common failure is a database connection drop that hits Pulse but not the main application. Pulse often uses a separate database connection or the same connection with different table prefixes. If Pulse's database pool is exhausted or a connection drops transiently, the main application keeps working fine while Pulse silently stops recording. No 500 errors, no failed jobs, no alerts. Just a frozen dashboard.
+
+Redis stream buffer overflow is the second. Pulse uses Redis streams by default, and when the stream grows beyond `maxlen`, older entries get evicted. During traffic spikes, Pulse can lose entries without warning. The dashboard shows gaps that look like idle periods.
+
+The third is the `pulse:work` worker stopping. Pulse's internal worker processes raw entries into aggregates. If that worker crashes from a PHP memory limit, an unhandled exception in a custom recorder, or a Supervisor restart, entries pile up in the raw store but the dashboard never updates. `pulse:check` on its own will not catch this because the storage connection is fine. You need a heartbeat from the worker itself.
+
+The fourth happens during deploys. Your pipeline runs `pulse:restart` but the new process cannot connect to the storage backend, say because database credentials rotated mid-deploy. The restart succeeds silently and Pulse never starts recording again.
+
+## Building visibility into Pulse
+
+Start with a scheduled health check that runs `pulse:check` every minute and sends the result to your monitoring system:
+
+```php
+// App\Console\Kernel.php
+Schedule::command('pulse:check')
+    ->everyMinute()
+    ->thenPing('https://hc.crontinel.com/ping/pulse-health');
+```
+
+This acts as a dead-man's switch for Pulse's storage connectivity. If `pulse:check` fails, the heartbeat stops within one minute and you get an alert.
+
+Storage connectivity is only half the picture though. Add a second check that confirms Pulse is actually processing new data:
+
+```php
+class CheckPulseFreshness extends Command
+{
+    protected $signature = 'pulse:freshness {minutes=5}';
+
+    public function handle()
+    {
+        $recentEntries = DB::table('pulse_entries')
+            ->where('created_at', '>=', now()->subMinutes($this->argument('minutes')))
+            ->count();
+
+        if ($recentEntries === 0) {
+            Http::timeout(5)->post(config('services.crontinel.webhook'), [
+                'alert' => 'Pulse has not recorded any entries in the last '
+                    . $this->argument('minutes') . ' minutes',
+                'severity' => 'warning',
+            ]);
+        }
+    }
+}
+```
+
+Run this every 5 minutes as a scheduled command. It catches the "Pulse is connected but not recording" scenario that `pulse:check` alone misses.
+
+## Detecting when Pulse fails
+
+The strategy comes down to two signals. A heartbeat from `pulse:check` tells you Pulse can reach its data store. A freshness check from the Pulse tables tells you data is actually being written. One covers connectivity, the other covers worker death.
+
+Neither by itself catches everything. The heartbeat misses a crashed `pulse:work` daemon because the storage itself is fine. The freshness check misses a slow degradation where entries are written but at a much lower rate than expected. Together they cover both.
+
+In practice in production, the heartbeat catches the fast failures (connection drops, credential changes) and the freshness check catches the slow ones (worker crashes, middleware not firing). You need both.
+
+## Quick setup with Crontinel
+
+1. Add the `pulse:check` scheduled heartbeat to your `Kernel.php`
+2. Create a Crontinel heartbeat check with a 3-minute grace period
+3. Add the optional freshness check as a separate Crontinel cron check
+4. Deploy and verify the dashboard shows both checks as "OK"
+5. Test by stopping Pulse's database connection. Crontinel alerts within 3 minutes
+
+The setup takes about ten minutes and gives you a way to know your Pulse dashboard shows live data, not a frozen historical snapshot.
+
+## See also
+
+- [How to monitor php artisan schedule:run in production](/use-cases/monitor-schedule-run)
+- [Laravel queue monitoring](/use-cases/laravel-queue-monitoring)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)
+- [Open source self-hosted status page](/use-cases/open-source-self-hosted-status-page)
