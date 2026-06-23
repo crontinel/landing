@@ -1,5 +1,23 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-06-23 02:10 UTC — new use-case page: monitor-schedule-work
+Auto-generated: 2026-06-24 02:10 UTC — new use-case page: monitor-pulse-check
+
+## Run Summary (2026-06-24)
+
+**New article published:**
+- `monitor-pulse-check.mdx` — Monitoring Laravel Pulse health in production
+- URL: https://crontinel.com/use-cases/monitor-pulse-check/
+- Keyword: "how to tell if Laravel Pulse is actually collecting data"
+- Distinct from existing content: covers Pulse-specific failure modes (database connection drop, Redis stream overflow, pulse:work worker crash, deploy disconnect)
+- ~760 words, 3 code samples, humanizer pass applied
+- PR #108 → squash merged to main → Cloudflare Pages auto-deploy triggered
+
+**GSC actions:**
+- Sitemap re-submitted to GSC
+- Queue updated: pulse-check moved pending → completed
+
+**Next strong candidates:**
+- scout-import (complements existing scout-flush, covers search index rebuild monitoring)
+- config-clear (stale config cache after deployment)
 
 ## Run Summary (2026-06-23)
 
@@ -45,13 +63,11 @@ Auto-generated: 2026-06-23 02:10 UTC — new use-case page: monitor-schedule-wor
 - Humanizer pass: convert inline-header failure mode lists to natural paragraphs, reduce em dashes, remove "the key difference" and "the first step is" signposting
 
 ## Queue Notes
-- schedule-work marked completed
-- monitor-schedule-work URL submitted to GSC via sitemap
-- Remaining pending: config-clear, view-cache, view-clear, event-clear, storage-link, db-seed, db-wipe, migrate-rollback, scout-import, scout-sync-index-settings, pulse-check, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
-- Next strong candidates: scout-import (complements existing scout-flush), pulse-check (Laravel Pulse meta topic)
-- Self-improvement check for monitor-reverb-server: due 2026-06-28
-- Self-improvement check for title rewrites: due 2026-06-29
-- Self-improvement check for monitor-schedule-work: due 2026-06-30 (7 days post-publish)
+- pulse-check marked completed
+- monitor-pulse-check URL submitted to GSC via sitemap
+- Remaining pending: config-clear, view-cache, view-clear, event-clear, storage-link, db-seed, db-wipe, migrate-rollback, scout-import, scout-sync-index-settings, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
+- Next strong candidates: scout-import (complements existing scout-flush), config-clear (stale config cache after deployment)
+- Self-improvement check for monitor-pulse-check: due 2026-07-01 (7 days post-publish)
 
 ## Pending GSC improvements
 - Homepage: 59 impressions, 0 clicks (pos 10.1) — need more impression data before changing meta
