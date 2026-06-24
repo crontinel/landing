@@ -1,0 +1,115 @@
+---
+title: "Monitoring config:clear in Laravel Production"
+description: "Watch Laravel's config:clear command in production so an accidentally cleared config cache, a failed rebuild, or a half-finished deploy step does not leave your app running without cached configuration."
+date: 2026-06-25
+canonical: "https://crontinel.com/use-cases/monitor-config-clear/"
+---
+
+`php artisan config:clear` looks like housekeeping. It deletes `bootstrap/cache/config.php` so Laravel will read fresh config files on the next request. That is the right thing to do in development, but in production it is the first half of a two-step operation that leaves your app temporarily slower and potentially inconsistent if the second half never finishes.
+
+The problem starts when a deploy script runs `config:clear`, then fails during `config:cache`. Production is now serving uncached config. Every request parses every config file, runs every `env()` call, and regenerates the application configuration. Boot time goes up. If your deploy runs across multiple servers, one node may rebuild its cache while another stays cleared. Monitoring `config:clear` turns a silent failure into a deploy event you can check.
+
+## How config:clear works
+
+When you run:
+
+```bash
+php artisan config:clear
+```
+
+Laravel calls `Illuminate\Foundation\Console\ConfigClearCommand`, which deletes the cached config file at `bootstrap/cache/config.php`. That is it. No rebuild. No validation. It removes the cache so the framework reads files on every boot instead.
+
+Most production deploy scripts pair it with `config:cache`:
+
+```bash
+php artisan config:clear
+php artisan config:cache
+```
+
+If the first step succeeds and the second fails, your app is live but running without its config cache. The deploy script may not catch the failure because the exit code from `config:clear` was zero.
+
+## Common failure modes
+
+**The cache is cleared but never rebuilt.** A deploy script clears the old config, a later step or package fails, and the script either stops or quietly carries on. Production now boots slower and processes more filesystem reads per request. This is the most common `config:clear` failure in production because the app keeps working and nobody checks whether the cache exists.
+
+**A rolling deploy creates mixed config states.** In a multi-server setup, one node may clear its config cache, another may still have the old cache, and a third may have rebuilt with the new release. Users see different values for the same config key depending on which server handles the request. Database credentials, queue connections, and API keys can be wrong on some requests and correct on others.
+
+**Permission errors leave the old cache in place.** If the deploy user cannot write to `bootstrap/cache`, `config:clear` may fail silently without deleting the file. The app keeps serving the old cached config. New environment values added in `.env` never take effect, and the deploy looks successful because the app never crashed.
+
+**A cleared cache hides stale config from one server.** If you deploy to multiple hosts and only one runs `config:clear` before the code sync finishes, that host serves uncached config from the new release while the others serve cached config from the previous release. The difference in boot time and available config values makes behavior hard to reproduce in debugging.
+
+## Building visibility into config:clear
+
+Treat config cache clearing as a deploy event that needs verification. The simplest pattern uses two paired heartbeats: one for the clear step and one for the rebuild step.
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www/current
+
+php artisan config:clear
+
+# Confirm the cache file is gone
+test ! -f bootstrap/cache/config.php
+
+curl -fsS "https://crontinel.example/ping/config-clear?host=$(hostname)&release=$RELEASE_ID"
+
+php artisan config:cache
+test -s bootstrap/cache/config.php
+
+curl -fsS "https://crontinel.example/ping/config-cache?host=$(hostname)&release=$RELEASE_ID"
+```
+
+If the first ping arrives and the second does not, the config was cleared but never rebuilt. Every request is serving uncached config.
+
+For quick verification during a manual run:
+
+```bash
+php artisan config:clear
+php artisan config:show app.name > /dev/null
+```
+
+The second command forces Laravel to boot and read config files. If a config file has a syntax error, this is where you see it rather than when users hit the app.
+
+## Detecting when config:clear fails
+
+A missing `config:clear` heartbeat during a deploy window tells you the command did not run or did not complete successfully on that host. Check three things:
+
+1. Did the file actually get deleted? `test ! -f bootstrap/cache/config.php` after the command catches silent permission failures.
+2. Did the command run on every server? The hostname in the ping metadata shows which nodes reported in.
+3. Did the rebuild follow? Without the paired config:cache heartbeat, the cleared state persists and your app runs uncached.
+
+A quick endpoint on each server shows the current cache state:
+
+```php
+Route::get('/_deploy/config-status', function () {
+    return response()->json([
+        'host' => gethostname(),
+        'release' => trim(@file_get_contents(base_path('REVISION'))),
+        'config_cached' => file_exists(base_path('bootstrap/cache/config.php')),
+        'config_cache_mtime' => file_exists(base_path('bootstrap/cache/config.php'))
+            ? filemtime(base_path('bootstrap/cache/config.php'))
+            : null,
+    ]);
+})->middleware('auth.basic');
+```
+
+Call this after every deploy. If one host reports `config_cached: false` when all others report `true`, that server needs attention before it can serve traffic safely.
+
+## Quick setup with Crontinel
+
+Create a Crontinel monitor named `production config:clear completed`. Set the expected window to match your deploy timing. If deploys are manual, trigger the monitor at the start of the deploy and expect the ping before the release is considered healthy.
+
+Pair it with a second monitor for `config:cache`. Together they tell you the full story: the old cache was cleaned up, and the new one was built. A missing `config:clear` ping means the cleanup step never ran. A missing `config:cache` ping after a successful `config:clear` means production is running uncached.
+
+Include host metadata in the ping URL so you can spot a server that missed its deploy step. One host that never reports in is usually the root cause of intermittent config-related errors after a release.
+
+If you already monitor [`config:cache`](/use-cases/monitor-config-cache/) and [`optimize:clear`](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/), adding `config:clear` fills the gap. The three commands cover the most common production cache failures.
+
+## See also
+
+- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
+- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)
+- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
