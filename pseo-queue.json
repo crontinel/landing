@@ -1,6 +1,5 @@
 {
   "pending": [
-    "config-clear",
     "view-cache",
     "view-clear",
     "event-clear",
@@ -55,5 +54,5 @@
     "telescope-prune",
     "pulse-check"
   ],
-  "in_progress": []
+  "in_progress": ["config-clear"]
 }
