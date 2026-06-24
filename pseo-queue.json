@@ -24,6 +24,7 @@
     "cache-clear",
     "cache-prune",
     "config-cache",
+    "config-clear",
     "db-backup",
     "event-cache",
     "horizon-continue",
@@ -54,5 +55,5 @@
     "telescope-prune",
     "pulse-check"
   ],
-  "in_progress": ["config-clear"]
+  "in_progress": []
 }

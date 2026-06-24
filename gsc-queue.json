@@ -1,8 +1,8 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-config-clear/"
   ],
   "submitted": [
+    "https://crontinel.com/use-cases/monitor-config-clear/",
     "https://crontinel.com/use-cases/monitor-pulse-check/",
     "https://crontinel.com/use-cases/monitor-schedule-work/",
     "https://crontinel.com/use-cases/monitor-reverb-server/",
@@ -183,5 +183,5 @@
     "https://crontinel.com/vs/crontinel-vs-pingdom/",
     "https://crontinel.com/vs/crontinel-alternatives/"
   ],
-  "last_push": "2026-06-24"
+  "last_push": "2026-06-25"
 }
