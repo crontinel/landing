@@ -1,0 +1,116 @@
+---
+title: "Monitoring view:cache in Laravel Production"
+description: "Monitor Laravel's view:cache command in production so stale compiled views, missing templates, and permission errors do not silently break your deployed application."
+date: 2026-06-26
+canonical: "https://crontinel.com/use-cases/monitor-view-cache/"
+---
+
+`php artisan view:cache` compiles every Blade template in your application into cached PHP classes. In development Laravel does this on first render. In production you run it during deployment so the first request hits a precompiled file instead of compiling on the spot.
+
+The catch: compiled views can come from the wrong release. If your deploy script runs `view:cache` before copying the new code, or runs in the wrong directory, users see old Blade templates rendered by new controllers. Mismatched HTML. Missing variables. Sections referencing classes that no longer exist.
+
+## How view:cache works
+
+When you run:
+
+```bash
+php artisan view:cache
+```
+
+Laravel iterates through every `.blade.php` file in `resources/views/`, compiles each one into a plain PHP class, and writes it to `storage/framework/views/`. The compiled filename is an MD5 hash of the template path, so the same template always maps to the same compiled file.
+
+A compiled view looks like this in storage:
+
+```
+storage/framework/views/
+  0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d.php
+  1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.php
+  ...
+```
+
+Every request goes through `View::make()`, which checks whether a compiled version exists and is newer than the source file. If the source changed, Laravel recompiles. If not, it uses the cached version.
+
+In production, you run `view:cache` after all source files are in place:
+
+```bash
+php artisan view:cache
+```
+
+This precompiles everything so no request ever triggers an on-demand compile. But it only works correctly if it runs *after* the new Blade files are deployed to the right path on every server.
+
+## Common failure modes
+
+**Stale compiled views from a previous release.** Your deploy puts new Blade files in place, but `view:cache` either did not run or hit the old release directory. The compiled views in `storage/framework/views/` still reference PHP layout and component classes from the previous deployment. Users see the old design, missing sections, or PHP errors pointing at vanished classes.
+
+**One server has fresh views, another has stale ones.** In a rolling deploy, host A finishes `view:cache` with new code. Host B keeps the old compiled views. Users get inconsistent renders depending on which server handles the request. These bugs are hard to reproduce because refreshing often hits a different node.
+
+**Permission errors during compilation.** `view:cache` writes to `storage/framework/views/`. If the deploy user is `deploy` and the web server runs as `www-data`, compiled files can end up owned by the wrong user. The web server then recompiles on every request instead of reading the cached file. The app still works — it just gets two or three times slower without anyone noticing why.
+
+**Timestamp edge cases in automated deployments.** Laravel checks `filemtime()` on source templates to decide whether to recompile. Automated git deployments that clone fresh repos can produce source files with timestamps *older* than the cached compiled views. When that happens, `view:cache` skips recompilation on templates it considers current, leaving old compiled versions in place. The GitHub issue (laravel/framework#53394) recommends running `view:clear` before `view:cache` to guarantee every template recompiles.
+
+## Building visibility into view:cache
+
+The safest deploy sequence for view caching is clear-before-cache:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www/current
+START=$(date +%s)
+
+php artisan view:clear
+php artisan view:cache
+
+# Verify the views were compiled
+COMPILED_COUNT=$(find storage/framework/views/ -name '*.php' -newer REVISION | wc -l)
+if [ "$COMPILED_COUNT" -lt 10 ]; then
+    echo "WARNING: Fewer than 10 views compiled — possible timestamp issue"
+fi
+
+curl -fsS \
+  "https://heartbeat.crontinel.com/ping/view-cache?host=$(hostname)&release=$(cat REVISION)&views=$COMPILED_COUNT&duration=$(( $(date +%s) - START ))"
+```
+
+The `view:clear` before `view:cache` eliminates the timestamp edge case. Without it, compiled views can go stale without anyone noticing.
+
+Send `host` and `release` in the ping metadata so a missing server stands out immediately during a rolling deploy. If host A reports back but host B does not within the grace window, you know the second server never completed the cache step.
+
+## Detecting when view:cache fails
+
+Add a health check endpoint that exposes compiled view metadata:
+
+```php
+Route::get('/_deploy/view-cache', function () {
+    $viewsPath = storage_path('framework/views');
+
+    return response()->json([
+        'host' => gethostname(),
+        'release' => trim(@file_get_contents(base_path('REVISION'))),
+        'compiled_count' => count(glob($viewsPath . '/*.php')),
+        'latest_mtime' => file_exists($viewsPath)
+            ? filemtime($viewsPath)
+            : null,
+        'writable' => is_writable($viewsPath),
+    ]);
+})->middleware('auth.basic');
+```
+
+Call this after each deploy. If one node has fewer compiled views, an older `latest_mtime`, or reports the directory as unwritable, it needs attention before serving traffic.
+
+For queue workers and Horizon, remember that compiled views are per-process. A worker that started before `view:cache` runs may still hold the old compiled templates in memory until it restarts. Pair the cache step with `queue:restart` or `horizon:terminate` so workers reload the compiled views too.
+
+## Quick setup with Crontinel
+
+Create a Crontinel monitor named `deploy view:cache completed`. Ping it after `view:clear && view:cache` succeeds on each production server. Include `host` and `release` in the ping. Set the grace period to match your deploy window — if deploys typically take 5 minutes, a 7-minute grace period catches a missed cache step without false alerts during a slow deploy.
+
+If you deploy on a schedule, set the expected times to match. For ad-hoc deploys, start the monitor at deploy time and require the ping from every server before the deploy is considered healthy.
+
+The `view:cache` step is one of the easiest to skip during a rushed deploy. A heartbeat tells you within minutes that it was missed, before stale templates reach your users.
+
+## See also
+
+- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
+- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
+- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
