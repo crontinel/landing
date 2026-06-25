@@ -1,7 +1,5 @@
 {
-  "in_progress": [
-    "view-cache"
-  ],
+  "in_progress": [],
   "pending": [
     "view-clear",
     "event-clear",
@@ -55,7 +53,8 @@
     "scout-flush",
     "telescope-clear",
     "telescope-prune",
-    "pulse-check"
+    "pulse-check",
+    "view-cache"
   ],
   "in_progress": []
 }

@@ -1,6 +1,5 @@
 {
-  "pending": [
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-config-clear/",
     "https://crontinel.com/use-cases/monitor-pulse-check/",
@@ -181,7 +180,8 @@
     "https://crontinel.com/vs/crontinel-vs-datadog/",
     "https://crontinel.com/vs/crontinel-vs-better-stack/",
     "https://crontinel.com/vs/crontinel-vs-pingdom/",
-    "https://crontinel.com/vs/crontinel-alternatives/"
+    "https://crontinel.com/vs/crontinel-alternatives/",
+    "https://crontinel.com/use-cases/monitor-view-cache/"
   ],
   "last_push": "2026-06-25"
 }
