@@ -1,6 +1,8 @@
 {
+  "in_progress": [
+    "view-cache"
+  ],
   "pending": [
-    "view-cache",
     "view-clear",
     "event-clear",
     "storage-link",
