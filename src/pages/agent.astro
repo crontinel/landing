@@ -1,0 +1,78 @@
+---
+import Base from "../layouts/Base.astro";
+---
+
+<Base title="Crontinel Agent — Connect Your Server">
+    <main class="max-w-3xl mx-auto px-4 py-16">
+        <h1 class="text-3xl font-bold text-white mb-4">Connect Your Server — Crontinel Agent</h1>
+        <p class="text-slate-400 mb-8">Install the Crontinel agent on your server to receive and execute cloud-triggered commands.</p>
+
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold text-white mb-3">What is the Agent?</h2>
+            <p class="text-slate-400 mb-4">The Crontinel agent is a lightweight daemon that runs on your server, connects to app.crontinel.com via SSE, and listens for commands. When you schedule a trigger from the cloud, the agent receives it, executes it, reports the result, and it appears in your dashboard.</p>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold text-white mb-3">Laravel Agent</h2>
+            <div class="bg-slate-900 rounded-xl p-5 mb-4">
+                <pre class="text-sm text-green-400 overflow-x-auto"><code># 1. Install the package
+composer require crontinel/laravel
+
+# 2. Run the install command
+php artisan crontinel:install
+
+# 3. Add to .env
+CRONTINEL_API_KEY=YOUR_API_KEY_HERE
+CRONTINEL_API_URL=https://app.crontinel.com
+
+# 4. Start the agent
+php artisan crontinel:agent</code></pre>
+            </div>
+            <p class="text-sm text-slate-500">Generate systemd or Supervisor config: <code class="text-green-400">php artisan crontinel:agent --systemd</code></p>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold text-white mb-3">Node.js Agent</h2>
+            <div class="bg-slate-900 rounded-xl p-5 mb-4">
+                <pre class="text-sm text-green-400 overflow-x-auto"><code># 1. Install
+npm install @crontinel/node
+
+# 2. Set env vars
+export CRONTINEL_API_KEY=YOUR_API_KEY_HERE
+export CRONTINEL_APP_ID=your-app-slug
+
+# 3. Start the agent
+npx crontinel agent</code></pre>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold text-white mb-3">Python Agent</h2>
+            <div class="bg-slate-900 rounded-xl p-5 mb-4">
+                <pre class="text-sm text-green-400 overflow-x-auto"><code># Install from source (PyPI pending)
+git clone https://github.com/crontinel/python.git
+cd python
+pip install -e .
+
+# Set env vars
+export CRONTINEL_API_KEY=YOUR_API_KEY_HERE
+export CRONTINEL_APP_ID=your-app-slug
+
+# Start the agent
+crontinel agent</code></pre>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <h2 class="text-xl font-semibold text-white mb-3">Test Your Agent</h2>
+            <p class="text-slate-400 mb-4">Schedule a trigger to verify the agent is connected:</p>
+            <div class="bg-slate-900 rounded-xl p-5">
+                <pre class="text-sm text-green-400 overflow-x-auto"><code>curl -X POST https://app.crontinel.com/api/v1/triggers \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '&#123;"app_id": 1, "command": "echo hello", "schedule": "now"&#125;'</code></pre>
+            </div>
+            <p class="text-sm text-slate-500 mt-3">Check the <strong class="text-white">Trigger history</strong> section on your app page to see the result.</p>
+        </section>
+    </main>
+</Base>
