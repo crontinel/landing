@@ -1,0 +1,125 @@
+---
+title: "Monitoring view:clear in Laravel Production"
+description: "Monitor Laravel's view:clear command in production so stale compiled views from a previous release are reliably removed before the new cache is built."
+date: 2026-06-27
+canonical: "https://crontinel.com/use-cases/monitor-view-clear/"
+---
+
+`php artisan view:clear` deletes every compiled Blade template from `storage/framework/views/`. It runs fast, exits zero, and leaves your app in a state where every page view has to compile the template from scratch until the next `view:cache`.
+
+`view:clear` is easy to run by accident during a deploy script troubleshooting session, and the app does not crash — it just gets slower by 50–200ms per page. If you clear and never rebuild, or clear on one server during a rolling deploy and not the others, you end up with an inconsistent state that nobody notices until response times drift.
+
+## How view:clear works
+
+When you run:
+
+```bash
+php artisan view:clear
+```
+
+Laravel calls `Illuminate\Foundation\Console\ViewClearCommand`, which globs `storage/framework/views/` for `*.php` files and deletes them. That is it. No confirmation prompt, no rollback, no check that another deploy step depends on the compiled views being there.
+
+The command exists for two reasons. First, during development, you clear stale views when templates change. Second, in deployment, you clear before `view:cache` to avoid the timestamp edge case where Laravel skips recompilation because the source file `mtime` is older than the cached compiled file.
+
+Most production deploy scripts use the paired pattern:
+
+```bash
+php artisan view:clear
+php artisan view:cache
+```
+
+If the first step fails silently or runs twice and the second step does not run, production serves uncached Blade templates until the next deploy.
+
+## Common failure modes
+
+**The clear step runs during a deploy and the cache rebuild never happens.** A deploy script runs `view:clear`, something fails later in the pipeline, and the script exits before reaching `view:cache`. Production now compiles every Blade template on every first visit. The app works, response times go up, and nobody checks whether the compiled views exist because the app never returned an error page.
+
+**One server clears, another keeps its compiled views.** In a rolling deploy, host A runs the full clear-then-cache sequence. Host B gets the code sync but the deploy script does not run `view:clear` before the health check passes the new release. Host A serves fresh compiled views. Host B has a mix of old compiled templates with new layouts, causing PHP errors for sections or components that moved between releases. The bug is intermittent because only requests routed to host B see it.
+
+**The clear command deletes too much or deletes nothing.** Permission issues are the common cause here. If the deploy user runs as `www-data` but the previous compiled views are owned by `deploy`, `view:clear` may fail to delete files it cannot write to but still exit zero. The files stay in place and the app keeps using the old compiled templates. At the other extreme, a misconfigured storage path or symlink can cause the glob to expand to files outside the expected views directory.
+
+**A manual `view:clear` during troubleshooting is never followed by a rebuild.** Someone debugging a template issue runs `view:clear` to force recompilation, fixes the template, and forgets to run `view:cache` after. The app is faster in development because the compiled file is regenerated on first access, but in production every page now compiles on demand. The 200ms overhead adds up across hundreds of requests per minute.
+
+## Building visibility into view:clear
+
+The safest deploy sequence wraps the clear-cache pair in its own stage with a verification step between:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www/current
+START=$(date +%s)
+
+# Count views before clearing
+PRE_COUNT=$(find storage/framework/views/ -name '*.php' 2>/dev/null | wc -l)
+
+php artisan view:clear
+
+# Confirm views were actually removed
+POST_COUNT=$(find storage/framework/views/ -name '*.php' 2>/dev/null | wc -l)
+if [ "$POST_COUNT" -ge "$PRE_COUNT" ]; then
+    echo "WARNING: view:clear did not remove any compiled files"
+    echo "  Pre: $PRE_COUNT compiled views"
+    echo "  Post: $POST_COUNT compiled views"
+    exit 1
+fi
+
+curl -fsS \
+  "https://heartbeat.crontinel.com/ping/view-clear?host=$(hostname)&release=$(cat REVISION)&removed=$((PRE_COUNT - POST_COUNT))&duration=$(( $(date +%s) - START ))"
+
+php artisan view:cache
+
+CACHE_COUNT=$(find storage/framework/views/ -name '*.php' 2>/dev/null | wc -l)
+curl -fsS \
+  "https://heartbeat.crontinel.com/ping/view-cache?host=$(hostname)&release=$(cat REVISION)&compiled=$CACHE_COUNT"
+```
+
+The first ping (`view-clear`) confirms the old views were removed. The second ping (`view-cache`) confirms the new views were compiled. If the first ping arrives and the second does not within the expected window, the deploy sequence broke between clear and cache.
+
+Include `removed` in the metadata so you can tell whether the command actually found files to delete. A `removed: 0` on a fresh deploy that has never cached views is normal. A `removed: 0` on a production server that has been running for months means the clear step may have a permission issue.
+
+## Detecting when view:clear fails
+
+A missing heartbeat during the deploy window is the primary signal. When a view:clear ping does not arrive for one host in a rolling deploy, check:
+
+1. Did the command run at all? Compare `host` values between servers. If host B never sent the clear ping but host A did, host B probably skipped the step.
+2. Did it actually delete files? The `removed` count tells you whether compiled views existed before the clear. Zero on an established server means the glob did not match — check permissions on `storage/framework/views/`.
+3. Did the cache follow? Without the second ping, you know the app is running uncached Blade templates.
+
+A quick endpoint per server shows the current view compilation state:
+
+```php
+Route::get('/_deploy/view-status', function () {
+    $viewsPath = storage_path('framework/views');
+
+    return response()->json([
+        'host' => gethostname(),
+        'release' => trim(@file_get_contents(base_path('REVISION'))),
+        'compiled_count' => count(glob($viewsPath . '/*.php')),
+        'writable' => is_writable($viewsPath),
+        'compiled_mtime' => file_exists($viewsPath)
+            ? filemtime($viewsPath)
+            : null,
+    ]);
+})->middleware('auth.basic');
+```
+
+If a server reports a compiled view count that does not match the other servers after the same deploy, one of them either skipped the clear or skipped the cache. A 500-count on a server that should have run clear-and-cache five minutes ago means the old views were never removed.
+
+## Quick setup with Crontinel
+
+Create two Crontinel monitors — one named `deploy view:clear completed` and one named `deploy view:cache completed`. Set both to the same expected window, matching your deploy duration.
+
+Ping the first immediately after `view:clear` completes on each production server. Ping the second after `view:cache`. Set the grace period to a few minutes longer than your typical deploy to avoid false alerts during slow syncs.
+
+If host A and host B send the clear ping but only host A sends the cache ping, you know the second server needs attention. If both pings arrive from all servers, the deploy handled views correctly.
+
+Together these two monitors tell you whether the deploy handled views correctly. A clear ping without a cache ping means production is serving uncached templates until the next deploy.
+
+## See also
+
+- [Monitoring view:cache in Laravel production](/use-cases/monitor-view-cache/)
+- [Monitoring config:clear in Laravel production](/use-cases/monitor-config-clear/)
+- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
+- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)
