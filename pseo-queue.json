@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "view-clear",
     "event-clear",
     "storage-link",
     "db-seed",
@@ -38,6 +37,7 @@
     "notifications-prune",
     "optimize",
     "optimize-clear",
+    "pulse-check",
     "queue-failed",
     "queue-flush",
     "queue-forget",
@@ -53,8 +53,7 @@
     "scout-flush",
     "telescope-clear",
     "telescope-prune",
-    "pulse-check",
-    "view-cache"
-  ],
-  "in_progress": []
+    "view-cache",
+    "view-clear"
+  ]
 }
