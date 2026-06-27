@@ -1,7 +1,5 @@
 {
-  "pending": [
-    "https://crontinel.com/use-cases/monitor-storage-link/"
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/",
     "https://crontinel.com/about",
@@ -184,7 +182,8 @@
     "https://crontinel.com/vs/crontinel-vs-thenping",
     "https://crontinel.com/vs/crontinel-vs-thenping/",
     "https://crontinel.com/vs/crontinel-vs-uptimerobot",
-    "https://crontinel.com/vs/crontinel-vs-uptimerobot/"
+    "https://crontinel.com/vs/crontinel-vs-uptimerobot/",
+    "https://crontinel.com/use-cases/monitor-storage-link/"
   ],
-  "last_push": "2026-06-27"
+  "last_push": "2026-06-28"
 }
