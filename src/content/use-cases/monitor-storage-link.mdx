@@ -1,0 +1,105 @@
+---
+title: "Monitoring storage:link in Laravel Production"
+description: "Monitor Laravel's storage:link command in deployment so you know the public symlink was created and your user uploads are reachable before traffic arrives."
+date: 2026-06-28
+canonical: "https://crontinel.com/use-cases/monitor-storage-link/"
+---
+
+You deploy a new release. The files sync. The queue workers restart. You check the homepage, get a 200. But the user profile pictures are broken, every uploaded PDF returns a 404, and the storage directory is empty on disk. The symlink was supposed to point `public/storage` to `storage/app/public`, but the deploy script ran `storage:link` before the storage directory existed, or ran it in the wrong path, or skipped it entirely because the previous deploy's symlink was still hanging around from the last release.
+
+`php artisan storage:link` creates one symlink. If it fails or runs when it should not, the app still returns 200 on every page except the ones that need actual uploaded files.
+
+## How storage:link actually works
+
+```bash
+php artisan storage:link
+```
+
+Laravel opens `Illuminate\Filesystem\Console\LinkCommand` and creates a relative symbolic link from `public/storage` to `storage/app/public`. It calls PHP's `symlink()` function, then prints `[OK] The [public/storage] directory has been linked.`
+
+The command does not check whether the target directory (`storage/app/public`) exists. If the directory is missing, `symlink()` still succeeds and creates a broken symlink. PHP accepts this without a warning. The command exits zero.
+
+It also does not check whether a symlink already exists at `public/storage`. If it does, `symlink()` fails and the command falls to a catch block that tries `rm -rf` on the existing link and retries. This works for symlinks. It fails silently if the path is a real directory with important files.
+
+The command accepts an optional argument for custom link names. Laravel projects rarely use this, but deploy scripts that reuse the same release directory across runs can end up with stale links pointing at the wrong release.
+
+## Common failure modes
+
+**The target storage directory does not exist yet.** `storage/app/public` is not created by a fresh Laravel install unless `php artisan storage:link` runs after the storage bootstrap. If your deploy script creates the release directory and immediately runs `storage:link` before copying the storage directory from a shared location, the symlink points at nothing. Files upload successfully to the actual storage path, but the web server serves 404s because the public link leads nowhere.
+
+**The command runs twice, and `rm -rf` removes real files.** The retry logic in `storage:link` runs `rm -rf public/storage` when the path already exists. If for any reason that path is a real directory (a misconfigured deploy, a manual file placement, a CI artifact), the recursive delete wipes it. The command then creates a new symlink and exits zero. Nobody checks which files were just deleted.
+
+**The symlink points to the wrong release in a multi-tenant or multi-server setup.** When using release-based deploy tools, each release has its own public directory. The symlink must point to the current release's `storage/app/public`. If the deploy script runs `storage:link` in the wrong working directory (pointing to the previous release's absolute path) or the shared storage directory is mounted at a different path per server, some servers serve uploads and others return 404s.
+
+**The symlink is never created because the command is skipped in CI.** A common deploy optimization skips `storage:link` entirely, on the reasoning that "the symlink is already there from the first deploy." This works until the storage directory structure changes, the server moves to a new host, or the deploy tool switches from release-based to git-based and the `public/storage` path does not exist in the fresh checkout.
+
+## Building visibility into storage:link
+
+The fix is a pre-check and a post-check around the deploy step:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /var/www/releases/current
+
+# Pre-check: does the target directory exist?
+TARGET="storage/app/public"
+if [ ! -d "$TARGET" ]; then
+    echo "WARNING: Target $TARGET does not exist. Creating..."
+    mkdir -p "$TARGET"
+fi
+
+# Pre-check: is there an old symlink to clean up?
+if [ -L "public/storage" ]; then
+    OLD_TARGET=$(readlink "public/storage")
+    echo "Removing stale symlink pointing to: $OLD_TARGET"
+fi
+
+php artisan storage:link
+
+# Post-check: does the symlink point to a real directory?
+LINK_TARGET=$(readlink "public/storage")
+if [ -z "$LINK_TARGET" ]; then
+    echo "FAIL: storage:link did not create a symlink"
+    exit 1
+fi
+
+if [ ! -d "$LINK_TARGET" ]; then
+    echo "FAIL: Symlink created but target directory missing: $LINK_TARGET"
+    exit 1
+fi
+
+# Also verify the symlink resolves through the web root
+if ! curl -sf -o /dev/null "http://localhost/storage/test-writable.txt" 2>/dev/null; then
+    echo "WARNING: Public storage URL is not reachable via web"
+fi
+
+# Ping Crontinel with symlink metadata
+curl -fsS \
+  "https://heartbeat.crontinel.com/ping/storage-link?host=$(hostname)&release=$(cat REVISION)&target=$LINK_TARGET"
+```
+
+The Crontinel heartbeat confirms the step ran. If it does not arrive within the expected deploy window, the symlink step was skipped and production uploads may be broken.
+
+## Detecting when storage:link fails
+
+Watch for these signs:
+
+**Broken image requests.** A sudden spike in 404s for paths under `/storage/` across your CDN logs or web server access logs. The app returns valid HTML but every asset reachable through the public symlink is missing.
+
+**Silent symlink rot.** On a release-based deploy, the old symlink can still serve files from the previous release while the new release's symlink is broken. Users who land on the new release see broken uploads. Users who hit the previous release see everything working. The bug is partial and hard to reproduce.
+
+**File uploads work but the web server cannot serve them.** Laravel's `Storage::put()` writes to the real filesystem path and returns success. The file exists on disk at `storage/app/public/uploads/csv`. But the public URL at `/storage/uploads/csv` returns 404 because the symlink is missing or points to the wrong directory.
+
+## Quick setup with Crontinel
+
+```bash
+# Add a heartbeat at the end of your deploy's storage-link step
+curl -fsS "https://heartbeat.crontinel.com/ping/storage-link?host=$(hostname)&release=$(cat REVISION)"
+
+# Crontinel alerts you if the heartbeat does not arrive
+# within the expected deploy window
+```
+
+Set the expected interval to match your deploy cadence: 5 minutes for automated deploys, 30 minutes for manual deploys. If the heartbeat misses its window, Crontinel sends a notification through your configured channel (Slack, PagerDuty, email) before users report broken uploads.

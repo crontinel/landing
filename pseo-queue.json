@@ -2,7 +2,6 @@
   "in_progress": [],
   "pending": [
     "event-clear",
-    "storage-link",
     "db-seed",
     "db-wipe",
     "migrate-rollback",
@@ -54,6 +53,7 @@
     "telescope-clear",
     "telescope-prune",
     "view-cache",
-    "view-clear"
+    "view-clear",
+    "storage-link"
   ]
 }
