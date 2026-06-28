@@ -1,5 +1,28 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-06-24 02:10 UTC — new use-case page: monitor-pulse-check
+Auto-generated: 2026-06-29 02:15 UTC — new use-case page: monitor-scout-import
+
+## Run Summary (2026-06-29)
+
+**New article published:**
+- `monitor-scout-import.mdx` — Detecting when Laravel Scout import silently fails to import all records
+- URL: https://crontinel.com/use-cases/monitor-scout-import/
+- Keyword: "detect when Laravel Scout import silently fails to import all records"
+- Distinct from existing content: complements monitor-scout-flush (flush wipes index, import rebuilds it — common pair in deploy scripts)
+- Covers failure modes: queue drops during chunked batch imports, memory exhaustion on large datasets, engine rate limits (Algolia/Meilisearch/Typesense), model serialization errors
+- ~800 words, 2 code samples, humanizer pass applied
+- PR #122 → squash merged to main → Cloudflare Pages auto-deploy triggered (live: 200)
+- Claude Code auth unavailable — article written manually per pipeline fallback
+
+**GSC actions:**
+- Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC
+- scout-import moved pending → completed
+- URL added to gsc-queue.json
+
+**GSC findings (28-day):**
+- Only 2 total clicks across all pages — site still building search presence
+- `/about/` at pos 4.5 with 29 impressions, 0 clicks — potential meta rewrite candidate after more data
+- Title rewrites from 2026-06-22 (monitor-route-cache, monitor-horizon-purge): no GSC data yet
+- No stale content >180 days found
 
 ## Run Summary (2026-06-24)
 
