@@ -1,0 +1,124 @@
+---
+title: "Detect When Laravel scout:import Fails to Import All Records"
+description: "Monitor Laravel Scout's scout:import command in production so you catch partial imports, memory exhaustion, and silent queue failures before search goes stale."
+date: 2026-06-29
+---
+
+You trigger a `scout:import` after a deploy or a schema change. The command logs "Imported [50000/80000] Product" chunks to the console and exits with code 0. Everything looks fine. But three days later, a customer files a bug report: "Search hasn't returned products added in the last week, and nothing has images."
+
+You check the search index. It has 58,000 records when it should have 80,000. The import silently stopped partway through. It ran into a queue error or hit a memory limit on the second batch. Because `scout:import` does not emit an event when it finishes, there is no built-in way to know whether the import actually completed.
+
+You need visibility into it.
+
+## How scout:import actually works
+
+Laravel Scout's `scout:import` command re-imports every record of a model into the configured search engine:
+
+```bash
+php artisan scout:import "App\Models\Product"
+```
+
+Internally, it chunks the model's records, makes each one searchable (which fires the `Saving` event on the searchable record), and sends batches to the search engine. If Scout uses a queue connection, each model is dispatched as a job to the queue. The command prints progress as it goes and exits when the chunk loop completes.
+
+The command does not verify that all jobs completed successfully. If using a queue driver, the command dispatches all jobs and exits. Any job that fails goes to the `failed_jobs` table silently. The import looks successful from the CLI output but leaves the index incomplete.
+
+Scout also provides no built-in event for import completion or failure. No `ScoutImportFinished` or `ScoutImportFailed` event you can listen for.
+
+## Common failure modes
+
+**Queue connection drops during import.** Scout dispatches each chunked batch as a job. If your Redis connection drops midway, the remaining jobs never execute. The CLI shows "Imported 30000/80000" and exits, but only 30,000 records ever reach the search engine.
+
+**Memory exhaustion on large datasets.** The chunk query loads model instances into memory. A model with heavy casts, relationships, or large text fields can silently exhaust PHP's memory limit during the chunk loop, terminating the process with an OOM error. The CLI output truncates at whatever chunk it was processing, but the exit code might still be 0 depending on how PHP's memory limit handler fires.
+
+**Scout engine rate limits.** Algolia, Meilisearch, and Typesense all have indexing rate limits. If your chunks arrive faster than the engine can ingest them, later batches get rejected silently or queued internally by the Scout driver. The command exits reporting success for all batches, but the search engine's actual index count lags behind.
+
+**Model serialization errors.** A polymorphic relation, a missing accessor, or a mutated attribute that only exists in production can cause a job to fail during serialization. The job fails, lands in `failed_jobs`, and the import continues. But that specific record never makes it to search.
+
+## Building visibility into scout:import
+
+Create a custom command that wraps `scout:import` with logging and verification:
+
+```php
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use App\Models\Product;
+
+class MonitoredScoutImport extends Command
+{
+    protected $signature = 'monitored:scout-import {model}';
+    protected $description = 'Import model to Scout with completion tracking';
+
+    public function handle()
+    {
+        $modelClass = $this->argument('model');
+        $totalCount = $modelClass::count();
+        
+        Log::info('scout:import started', [
+            'model' => $modelClass,
+            'expected_records' => $totalCount,
+        ]);
+
+        $this->call('scout:import', ['model' => $modelClass]);
+
+        // Check the searchable count after a brief wait
+        sleep(5);
+        $engineCount = $modelClass::searchable()->count();
+
+        Log::info('scout:import completed', [
+            'model' => $modelClass,
+            'expected_records' => $totalCount,
+            'indexed_records' => $engineCount,
+            'discrepancy' => $totalCount - $engineCount,
+        ]);
+
+        if ($engineCount < $totalCount) {
+            $this->error("Import mismatch: {$engineCount}/{$totalCount} records indexed");
+            return 1;
+        }
+
+        return 0;
+    }
+}
+```
+
+For queue-based imports, add a check against your failed jobs table:
+
+```php
+use Illuminate\Support\Facades\Queue;
+
+$failedCount = Queue::failed()->count();
+$baselineBefore = $failedCount; // capture before import
+
+// ... run import ...
+
+$newlyFailed = Queue::failed()->count() - $baselineBefore;
+if ($newlyFailed > 0) {
+    Log::warning("scout:import detected {$newlyFailed} failed job(s)");
+}
+```
+
+## Detecting when scout:import fails
+
+Log around every import trigger. Whether it runs from a deploy script, a manual CLI command, or a scheduled `schedule:run`, wrap it with a before/after log entry that includes the record count.
+
+Track the total indexed count over time. Store the count of indexed records in a monitoring metric before and after the import. A flat or decreasing count after import signals a problem.
+
+Watch the failed_jobs table. Any Scout import job that fails goes here. Set a heartbeat or alert that triggers when new Scout-related failures appear.
+
+Crontinel can monitor the entire flow. Set up a cron job check on a custom log channel that reports:
+
+```
+[scout:import] Expected: 80000 records | Indexed: 58000 records | Failed jobs: 3
+```
+
+When the counts do not match, Crontinel alerts you before the ticket comes in.
+
+## Quick setup with Crontinel
+
+Add log-based monitoring for your `import.*completed` log channel. Set a threshold alert that fires when `indexed_records < expected_records` by more than 1%. Configure a cron heartbeat for your scheduled import crons. If the import does not log completion within the expected window, Crontinel escalates. Route alerts to Slack or PagerDuty so your team knows when an import goes sideways.
+
+No more discovering partial imports from customer bug reports.
