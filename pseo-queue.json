@@ -5,7 +5,6 @@
     "db-seed",
     "db-wipe",
     "migrate-rollback",
-    "scout-import",
     "scout-sync-index-settings",
     "pulse-restart",
     "pennant-purge",
@@ -54,6 +53,7 @@
     "telescope-prune",
     "view-cache",
     "view-clear",
-    "storage-link"
+    "storage-link",
+    "scout-import"
   ]
 }
