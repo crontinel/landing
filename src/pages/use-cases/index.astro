@@ -2,69 +2,36 @@
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
+import { getCollection } from 'astro:content';
 
-const useCases = [
-  {
-    title: 'SaaS apps with billing jobs',
-    description: 'Invoice generation, subscription renewals, dunning emails. These jobs are revenue-critical. Know the moment one fails or backs up.',
-    signals: ['Invoice queue depth > 10 = alert', 'Failed SendInvoice jobs surfaced immediately', 'Billing cron run history with exit codes'],
-  },
-  {
-    title: 'Apps running Laravel Horizon',
-    description: 'Horizon\'s dashboard shows current state. Crontinel tells you when something goes wrong: supervisor down, queue overwhelmed, jobs piling up.',
-    signals: ['Per-supervisor pause detection', 'Failed jobs per minute threshold', 'Queue depth alert per queue name'],
-  },
-  {
-    title: 'Queue worker timeouts and stalled jobs',
-    description: 'A worker can stay alive while jobs hang, timeout, or stop draining the queue. Watch the timeout pattern before the backlog becomes visible.',
-    signals: ['Oldest job age spike', 'Timeout errors above baseline', 'Worker restart without throughput recovery'],
-  },
-  {
-    title: 'Scheduled report generation',
-    description: 'Daily exports, weekly digests, monthly statements. If a scheduled command exits non-zero or stops running, you\'ll know before your users do.',
-    signals: ['Run recorded on every schedule:run', 'Exit code and duration tracked', 'Late detection: command didn\'t run on expected schedule'],
-  },
-  {
-    title: 'Webhook-heavy SaaS products',
-    description: 'Payment callbacks, customer integrations, and delivery retries need queue-aware monitoring. Catch delivery failures before an API change turns into a support wave.',
-    signals: ['Webhook queue depth above threshold', 'Failed delivery jobs surfaced immediately', 'Retries and timeouts tracked per endpoint'],
-  },
-  {
-    title: 'Cron heartbeat monitoring',
-    description: 'When schedule:run goes quiet, you need to know before the backlog grows. Heartbeat monitoring catches missing or late scheduler runs.',
-    signals: ['Missing schedule:run heartbeat', 'Late-run alerts with grace windows', 'Manual success does not hide scheduled failure'],
-  },
-  {
-    title: 'Incident alert routing',
-    description: 'Send warnings to Slack and pages to PagerDuty only when the failure really deserves escalation.',
-    signals: ['Severity-based alert routing', 'Slack, PagerDuty, and webhook fanout', 'Noise reduction for low-priority misses'],
-  },
-  {
-    title: 'Open source and self-hosted status pages',
-    description: 'When customers need a public update, a simple status page keeps cron, queue, and webhook incidents visible without a third-party vendor.',
-    signals: ['Public incident updates you control', 'Cron and queue state reflected clearly', 'Self-hosted or open source deployment fit'],
-  },
-  {
-    title: 'Teams needing a public status page',
-    description: 'When cron jobs, queue workers, or webhook delivery slows down, a status page keeps customers informed while the team fixes the incident.',
-    signals: ['Cron and queue incidents reflected publicly', 'Updates can point to missed runs or retries', 'One place for customer-facing incident notes'],
-  },
-  {
-    title: 'Multi-tenant platforms',
-    description: 'A single Horizon crash affects all tenants. Connect multiple apps to Crontinel\'s SaaS dashboard to monitor everything in one place.',
-    signals: ['One dashboard for all your apps', 'Per-app API keys', 'Team access for your engineering org'],
-  },
-  {
-    title: 'Teams managing multiple apps',
-    description: 'When you run five or ten Laravel apps, context-switching between separate monitoring setups adds up. Crontinel\'s multi-app dashboard gives your team a single place to check queue health, cron status, and Horizon state across every app at once. No more logging into each app separately to verify overnight jobs ran.',
-    signals: ['All apps visible in one dashboard', 'Per-app alert thresholds and channels', 'Team members see all apps with a single login'],
-  },
-  {
-    title: 'Agencies and consultancies',
-    description: 'Managing background jobs for client applications means you need visibility without access to their production logs. Crontinel\'s OSS package installs in the client app and reports to your shared dashboard. Set per-app alert thresholds to match each client\'s SLA requirements, and grant the client read-only access so they can verify their own jobs.',
-    signals: ['Client apps report to your central dashboard', 'Configurable thresholds per app, not global', 'Granular team access: full admin or read-only per app'],
-  },
-];
+const useCases = (await getCollection('use-cases'))
+  .sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+function getCategory(slug) {
+  if (slug.startsWith('laravel-cron') || slug.startsWith('cron-') || slug.includes('schedule')) return 'Cron and Scheduler';
+  if (slug.startsWith('laravel-horizon') || slug.startsWith('monitor-horizon') || slug.includes('horizon')) return 'Horizon and Workers';
+  if (slug.startsWith('laravel-queue') || slug.startsWith('monitor-queue') || slug.includes('queue')) return 'Queue Monitoring';
+  if (slug.startsWith('monitor-cache') || slug.startsWith('monitor-config') || slug.startsWith('monitor-route') || slug.startsWith('monitor-event') || slug.startsWith('monitor-optimize') || slug.startsWith('monitor-view') || slug.startsWith('monitor-notifications-prune') || slug.startsWith('monitor-model-prune') || slug.startsWith('monitor-php-artisan')) return 'Cache and Optimize';
+  if (slug.startsWith('monitor-migrate') || slug.includes('db-backup')) return 'Database and Migrations';
+  if (slug.startsWith('monitor-backup') || slug.includes('storage')) return 'Backup and Storage';
+  if (slug.startsWith('monitor-scout') || slug.startsWith('monitor-telescope')) return 'Scout and Telescope';
+  if (slug.includes('alert') || slug.includes('incident') || slug.includes('webhook')) return 'Alerting and Incident Response';
+  if (slug.includes('status-page') || slug.includes('status')) return 'Status Pages';
+  if (slug.includes('multi-tenant') || slug.includes('saas')) return 'Multi-Tenant and Teams';
+  if (slug.includes('deploy') || slug.includes('hook')) return 'Deploy and CI/CD';
+  if (slug.includes('pulse')) return 'Pulse';
+  if (slug.startsWith('laravel-status')) return 'Status Pages';
+  if (slug.startsWith('failed-job') || slug.includes('failed')) return 'Queue Monitoring';
+  return 'Other';
+}
+
+const grouped = {};
+for (const uc of useCases) {
+  const cat = getCategory(uc.id);
+  if (!grouped[cat]) grouped[cat] = [];
+  grouped[cat].push({ slug: uc.id, title: uc.data.title, desc: uc.data.description ?? '' });
+}
+const groupNames = Object.keys(grouped);
 ---
 
 <script type="application/ld+json" slot="head">
@@ -89,26 +56,23 @@ const useCases = [
     <div class="text-center mb-14">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Built for production Laravel apps</h1>
       <p class="text-gray-400 max-w-xl mx-auto">
-        Crontinel is most valuable when your background jobs are load-bearing: billing, data sync, reporting, communication. Here's how teams use it.
+        Crontinel is most valuable when your background jobs are load-bearing: billing, data sync, reporting, communication. Here are all {useCases.length} use cases.
       </p>
     </div>
 
-    <div class="space-y-6 mb-16">
-      {useCases.map((uc) => (
-        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h2 class="text-lg font-semibold text-white mb-2">{uc.title}</h2>
-          <p class="text-gray-400 text-sm mb-4">{uc.description}</p>
-          <ul class="space-y-1">
-            {uc.signals.map((s) => (
-              <li class="text-sm text-gray-400 flex gap-2">
-                <span class="text-green-400">→</span>
-                {s}
-              </li>
-            ))}
-          </ul>
+    {groupNames.map((cat) => (
+      <section class="mb-12">
+        <h2 class="text-lg font-semibold text-white mb-3 pb-2 border-b border-gray-800">{cat}</h2>
+        <div class="grid gap-3 sm:grid-cols-2">
+          {grouped[cat].map((uc) => (
+            <a href={`/use-cases/${uc.slug}/`} class="block bg-gray-900 border border-gray-800 rounded-lg p-4 transition-colors hover:border-green-500/40 hover:bg-gray-850">
+              <h3 class="text-sm font-medium text-white mb-1 leading-snug">{uc.title}</h3>
+              {uc.desc && <p class="text-xs text-gray-400 line-clamp-2">{uc.desc}</p>}
+            </a>
+          ))}
         </div>
-      ))}
-    </div>
+      </section>
+    ))}
 
     <div class="bg-gray-900 border border-green-500/20 rounded-xl p-8 text-center">
       <h2 class="text-xl font-bold text-white mb-2">Start in two commands</h2>
