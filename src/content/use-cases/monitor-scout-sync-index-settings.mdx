@@ -1,0 +1,143 @@
+---
+title: "Detect When Laravel scout:sync-index-settings Fails in Production"
+description: "Monitor Laravel Scout's scout:sync-index-settings command so you catch invalid config pushes, engine API rejections, and partial settings syncs before search relevance degrades."
+date: 2026-07-01
+---
+
+You update your Scout config to add a new filterable attribute to your Product index. You run `php artisan scout:sync-index-settings "App\Models\Product"`. It says "Settings synced." You deploy. The next morning, product searches that filter by the new attribute return zero results.
+
+The settings never actually reached the search engine. The command reported success, but your Algolia index is still using the old settings. Or it synced part of the configuration but silently dropped a section that Meilisearch could not parse. You have no error log, no alert, and no way to know the settings are stale until someone complains that search filters do not work.
+
+There is no built in way to verify that the settings you intended to push match what the search engine is actually using. Unless you build that check yourself.
+
+## How scout:sync-index-settings actually works
+
+Laravel Scout's `scout:sync-index-settings` command reads your model's `searchableAs` configuration and pushes the index settings defined in your `config/scout.php` or model's `toSearchableArray` to the configured search engine:
+
+```bash
+php artisan scout:sync-index-settings "App\Models\Product"
+```
+
+Internally, the behavior depends on which Scout driver you are using.
+
+With **Algolia**, the command pushes settings via the `SetSettings` API. This includes searchable attributes, filterable attributes, sortable attributes, ranking rules, and replicas. Algolia applies settings asynchronously, so the API can return 200 before the settings are fully applied.
+
+With **Meilisearch**, it pushes settings via the `POST /indexes/:uid/settings` endpoint. Meilisearch validates settings immediately but silently ignores fields it does not recognize.
+
+With **Typesense**, it pushes the index schema via the `PUT /collections/:name` endpoint. Typesense rejects the entire update if any field config is invalid.
+
+The command does not verify whether the settings were applied correctly. It pushes them, prints "Settings synced" to the console, and exits with code 0. If the engine applies settings asynchronously, partially, or not at all, the command has no way to know.
+
+Scout provides no event for settings sync completion or failure. No `ScoutSettingsSynced` or `ScoutSettingsFailed` event exists to listen for.
+
+## Common failure modes
+
+**Invalid attribute names in Scout config.** If your `toSearchableArray` includes an attribute that does not exist on the model, or your Scout config references a field with a typo, the engine may accept the settings push but silently ignore the invalid field. Your filterable attributes list grows stale, and users searching by that field get empty results.
+
+**Engine API credentials changed.** If your Algolia API key was rotated in production but your `.env` file was not updated in the deploy script, `scout:sync-index-settings` authenticates successfully to the old key's project, pushes settings to the wrong index, and reports success. Your production index never receives the new settings.
+
+**Meilisearch schema strictness changes.** Meilisearch 1.x silently ignored unknown fields in the settings payload. Meilisearch 1.12+ can reject the entire settings update if it encounters an unexpected field format. A deploy that switches Meilisearch minor versions between staging and production can cause settings to apply in staging but fail silently in production.
+
+**Algolia asynchronous settings not yet applied.** Algolia returns 202 Accepted for settings changes and applies them asynchronously. If your deploy script runs `scout:sync-index-settings` followed immediately by `scout:import`, the documents can be indexed with the old settings because the settings update has not propagated yet. Records indexed during this window use the previous configuration until the asynchronous settings sync completes.
+
+**Partial sync through complex index schemas.** If you define multiple searchable indexes for different models and only some of them get synced (because one model's config throws an exception partway through), you end up with an inconsistent search configuration across your application. Some indexes have the new filters, others do not.
+
+## Building visibility into scout:sync-index-settings
+
+Create a wrapper command that pushes settings and then verifies them by reading back the engine's current settings:
+
+```php
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use App\Models\Product;
+
+class MonitoredSyncIndexSettings extends Command
+{
+    protected $signature = 'monitored:sync-index-settings {model}';
+    protected $description = 'Sync Scout index settings with verification';
+
+    public function handle()
+    {
+        $modelClass = $this->argument('model');
+        $expectedAttributes = array_keys(
+            (new $modelClass)->toSearchableArray()
+        );
+
+        Log::info('scout:sync-index-settings started', [
+            'model' => $modelClass,
+            'expected_attributes' => $expectedAttributes,
+        ]);
+
+        // Push settings
+        $this->call('scout:sync-index-settings', ['model' => $modelClass]);
+
+        // Poll engine to verify settings took effect
+        $verified = false;
+        $attempts = 0;
+        while (!$verified && $attempts < 10) {
+            sleep(2);
+            $currentSettings = $modelClass::searchable()->raw();
+            $searchableAttributes = $currentSettings['searchableAttributes'] ?? [];
+
+            // Check that at least some expected attributes made it
+            $matched = array_intersect($expectedAttributes, $searchableAttributes);
+            if (count($matched) >= count($expectedAttributes) * 0.9) {
+                $verified = true;
+            }
+            $attempts++;
+        }
+
+        Log::info('scout:sync-index-settings completed', [
+            'model' => $modelClass,
+            'verified' => $verified,
+            'settings_on_engine' => $searchableAttributes ?? [],
+            'after_attempts' => $attempts,
+        ]);
+
+        if (!$verified) {
+            $this->error('Index settings appear stale after sync');
+            return 1;
+        }
+
+        return 0;
+    }
+}
+```
+
+For a lighter approach, log the full settings payload before and after the push:
+
+```php
+$before = Http::get(config('scout.algolia.host') . '/1/indexes/products/settings');
+$this->call('scout:sync-index-settings', ['model' => 'App\\Models\\Product']);
+$after = Http::get(config('scout.algolia.host') . '/1/indexes/products/settings');
+
+if ($before->json() != $after->json()) {
+    Log::info('Index settings updated successfully');
+} else {
+    Log::warning('Index settings unchanged after sync — possible failure');
+}
+```
+
+## Detecting when scout:sync-index-settings fails
+
+The simplest way to catch a failed sync is a settings comparison check. Before every deploy that includes Scout config changes, log the current search engine settings. After running `scout:sync-index-settings`, read them back. If they match, the sync worked. If they are identical to the pre-deploy state, the command did nothing despite reporting success.
+
+Track the last-updated timestamp of your index settings as a custom metric. If a deploy that should have updated the settings did not change the timestamp, the sync likely failed.
+
+Add a synthetic search test for your new attributes. After a settings sync, run a search that uses the new filterable or sortable attributes. If the search returns results matching the expected structure, the settings propagated. If the search engine returns an error about an unknown attribute, the settings never reached it.
+
+Crontinel can monitor the entire flow by watching a custom log channel. Set up a check that fires when `scout:sync-index-settings` logs a complete cycle but the expected settings do not match the actual engine settings within a short window:
+
+```
+[scout:sync] Expected: [name, price, category, tags] | Engine: [name, price] | Status: MISSING_ATTRIBUTES
+```
+
+## Quick setup with Crontinel
+
+Add a log-based heartbeat for your settings sync command. Set a threshold alert that triggers when the engine settings do not include at least one expected custom attribute after a sync completes. Configure the check to run in your deploy pipeline so you catch settings drift before the deploy is marked green. Route alerts to Slack or email so your team knows a settings sync failed before users do.
+
+No more discovering stale search filters from support tickets.
