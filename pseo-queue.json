@@ -5,7 +5,6 @@
     "db-seed",
     "db-wipe",
     "migrate-rollback",
-    "scout-sync-index-settings",
     "pulse-restart",
     "pennant-purge",
     "passport-purge",
@@ -49,11 +48,12 @@
     "schedule-run",
     "schedule-work",
     "scout-flush",
+    "scout-import",
+    "scout-sync-index-settings",
+    "storage-link",
     "telescope-clear",
     "telescope-prune",
     "view-cache",
-    "view-clear",
-    "storage-link",
-    "scout-import"
+    "view-clear"
   ]
 }
