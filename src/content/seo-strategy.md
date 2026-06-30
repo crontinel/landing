@@ -1,28 +1,31 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-06-29 02:15 UTC — new use-case page: monitor-scout-import
+Auto-generated: 2026-07-01 02:15 UTC — new use-case page: monitor-scout-sync-index-settings
 
-## Run Summary (2026-06-29)
+## Run Summary (2026-07-01)
 
 **New article published:**
-- `monitor-scout-import.mdx` — Detecting when Laravel Scout import silently fails to import all records
-- URL: https://crontinel.com/use-cases/monitor-scout-import/
-- Keyword: "detect when Laravel Scout import silently fails to import all records"
-- Distinct from existing content: complements monitor-scout-flush (flush wipes index, import rebuilds it — common pair in deploy scripts)
-- Covers failure modes: queue drops during chunked batch imports, memory exhaustion on large datasets, engine rate limits (Algolia/Meilisearch/Typesense), model serialization errors
-- ~800 words, 2 code samples, humanizer pass applied
-- PR #122 → squash merged to main → Cloudflare Pages auto-deploy triggered (live: 200)
-- Claude Code auth unavailable — article written manually per pipeline fallback
+- `monitor-scout-sync-index-settings.mdx` — Detecting when Laravel Scout's scout:sync-index-settings fails to apply index settings to the search engine
+- URL: https://crontinel.com/use-cases/monitor-scout-sync-index-settings/
+- Keyword: "detect when Laravel Scout sync-index-settings fails to apply index settings to search engine"
+- Distinct from existing content: completes the Scout trilogy (flush wipes index, import rebuilds it, sync-index-settings keeps engine config in sync). Covers invalid attribute names, expired API credentials, Meilisearch version strictness, Algolia async propagation gap, partial sync across multiple indexes.
+- ~930 words body, 2 code samples, humanizer pass applied
+- PR #128 → squash merged to main → Cloudflare Pages auto-deploy (live: 200)
 
 **GSC actions:**
 - Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC
-- scout-import moved pending → completed
+- scout-sync-index-settings moved pending → completed
 - URL added to gsc-queue.json
 
-**GSC findings (28-day):**
-- Only 2 total clicks across all pages — site still building search presence
-- `/about/` at pos 4.5 with 29 impressions, 0 clicks — potential meta rewrite candidate after more data
-- Title rewrites from 2026-06-22 (monitor-route-cache, monitor-horizon-purge): no GSC data yet
-- No stale content >180 days found
+**GSC findings (28-day — 2026-06-03 to 2026-07-01):**
+- 2 total clicks across all pages — site still building search presence
+- monitor-route-cache: position improved from 7.5→6.6 (7-day), 0 clicks
+- monitor-horizon-purge: 43 imp (28-day), pos 7.7, 0 clicks
+- No recent pages have meaningful GSC data yet (too new)
+- Title rewrites from 2026-06-22: position improving but clicks not yet present
+
+**Self-improvement data:**
+- monitor-pulse-check: no GSC data yet (published 2026-06-24)
+- monitor-route-cache title rewrite (2026-06-22): position trend positive (7.5→6.6), insufficient CTR data to conclude
 
 ## Run Summary (2026-06-24)
 
@@ -86,11 +89,12 @@ Auto-generated: 2026-06-29 02:15 UTC — new use-case page: monitor-scout-import
 - Humanizer pass: convert inline-header failure mode lists to natural paragraphs, reduce em dashes, remove "the key difference" and "the first step is" signposting
 
 ## Queue Notes
-- pulse-check marked completed
-- monitor-pulse-check URL submitted to GSC via sitemap
-- Remaining pending: config-clear, view-cache, view-clear, event-clear, storage-link, db-seed, db-wipe, migrate-rollback, scout-import, scout-sync-index-settings, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
-- Next strong candidates: scout-import (complements existing scout-flush), config-clear (stale config cache after deployment)
-- Self-improvement check for monitor-pulse-check: due 2026-07-01 (7 days post-publish)
+- scout-sync-index-settings marked completed
+- monitor-scout-sync-index-settings URL submitted to GSC via sitemap
+- Remaining pending: event-clear, db-seed, db-wipe, migrate-rollback, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
+- Next strong candidates: event-clear (complements existing event-cache), schedule-interrupt (complements schedule-run/schedule-work)
+- Self-improvement check for monitor-pulse-check: re-check 2026-07-07 (no data yet)
+- Self-improvement check for scout-sync-index-settings: due 2026-07-08
 
 ## Pending GSC improvements
 - Homepage: 59 impressions, 0 clicks (pos 10.1) — need more impression data before changing meta
