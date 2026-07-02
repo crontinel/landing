@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "event-clear",
     "db-seed",
     "db-wipe",
     "migrate-rollback",
@@ -23,6 +22,7 @@
     "config-clear",
     "db-backup",
     "event-cache",
+    "event-clear",
     "horizon-continue",
     "horizon-pause",
     "horizon-purge",
