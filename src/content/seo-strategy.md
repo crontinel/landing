@@ -1,5 +1,34 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-01 02:15 UTC — new use-case page: monitor-scout-sync-index-settings
+Auto-generated: 2026-07-03 02:21 UTC — new use-case page: monitor-event-clear
+
+## Run Summary (2026-07-03)
+
+**New article published:**
+- `monitor-event-clear.mdx` — Monitoring event:clear in Laravel Production
+- URL: https://crontinel.com/use-cases/monitor-event-clear/
+- Keyword: "detect when Laravel event:clear silently fails to clear cached events"
+- Companion piece to existing `monitor-event-cache` article, following the same pattern as `config-clear` (companion to `config-cache`)
+- Covers cleared-but-never-rebuilt, mixed cache states in rolling deploys, permission errors, and one-server-cleared scenarios
+- ~780 words body, 2 code samples, humanizer pass applied
+- Written manually (Claude Code auth was down)
+- PR #131 → squash merged to main → Cloudflare Pages auto-deploy
+
+**GSC actions:**
+- Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC
+- event-clear moved pending → completed in pseo-queue.json
+- URL added to gsc-queue.json (pending, submitted via sitemap)
+
+**GSC findings (30-day — 2026-06-03 to 2026-07-03):**
+- 3 total clicks across all pages — site still building search presence
+- Homepage position improving (7.1→5.2 over last 12d), still 0 clicks
+- monitor-route-cache (title rewrite 2026-06-22): position 7.2, 132 imp, 0 clicks — stable/improving
+- monitor-horizon-purge (title rewrite 2026-06-22): position 8.1, 12 imp, 0 clicks — too few impressions
+- monitor-reverb-server: position 10.9, 15 imp, 0 clicks — too few impressions
+
+**Self-improvement data:**
+- monitor-pulse-check: no GSC data yet (published 2026-06-24)
+- monitor-scout-sync-index-settings: no GSC data yet (published 2026-07-01)
+- monitor-event-clear: no GSC data yet (published 2026-07-03) — check after 2026-07-10
 
 ## Run Summary (2026-07-01)
 
@@ -89,12 +118,17 @@ Auto-generated: 2026-07-01 02:15 UTC — new use-case page: monitor-scout-sync-i
 - Humanizer pass: convert inline-header failure mode lists to natural paragraphs, reduce em dashes, remove "the key difference" and "the first step is" signposting
 
 ## Queue Notes
-- scout-sync-index-settings marked completed
-- monitor-scout-sync-index-settings URL submitted to GSC via sitemap
-- Remaining pending: event-clear, db-seed, db-wipe, migrate-rollback, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
-- Next strong candidates: event-clear (complements existing event-cache), schedule-interrupt (complements schedule-run/schedule-work)
-- Self-improvement check for monitor-pulse-check: re-check 2026-07-07 (no data yet)
-- Self-improvement check for scout-sync-index-settings: due 2026-07-08
+- event-clear marked completed
+- monitor-event-clear URL submitted to GSC via sitemap (pending in gsc-queue.json)
+- Remaining pending: db-seed, db-wipe, migrate-rollback, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
+- All remaining pending topics are low-intent artisan commands — none clear the quality bar
+- **Consider queue renewal:** remove weak topics or replace with GSC gap topics
 
 ## Pending GSC improvements
-- Homepage: 59 impressions, 0 clicks (pos 10.1) — need more impression data before changing meta
+- Homepage: 190 impressions, 0 clicks (pos 7.1) — position improving (was 7.6), need more impression data before changing meta
+- monitor-route-cache title rewrite (2026-06-22): position 7.2, 132 imp, 0 clicks — stable trend, check CTR after 2026-07-06
+- monitor-horizon-purge title rewrite (2026-06-22): position 8.1, 12 imp, 0 clicks — insufficient data
+- monitor-reverb-server: position 10.9, 15 imp, 0 clicks — insufficient data
+- monitor-pulse-check: self-improvement GSC check due 2026-07-07
+- monitor-scout-sync-index-settings: self-improvement GSC check due 2026-07-08
+- monitor-event-clear: self-improvement GSC check due 2026-07-10
