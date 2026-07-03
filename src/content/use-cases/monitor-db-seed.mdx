@@ -1,0 +1,109 @@
+---
+title: "Monitoring php artisan db:seed in Laravel Production"
+description: "Detect when php artisan db:seed silently fails in production because of the --force prompt, missing autoload, or model validation errors. Covers monitoring database seeding in Laravel production environments."
+date: 2026-07-04
+---
+
+You deploy a new feature that adds a roles table. The seeder is supposed to populate it with default permissions. Everything looks fine in CI. Then you check production and the roles table is empty. The seeder ran, or at least it was supposed to. `php artisan db:seed` exited without visible error. No log entry, no failed job, nothing that would catch your attention in a regular morning check. This is the most common way database seeding fails in production: not with a crash, but with a prompt nobody was there to answer.
+
+## How php artisan db:seed works
+
+When you run `php artisan db:seed`, Laravel walks through the seeders registered in `DatabaseSeeder.php` and calls their `run()` method in order. Each seeder inserts data using Eloquent models, the DB facade, or raw queries. The DatabaseSeeder class defines which seeders to call and in what sequence.
+
+The critical detail most teams miss is the production guard. Before any seeder runs, Laravel checks `APP_ENV`. If it is set to `production` and you did not pass `--force`, Artisan outputs an "Application In Production!" warning and asks for confirmation. In non-interactive environments like deployment hooks, CI pipelines, or container startup scripts, there is no stdin to answer the prompt. The command hangs indefinitely or exits with a warning. No data gets inserted, and because the exit code is still 0 in some configurations, your deployment tool treats it as a success.
+
+The `--force` flag bypasses this check entirely. You need it in every non-interactive context, including schedule calls, deployment scripts, and `Artisan::call()` in service providers.
+
+## Common Failure Modes
+
+**Missing `--force` in production schedule.** The most common failure. You add `db:seed` to your scheduler for a nightly data refresh, but forget `->force()`. The scheduler runs it, the command hangs waiting for input, and your seed data never gets refreshed. No error is logged because the scheduler treats the command as still running.
+
+**Seeder class not found after deploy.** You add a new seeder to `DatabaseSeeder.php`, deploy, and the seeder class hasn't been autoloaded yet. `composer dump-autoload` didn't run during the deploy. `db:seed` throws a class-not-found exception, but if you are running it inside a deployment script that suppresses output, you never see the error.
+
+**Model validation failure mid-seed.** A seeder creates records with `factory()` or direct model calls. If a validation rule changes between environments, or a unique constraint is violated, the seeder throws an exception partway through. Data before the exception is committed, data after is not. You end up with a partially seeded database.
+
+**Timeout on large seed operations.** Importing thousands of rows via individual model inserts hits PHP's `max_execution_time`. The process is killed. Some rows are inserted, others are not. Your application starts returning inconsistent results because it assumes all seed data exists.
+
+## Building visibility into db:seed
+
+The first step is making sure `php artisan db:seed` actually runs when you expect it to. Wrap your scheduled seed command with heartbeat pings:
+
+```php
+// In app/Console/Kernel.php
+Schedule::command('db:seed --force')
+    ->dailyAt('03:00')
+    ->withoutOverlapping()
+    ->before(fn () => Http::get(config('crontinel.db_seed_start')))
+    ->onSuccess(fn () => Http::get(config('crontinel.db_seed_success')))
+    ->onFailure(fn () => Http::get(config('crontinel.db_seed_failure')));
+```
+
+The `onSuccess` callback fires only on a clean exit. If the command hangs at the production prompt, no callback fires and you get no ping. If a model validation error stops it mid-run, the exception bubbles up and `onFailure` catches it.
+
+For one-shot seeding during deploys, add a heartbeat before and after the `Artisan::call()`:
+
+```php
+// In your deployment script
+$start = microtime(true);
+Http::get(config('crontinel.deploy_seed_start'));
+
+Artisan::call('db:seed', ['--force' => true]);
+
+Http::get(config('crontinel.deploy_seed_end'));
+Log::info('db:seed completed in ' . (microtime(true) - $start) . 's');
+```
+
+Logging the duration helps catch the timeout failure mode. If seeding takes 30 seconds normally and suddenly takes 5 minutes, something is wrong.
+
+## Detecting when db:seed fails
+
+The success ping is your first signal. If Crontinel does not receive the `onSuccess` ping within the expected window, something blocked the command from completing. This catches the missing `--force` hang and the timeout kill.
+
+Data integrity checks form the second layer. Run a daily assertion that your key seed tables have the expected row counts:
+
+```php
+$rolesCount = DB::table('roles')->count();
+if ($rolesCount < 10) {
+    // Seed data is missing or was truncated - alert
+}
+```
+
+The third signal is the last seed timestamp. If your seeders run nightly and the `created_at` on your seed tables is older than 24 hours, the seeder likely failed silently.
+
+Each check covers a different gap. The heartbeat catches run-level failures. The data assertion catches silent corruption. The timestamp check catches the scheduler-not-firing case where nothing runs at all.
+
+## Quick Setup with Crontinel
+
+Create a job in your Crontinel dashboard with a 24-hour expected interval and a 30-minute grace period for nightly seeding. Copy the ping URLs into your `config/crontinel.php`:
+
+```php
+// config/crontinel.php
+return [
+    'db_seed_start' => env('CRONTINEL_DB_SEED_START'),
+    'db_seed_success' => env('CRONTINEL_DB_SEED_SUCCESS'),
+    'db_seed_failure' => env('CRONTINEL_DB_SEED_FAILURE'),
+];
+```
+
+Deploy, let the next scheduled seed run complete, then verify the dashboard shows the duration and status. To test the alert path, temporarily remove `--force` from your scheduled command and confirm Crontinel reports a missed ping within the grace period.
+
+## FAQ
+
+**Why does db:seed work in my local environment but fail in production?**
+Because `APP_ENV` is set to `production` on your server. Laravel's production guard triggers the confirmation prompt. Use `--force` in all non-interactive environments.
+
+**Does db:seed --force skip any safety checks?**
+It only skips the confirmation prompt. Model validation, database constraints, and foreign key checks still run. If a seeder violates a constraint, it will throw an exception.
+
+**Can I run db:seed without disrupting active users?**
+Yes, but use `withoutOverlapping()` in the scheduler to prevent concurrent seed runs. For large seed operations, run them during low-traffic windows and keep the operation under 30 seconds if possible.
+
+**What happens if db:seed fails halfway through?**
+Rows inserted before the failure are committed. You get partial seed data. This is why checking your seed tables for expected row counts after each run is important.
+
+## See also
+
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
+- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)
+- [Monitoring Laravel failed jobs in production](/blog/laravel-failed-jobs-monitoring)
