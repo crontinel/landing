@@ -1,0 +1,149 @@
+---
+title: "Detect When php artisan db:wipe Runs in Production"
+description: "php artisan db:wipe drops every table without running migrations back. Here's how to monitor for accidental db:wipe commands and recover before your production app is down for hours."
+date: 2026-07-06
+---
+
+Someone types `php artisan db:wipe --force` on the production server. Maybe they meant the staging box. Maybe a deploy script grabbed the wrong command. Within seconds, every table in your database is gone. The `migrations` table. User accounts. Billing records. All of it.
+
+The difference between `db:wipe` and `migrate:fresh` is easy to miss. Both drop tables. But `migrate:fresh` runs migrations back afterward, while `db:wipe` leaves you with an empty database and zero indication something went wrong. The command exits zero, the deploy script continues, and nobody notices until users start hitting connection errors.
+
+## How db:wipe Works
+
+`php artisan db:wipe` calls the `db:wipe` command class, which does two things. First, it queries `SHOW TABLES` (MySQL) or the equivalent introspection query for your database driver, iterates through every table including the `migrations` table, and runs a `DROP TABLE` statement on each one. Second, it optionally accepts a `--drop-views` flag (Laravel 10+) and `--drop-types` flag (PostgreSQL-only) to drop views and custom types as well.
+
+The command path looks roughly like this:
+
+```
+WipeCommand
+  -> schemaManager->dropAllTables()   // SHOW TABLES → DROP TABLE IF EXISTS per table
+  -> schemaManager->dropAllViews()    // only with --drop-views
+  -> schemaManager->dropAllTypes()    // PostgreSQL only, with --drop-types
+```
+
+There is no confirmation beyond `--force`. There is no dry-run mode. Unlike `migrate:fresh`, which at least re-applies all migrations after dropping, `db:wipe` simply stops. Your database is now a blank slate.
+
+Laravel fires no dedicated event for `db:wipe`. The `WipeCommand` class exists under `Illuminate\Database\Console\WipeCommand`, but unlike `migrate:fresh` which triggers `MigrationsStarting` and `MigrationsEnded` events when it re-runs migrations, `db:wipe` produces no lifecycle events because it has nothing to run afterward. This makes it harder to instrument after the fact. You have to catch it before it runs, not after.
+
+## Why db:wipe Is Different from migrate:fresh
+
+A `migrate:fresh` failure is bad. A `db:wipe` one is worse.
+
+`migrate:fresh` drops everything then runs all migrations. If the migrate step fails, you have a schema problem but you know what happened. `db:wipe` with no `migrate` after means your app boots up, connects to the database, and finds nothing. The error messages your users see assume the schema exists. You get "table not found" on every page load.
+
+And `migrate:fresh` at least triggers `MigrationsStarting` and `MigrationsEnded` during step two. `db:wipe` triggers nothing you can hook into. If you want to catch it, you have to intercept the command before it executes, not after.
+
+The other thing is that some deployment scripts run `php artisan db:wipe` as a cleaning step before `migrate` and `db:seed`. If `db:wipe` succeeds but the seed step fails, your database is empty and the deployment is broken. The cleanup step becomes the root cause you never thought to check.
+
+## Common Failure Modes
+
+The most common one is a developer with two terminal tabs. One pointed at staging, one at production. The `db:wipe --force` meant for staging runs on production instead. No guard, no rollback, no second chance.
+
+Then there is the CI pipeline. A GitHub Actions workflow calls `db:wipe` before re-seeding a test database. The workflow accidentally targets the production environment because the `DATABASE_URL` secret got misconfigured across environments. The wipe runs, the seed script errors out, and production is down.
+
+Another pattern: a developer copies a deploy script from a project that used `db:wipe` as part of a full refresh and does not remove the line. Every deploy now includes a destructive table drop. The first deploy that hits it will destroy production data.
+
+And sometimes the recovery script itself fails. Someone writes a proper database reset script: `db:wipe`, then `migrate`, then `db:seed`. The wipe step succeeds. The migrate step fails because a migration references a column that was removed in a previous migration. Recovery now means re-importing from backup. The database schema does not even exist to apply a rollback.
+
+## Building Visibility Into db:wipe
+
+The most reliable way to detect `db:wipe` is to intercept the command itself before it runs. Use the `Artisan::starting` event to catch it and fire an alert before any tables are dropped:
+
+```php
+// In AppServiceProvider::boot() or a dedicated service provider
+use Illuminate\Console\Events\ArtisanStarting;
+
+Event::listen(ArtisanStarting::class, function ($event) {
+    if ($event->artisan->getName() === 'db:wipe') {
+        // Fire immediately, before any tables are dropped
+        Http::timeout(3)->post(config('crontinel.alert_webhook'), [
+            'message' => 'db:wipe command detected on ' . gethostname(),
+            'severity' => 'critical',
+            'time' => now()->toIso8601String(),
+        ]);
+    }
+});
+```
+
+For teams using Laravel 11+, you can also use a middleware-style approach with the `Console\Kernel` to wrap the command:
+
+```php
+// In AppServiceProvider
+Artisan::starting(function ($command) {
+    if ($command->getName() === 'db:wipe') {
+        // Record the start timestamp for monitoring
+        cache()->set('db_wipe_last_called', now()->timestamp);
+    }
+});
+```
+
+If you prefer blocking the execution entirely, replace the artisan binary with a wrapper script:
+
+```bash
+#!/bin/bash
+# artisan wrapper that intercepts dangerous commands
+if [[ "$*" == *"db:wipe"* ]] || [[ "$*" == *"db:wipe --force"* ]]; then
+    echo "[ALERT] Blocked destructive command: php artisan $*"
+    curl -fsS --retry 3 \
+      "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=db:wipe+blocked"
+    exit 1
+fi
+exec "$(dirname "$0")/artisan.bin" "$@"
+```
+
+## Detecting When db:wipe Has Already Run
+
+If you did not catch `db:wipe` at execution time, the first signal is usually a spike in 500 errors. Your app tries to query tables that no longer exist. The error logs fill up with `Base table or view not found` exceptions.
+
+But there is a faster indicator: monitor the `migrations` table. If it disappears or its row count drops to zero, something wiped the database. A daily cron check costs nothing and catches the damage:
+
+```bash
+#!/bin/bash
+# Check migrations table exists and has rows
+COUNT=$(php artisan tinker --execute="echo DB::table('migrations')->count();" 2>/dev/null)
+if [ $? -ne 0 ] || [ "$COUNT" = "0" ]; then
+    curl -fsS --retry 3 \
+      "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=migrations+table+empty"
+fi
+```
+
+Pair this with a Crontinel heartbeat ping that fires on every successful scheduled run. If the heartbeat stops arriving, the cron that runs the check probably failed because the database is gone.
+
+## Quick Setup with Crontinel
+
+Set up a Crontinel heartbeat to monitor the `db:wipe` command in two ways.
+
+First, create a heartbeat check in your Crontinel dashboard that pings every time the application starts or a deploy completes. If the database is wiped mid-day, the heartbeat stops and you get an alert within minutes.
+
+Second, point the `Artisan::starting` event listener at a Crontinel webhook URL:
+
+```php
+Artisan::starting(function ($command) {
+    if ($command->getName() === 'db:wipe') {
+        Http::post('https://heartbeat.crontinel.com/ping/YOUR-PING-ID/alert', [
+            'status' => 'down',
+            'msg' => 'db:wipe detected in production',
+        ]);
+    }
+});
+```
+
+With Crontinel, you know about a `db:wipe` execution within seconds, before the recovery even starts. That window lets you restore from backup before users notice anything wrong.
+
+## FAQ
+
+**Can I recover from db:wipe without a backup?**  
+If you have no backup, you need to re-run `php artisan migrate` to restore the schema, then manually re-import any data. The `db:seed` command only restores sample data. Real user data is gone unless backed up.
+
+**Does db:wipe work differently on PostgreSQL?**  
+Yes. PostgreSQL also drops sequences and custom types when `--drop-types` is passed. The wipe is more thorough and recovery is more complex because custom types may be referenced by tables you did not intend to drop.
+
+**How do I prevent db:wipe from being run in production altogether?**  
+Remove it from the production-server `artisan` binary path entirely. Rename `artisan` to `artisan.bin` and replace it with a wrapper that blocks `db:wipe` and `db:wipe --force` outright. This is the only guarantee.
+
+## See also
+
+- [Detect migrate:fresh in production](/use-cases/monitor-migrate-fresh/)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting/)
+- [Monitoring Laravel failed jobs](/blog/laravel-failed-jobs-monitoring/)
