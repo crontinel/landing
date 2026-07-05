@@ -1,17 +1,17 @@
 {
   "in_progress": [],
   "pending": [
-    "db-wipe",
     "migrate-rollback",
     "pulse-restart",
     "pennant-purge",
     "passport-purge",
     "sanctum-prune-expired",
     "schedule-interrupt",
-    "about",
     "inspire"
   ],
   "completed": [
+    "about",
+    "db-wipe",
     "backup-clean",
     "backup-monitor",
     "backup-run",
