@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/use-cases/monitor-db-wipe/"
+  ],
   "submitted": [
     "https://crontinel.com/",
     "https://crontinel.com/use-cases/monitor-db-seed/",
@@ -189,5 +191,5 @@
     "https://crontinel.com/use-cases/monitor-scout-import/",
     "https://crontinel.com/use-cases/monitor-scout-sync-index-settings/"
   ],
-  "last_push": "2026-07-04"
+  "last_push": "2026-07-06"
 }
