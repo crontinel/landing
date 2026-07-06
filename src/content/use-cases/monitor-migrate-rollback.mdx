@@ -1,0 +1,136 @@
+---
+title: "Detect When php artisan migrate:rollback Fails in Production"
+description: "Rolling back migrations in production is risky. Here's how to monitor migrate:rollback for partial failures, stuck batches, and accidental rollbacks before they corrupt your database."
+date: 2026-07-07
+---
+
+You run `php artisan migrate:rollback` on production to undo a bad deployment. The command exits zero. You check the database. The column you wanted to remove is still there. One of the six migrations in the batch rolled back. The other five silently skipped.
+
+`migrate:rollback` looks straightforward but has a failure mode that's easy to miss: it can exit success while leaving your database in a half-rolled-back state. A migration that fails during rollback still counts as "rolled back" in the migrations table because the failure happened after the `down()` method completed but before the batch tracking was updated.
+
+## How migrate:rollback Actually Works
+
+`php artisan migrate:rollback` finds the most recent migration batch (a set of migrations that were applied together) and runs the `down()` method on each one in reverse order. Laravel determines the batch by querying the `migrations` table:
+
+```sql
+SELECT * FROM migrations ORDER BY batch DESC, migration DESC;
+```
+
+It collects all migrations with the highest `batch` number, then runs `down()` on each one. After each migration's `down()` completes, it removes that migration's row from the `migrations` table.
+
+The execution path is:
+
+```
+MigrateRollbackCommand
+  -> getRepository()->getLast()           // find highest batch number
+  -> getMigrations($steps)                // get N most recent batches
+  -> runDown(...)                          // run down() on each migration
+    -> Illuminate\Database\Migrations\Migrator::runDown()
+      -> withinTransaction or not          // depends on the schema change
+      -> migration->down()                 // the actual rollback logic
+      -> repository->delete(migration)     // remove from migrations table
+```
+
+Here is where it gets tricky: **each migration is rolled back individually, not as a batch in a single transaction**. If migration #3 of 6 fails, migrations #1 and #2 have already been rolled back and their rows removed from the `migrations` table. You are now in an inconsistent state: three migrations undone, three still applied, and only three rows in the `migrations` table.
+
+Laravel fires no dedicated event for `migrate:rollback` completion or failure. The `MigrationsStarted` and `MigrationsEnded` events only fire for `migrate` (the forward direction), not for rollbacks. This makes runtime detection harder. You have to intercept the command itself, not listen for framework events.
+
+## Common Failure Modes
+
+**The partial rollback trap.** Migration A adds a column, migration B creates a table that references that column. When rolling back, migration B runs `down()` first (it was applied last). It tries to drop the table, but the foreign key to the column in migration A prevents it. The rollback of migration B fails. Migration A was already rolled back: its `down()` removed the column. Now you have a dangling table with a foreign key to a column that no longer exists. Recovery requires manual SQL.
+
+**Rolling back destructive migrations.** Even worse than the partial rollback: `down()` methods that use `Schema::dropIfExists()` or `Schema::dropColumns()`. If the deployment that added the migration ran for a week before you roll back, that `down()` method drops a column with a week's worth of production data. There is no confirmation prompt in `migrate:rollback`. It runs `down()` and the data is gone.
+
+**The wrong batch rollback.** Your team applied three deployments this week, each with its own migration batch. You mean to roll back only the last batch (the latest deploy). But if someone applied a hotfix migration that got merged into the middle batch, the batch boundaries are not what you expect. `migrate:rollback` rolls back the entire highest batch, which may be more or fewer migrations than you intended.
+
+## Building Visibility Into migrate:rollback
+
+A reliable detection approach is intercepting the command before it executes, using the `Artisan::starting` event:
+
+```php
+// In AppServiceProvider::boot()
+use Illuminate\Console\Events\ArtisanStarting;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
+
+Event::listen(ArtisanStarting::class, function ($event) {
+    $command = $event->artisan->getName();
+
+    // Catch both migrate:rollback and its alias
+    if (in_array($command, ['migrate:rollback', 'migrate:reset'], true)) {
+        Http::timeout(3)->post(config('crontinel.alert_webhook'), [
+            'message' => "{$command} detected on " . gethostname(),
+            'severity' => 'warning',
+            'command' => $command,
+            'time' => now()->toIso8601String(),
+        ]);
+    }
+});
+```
+
+For post-hoc detection, you can monitor the `migrations` table for unexpected changes. A drop in batch numbers or a row count that decreases when no deployment was in progress indicates a rollback happened:
+
+```bash
+#!/bin/bash
+# Check migrations table for recent rollback activity
+BATCH_COUNT=$(php artisan tinker --execute="echo DB::table('migrations')->distinct()->count('batch');" 2>/dev/null)
+MIGRATION_COUNT=$(php artisan tinker --execute="echo DB::table('migrations')->count();" 2>/dev/null)
+
+# If migrations exist but batch count dropped, something rolled back
+if [ "$BATCH_COUNT" -gt 0 ] && [ "$MIGRATION_COUNT" -gt 0 ]; then
+    HIGHEST_BATCH=$(php artisan tinker --execute="echo DB::table('migrations')->max('batch');" 2>/dev/null)
+    echo "Migrations: $MIGRATION_COUNT, Batches: $BATCH_COUNT, Highest batch: $HIGHEST_BATCH"
+fi
+```
+
+And for prevention, you can add a guard that blocks `migrate:rollback` in production entirely by wrapping the artisan binary:
+
+```bash
+#!/bin/bash
+# artisan wrapper — blocks destructive commands in production
+if [[ "$*" == *"migrate:rollback"* ]] || [[ "$*" == *"migrate:reset"* ]]; then
+    echo "[BLOCKED] migrate:rollback is not allowed in production."
+    echo "If you must roll back, do it manually with a backup first."
+    curl -fsS --retry 3 \
+      "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=migrate:rollback+blocked"
+    exit 1
+fi
+exec "$(dirname "$0")/artisan.bin" "$@"
+```
+
+## Detecting When migrate:rollback Fails Silently
+
+The silent failure pattern is the hardest to catch. The command outputs "Rolling back X migration..." for each migration in the batch, but if migration #3 of 6 fails, the output says "Rolled back: 2 migrations" and exits with a non-zero code. However, the `migrations` table now has 3 fewer rows than it should, and the remaining 3 migrations still think they belong to a batch that partially no longer exists.
+
+Your alerting should watch for two signals:
+
+1. **Migration count drops with no deploy.** If the number of rows in the `migrations` table decreases outside of a deployment window, something triggered a rollback. A Crontinel heartbeat that pings before and after every deploy can detect this.
+
+2. **Batch numbers become non-sequential.** If migrations exist with batch numbers 1, 2, and 4 (missing 3), a batch was partially rolled back. This is a database health check that runs on every `schedule:run` execution.
+
+## Quick Setup with Crontinel
+
+Create a heartbeat check in Crontinel that monitors your migrations table health. Set it to ping after every successful `schedule:run`:
+
+1. Create a heartbeat ping URL in your Crontinel dashboard.
+2. Add the migrations check to your scheduler command and ping the heartbeat only when the check passes.
+3. If `migrate:rollback` runs, the pre-execution webhook alert fires immediately. If the rollback partially fails and leaves your schema inconsistent, the next heartbeat check catches it.
+
+With Crontinel, you know about a rollback within seconds. Before anyone has to explain why the staging data leaked into production or why a column half the app depends on just disappeared.
+
+## FAQ
+
+**Can I see what `migrate:rollback` will do without running it?**  \nUse `--pretend`: `php artisan migrate:rollback --pretend` prints the SQL statements it would execute without actually running them. This works for individual `up()`/`down()` methods that use the Schema builder. It does not work for raw SQL queries inside migrations.
+
+**Does `migrate:rollback` drop data?**  \nIt runs whatever is in the `down()` method. If `down()` drops a column, the data in that column is lost. Always review `down()` methods before rolling back in production.
+
+**How do I roll back only one migration instead of a batch?**  \nUse `--step=1` to roll back one migration at a time. Run it multiple times to roll back exactly the migrations you want. This gives you fine-grained control and avoids rolling back an entire batch.
+
+**What happens if I roll back a migration that was already rolled back manually?**  \nIf someone deleted the migration's row from the `migrations` table manually, `migrate:rollback` skips it. The batch tracking is based entirely on the `migrations` table, not on which tables or columns actually exist.
+
+## See also
+
+- [Detect migrate:fresh in production](/use-cases/monitor-migrate-fresh/)
+- [How to monitor php artisan migrate in production](/use-cases/monitor-migrate/)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting/)
