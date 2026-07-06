@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-db-wipe/"
+    "https://crontinel.com/use-cases/monitor-migrate-rollback/"
   ],
   "submitted": [
     "https://crontinel.com/",
@@ -189,7 +189,8 @@
     "https://crontinel.com/vs/crontinel-vs-uptimerobot/",
     "https://crontinel.com/use-cases/monitor-storage-link/",
     "https://crontinel.com/use-cases/monitor-scout-import/",
-    "https://crontinel.com/use-cases/monitor-scout-sync-index-settings/"
+    "https://crontinel.com/use-cases/monitor-scout-sync-index-settings/",
+    "https://crontinel.com/use-cases/monitor-db-wipe/"
   ],
-  "last_push": "2026-07-06"
+  "last_push": "2026-07-07"
 }

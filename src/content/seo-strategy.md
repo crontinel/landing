@@ -1,5 +1,45 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-03 02:21 UTC — new use-case page: monitor-event-clear
+Auto-generated: 2026-07-07 02:30 UTC — new use-case page: monitor-migrate-rollback
+
+## Run Summary (2026-07-07)
+
+**New article published:**
+- `monitor-migrate-rollback.mdx` — Detecting when php artisan migrate:rollback fails in production
+- URL: https://crontinel.com/use-cases/monitor-migrate-rollback/
+- Keyword: "detect when php artisan migrate:rollback fails in production"
+- Companion piece to existing `monitor-migrate` and `monitor-migrate-fresh` articles
+- Covers partial rollback traps (non-transactional per-migration rollback), destructive down() methods dropping data, wrong batch rollbacks, and silent failures where the command exits non-zero but some migrations were already undone
+- ~900 words, 3 code samples, humanizer pass applied
+- Written manually (Claude Code auth was down — same issue as 2026-07-03)
+- Feature branch → PR → squash merge → Cloudflare Pages auto-deploy
+
+**GSC actions:**
+- Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC
+- migrate-rollback moved pending → completed in pseo-queue.json
+- URL added to gsc-queue.json (pending, submitted via sitemap)
+- monitor-db-wipe URL moved from pending → submitted in gsc-queue.json
+
+**GSC findings (7-day — 2026-06-30 to 2026-07-07):**
+- 1 total click across all pages (homepage) — site still building search presence
+- Homepage: 1 click, 111 impressions, pos 4.7 — position improving
+- No blog/use-case pages have recorded clicks yet
+- Most pages have 0-15 impressions in the last 7 days
+- monitor-route-cache: no data shown in 7-day window (needs 28-day aggregation)
+- monitor-pulse-check: self-improvement GSC check due — no clicks yet, insufficient data to draw conclusions
+
+**Self-improvement data:**
+- monitor-pulse-check (published 2026-06-24): no GSC clicks in any time window yet — recheck in 2 weeks
+- monitor-scout-sync-index-settings (published 2026-07-01): no GSC data visible yet
+- monitor-event-clear (published 2026-07-03): no GSC data visible yet
+- monitor-db-wipe (published 2026-07-06): too new for GSC data
+- monitor-migrate-rollback (published 2026-07-07): too new for GSC data
+
+**Claude Code auth status:** Still unavailable (`loggedIn: false`). Article was written manually. Pipeline continues on this path.
+
+**Queue status:**
+- migrate-rollback: completed
+- Remaining pending: pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, inspire
+- These are low-intent artisan commands — no strong search gap identified yet
 
 ## Run Summary (2026-07-03)
 

@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "migrate-rollback",
     "pulse-restart",
     "pennant-purge",
     "passport-purge",
@@ -54,6 +53,7 @@
     "telescope-clear",
     "telescope-prune",
     "view-cache",
-    "view-clear"
+    "view-clear",
+    "migrate-rollback"
   ]
 }
