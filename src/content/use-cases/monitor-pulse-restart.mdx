@@ -1,0 +1,136 @@
+---
+title: "Monitor Laravel pulse:restart in Production"
+description: "pulse:restart runs silently during deploys and fails silently too. If the new Pulse worker cannot start, you won't know until someone notices the dashboard froze. Here is how to catch restart failures before they cost you Pulse data."
+date: 2026-07-08
+---
+
+Pulse records data continuously via its `pulse:work` daemon. During deployments, Laravel's default pulse configuration calls `php artisan pulse:restart` to gracefully shut down the old worker so the new code picks up. The process looks clean on the surface: the old worker receives a restart signal, exits, and a fresh worker starts via the process monitor (Supervisor, Forge, or the Pulse daemon launcher).
+
+The problem is that `pulse:restart` can succeed at signalling the old worker while the new worker never actually starts. The old process shuts down gracefully. The restart command exits zero. Your deploy pipeline shows green. But Pulse has stopped recording, and the dashboard has frozen at its last data point.
+
+## How pulse:restart works under the hood
+
+`php artisan pulse:restart` instructs Pulse's workers to stop. It does this by broadcasting a restart signal — in practice, updating a Unix timestamp or Redis key that running workers check before processing their next entry. When a worker sees the restart timestamp has been updated, it finishes its current entry and exits. The process monitor (Supervisor, Forge, or systemd) then restarts the worker, which boots with the new code.
+
+```php
+// Simplified — the real mechanism stores the restart time
+// in cache so all workers can check it
+Cache::put('pulse:restart', now()->timestamp);
+```
+
+The four-second gap matters here. Between the old worker stopping and the new worker starting, Pulse is not recording any data. If your database had a connection pool change or your Redis credentials rotated during the deploy, the new worker fails to connect, bails out, and never starts recording. The process monitor might retry a few times but eventually gives up if the underlying configuration is wrong.
+
+## The three failure modes
+
+### 1. The new worker cannot connect to storage
+
+This is the most common pulse:restart failure. During a deploy, your CI pipeline rotates database credentials or the application configuration changes. The old worker was running with the old credentials. After restart, the new worker tries to connect with the new configuration. If those credentials are wrong, stale, or pointing at a connection pool that hasn't finished rolling, the worker exits immediately.
+
+The signal flow chain:
+- `pulse:restart` → exits 0 ✓
+- Old worker receives signal → shuts down gracefully ✓
+- Process monitor starts new worker → credentials invalid → worker exits ✗
+- Process monitor retries → same result ✗
+- Pulse silently stops recording ✗
+
+### 2. The process monitor configuration is out of sync
+
+If you deploy across multiple servers and only update Supervisor configuration on some of them, `pulse:restart` triggers a restart on all servers but the worker command on the un-updated server points to stale binary paths or a missing entry point. The worker process starts and immediately crashes. You get no alert because Supervisor counts crashes as normal restarts up to a configurable threshold.
+
+### 3. The cache driver does not support cross-process signalling
+
+The restart signal depends on Laravel's cache being shared across all Pulse workers. If you use the `file` cache driver (common in single-server setups) but your workers run under different system users, the restart timestamp might not be visible to all workers. Some workers keep running with old code while others restart. Your Pulse data becomes interleaved between two code versions.
+
+## Monitoring pulse:restart in practice
+
+Unlike most artisan commands, pulse:restart is not something you call directly — it runs as part of the deployment process, in post-deploy scripts, or via Horizon's `Deployment hooks` section. This makes it harder to monitor with standard command-lifetime checks.
+
+### Approach 1: Track the restart timestamp
+
+Record the restart timestamp before and after deploys and verify a new worker process is running after the restart:
+
+```php
+// In your deploy script
+Artisan::call('pulse:restart');
+
+// Wait briefly for the restart signal to propagate
+sleep(3);
+
+// Check if any Pulse worker process is running
+$workerCount = `ps aux | grep 'pulse:work' | grep -v grep | wc -l`;
+if ((int)$workerCount === 0) {
+    // Alert — the restart killed Pulse workers but none restarted
+    $exitCode = 1;
+}
+```
+
+### Approach 2: Heartbeat from pulse:work
+
+Add a heartbeat to your Pulse worker that fires every few seconds. If the heartbeat stops, you know the worker died and did not restart:
+
+```php
+// In App\Providers\PulseServiceProvider or a custom recorder
+use Symfony\Component\Stopwatch\Stopwatch;
+
+class WorkerHeartbeat
+{
+    public function __invoke(): void
+    {
+        Http::timeout(3)->get('https://hc.crontinel.com/ping/pulse-worker');
+    }
+}
+```
+
+Register this in your Pulse service provider to run on every tick of `pulse:work`. If the heartbeat stops, Crontinel alerts you within the grace period.
+
+### Approach 3: Compare active workers before and after deploy
+
+Before running `pulse:restart`, record the list of active Pulse worker PIDs. After the restart, verify a similar count of new workers are running with different PIDs:
+
+```bash
+#!/bin/bash
+BEFORE=$(pgrep -f 'pulse:work' | wc -l)
+php artisan pulse:restart
+sleep 5
+AFTER=$(pgrep -f 'pulse:work' | wc -l)
+
+if [ "$AFTER" -eq "0" ]; then
+    echo "CRITICAL: pulse:restart left no running workers"
+    exit 1
+fi
+```
+
+### Approach 4: Pulse data freshness check
+
+The simplest "doesn't need instrumentation" check: run a command every few minutes that confirms Pulse tables have new data:
+
+```php
+$schedule->command(function () {
+    $latest = DB::table('pulse_entries')->latest('created_at')->value('created_at');
+    if ($latest === null || $latest < now()->subMinutes(5)) {
+        // No Pulse data in 5 minutes — likely pulse:work is not running
+        Log::channel('alert')->critical('Pulse has no recent entries. Worker may be down.');
+    }
+})->everyFiveMinutes();
+```
+
+## Why generic heartbeats miss this
+
+A standard cron heartbeat pings a URL every minute. It confirms the cron daemon is alive and `schedule:run` executes. It does not confirm Pulse's `pulse:work` daemon is running. You can have every cron job passing with green heartbeats while Pulse has been dead for hours.
+
+This is the fundamental gap that Crontinel's per-process monitoring fills. Instead of one heartbeat for the whole system, you get separate checks for cron, queues, Horizon supervisors, and Pulse workers — each with its own grace period and alert configuration.
+
+## What a pulse:restart incident looks like in practice
+
+You deploy on Friday at 4:30 PM. The deploy script ran `pulse:restart`. The CI pipeline shows green. On Monday morning someone says "the Pulse dashboard hasn't changed since Friday afternoon." You check: Pulse has entries up to 4:31 PM Friday, then nothing. `pulse:check` returns 0 because the database connection is fine. But `pulse:work` is not running. The process monitor exhausted its retries at 4:32 PM and nobody noticed.
+
+The fix is always the same — restart Pulse — but the lost weekend of Pulse data is gone. You cannot replay entries Pulse never recorded.
+
+Setting up one of the monitoring approaches above costs about ten minutes and prevents this exact incident from happening more than once.
+
+## See also
+
+- [Monitor Laravel Pulse Health in Production](/use-cases/monitor-pulse-check)
+- [Monitor php artisan schedule:run in Production](/use-cases/monitor-schedule-run)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)
+- [Open source self-hosted status page](/use-cases/open-source-self-hosted-status-page)
