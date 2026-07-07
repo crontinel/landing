@@ -165,10 +165,12 @@ Auto-generated: 2026-07-07 02:30 UTC — new use-case page: monitor-migrate-roll
 - **Consider queue renewal:** remove weak topics or replace with GSC gap topics
 
 ## Pending GSC improvements
-- Homepage: 190 impressions, 0 clicks (pos 7.1) — position improving (was 7.6), need more impression data before changing meta
-- monitor-route-cache title rewrite (2026-06-22): position 7.2, 132 imp, 0 clicks — stable trend, check CTR after 2026-07-06
+- Homepage: 116 impressions, 1 click (pos 4.8) — first click recorded! Position stable. Continue monitoring.
+- monitor-route-cache: 83 imp (7-day), pos 7.5, 0 clicks — queries are low-volume specific terms. No data-backed action yet.
 - monitor-horizon-purge title rewrite (2026-06-22): position 8.1, 12 imp, 0 clicks — insufficient data
 - monitor-reverb-server: position 10.9, 15 imp, 0 clicks — insufficient data
-- monitor-pulse-check: self-improvement GSC check due 2026-07-07
-- monitor-scout-sync-index-settings: self-improvement GSC check due 2026-07-08
-- monitor-event-clear: self-improvement GSC check due 2026-07-10
+- monitor-pulse-check: 14 days — no clicks, insufficient data
+- monitor-scout-sync-index-settings: 7 days — no GSC data visible yet
+- monitor-event-clear: 5 days — too new
+- monitor-db-wipe: 2 days — too new
+- monitor-migrate-rollback: 1 day — too new
