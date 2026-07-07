@@ -25,5 +25,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return Response.redirect('https://docs.crontinel.com', 301);
   }
 
+  // Redirect /sitemap-index.xml (wrong GSC path) to correct sitemap
+  if (url.pathname === '/sitemap-index.xml') {
+    url.pathname = '/sitemap.xml';
+    return Response.redirect(url.toString(), 301);
+  }
+
   return next();
 });
