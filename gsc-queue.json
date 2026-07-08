@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/use-cases/monitor-pulse-restart"
+  ],
   "submitted": [
     "https://crontinel.com",
     "https://crontinel.com/use-cases/monitor-db-seed",
@@ -114,7 +116,16 @@
     "https://crontinel.com/use-cases/monitor-storage-link",
     "https://crontinel.com/use-cases/monitor-scout-import",
     "https://crontinel.com/use-cases/monitor-scout-sync-index-settings",
-    "https://crontinel.com/use-cases/monitor-db-wipe"
+    "https://crontinel.com/use-cases/monitor-db-wipe",
+    "https://crontinel.com/blog/cron-job-runs-manually-but-not-on-schedule",
+    "https://crontinel.com/blog/open-source-self-hosted-free-cron-monitoring",
+    "https://crontinel.com/use-cases/cron-heartbeat-monitoring",
+    "https://crontinel.com/use-cases/incident-alert-system",
+    "https://crontinel.com/use-cases/laravel-status-page",
+    "https://crontinel.com/use-cases/monitor-migrate-rollback",
+    "https://crontinel.com/use-cases/monitor-queue-worker-timeout",
+    "https://crontinel.com/use-cases/open-source-self-hosted-status-page",
+    "https://crontinel.com/use-cases/webhook-monitoring"
   ],
-  "last_push": "2026-07-07"
+  "last_push": "2026-07-08"
 }
