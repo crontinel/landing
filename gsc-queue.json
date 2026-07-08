@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-pulse-restart"
+    "https://crontinel.com/blog/monitor-laravel-pennant-purge"
   ],
   "submitted": [
     "https://crontinel.com",
@@ -72,13 +72,14 @@
     "https://crontinel.com/use-cases/monitor-horizon-work",
     "https://crontinel.com/use-cases/monitor-laravel-cache-clear-cron-job-failed",
     "https://crontinel.com/use-cases/monitor-laravel-cache-prune-stale-tags",
-    "https://crontinel.com/use-cases/monitor-migrate-fresh",
     "https://crontinel.com/use-cases/monitor-migrate",
+    "https://crontinel.com/use-cases/monitor-migrate-fresh",
     "https://crontinel.com/use-cases/monitor-model-prune",
     "https://crontinel.com/use-cases/monitor-notifications-prune",
     "https://crontinel.com/use-cases/monitor-optimize",
     "https://crontinel.com/use-cases/monitor-php-artisan-optimize-clear-after-deployment",
     "https://crontinel.com/use-cases/monitor-pulse-check",
+    "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com/use-cases/monitor-queue-failed",
     "https://crontinel.com/use-cases/monitor-queue-flush",
     "https://crontinel.com/use-cases/monitor-queue-forget",
@@ -127,5 +128,5 @@
     "https://crontinel.com/use-cases/open-source-self-hosted-status-page",
     "https://crontinel.com/use-cases/webhook-monitoring"
   ],
-  "last_push": "2026-07-08"
+  "last_push": "2026-07-09"
 }
