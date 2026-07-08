@@ -1,11 +1,11 @@
 {
   "in_progress": [],
   "pending": [
-    "pennant-purge",
     "passport-purge",
     "sanctum-prune-expired",
     "schedule-interrupt",
-    "inspire"
+    "inspire",
+    "laravel-cron-monitoring-best-practices"
   ],
   "completed": [
     "about",
@@ -54,6 +54,7 @@
     "telescope-clear",
     "telescope-prune",
     "view-cache",
-    "view-clear"
+    "view-clear",
+    "pennant-purge"
   ]
 }
