@@ -4,8 +4,8 @@ import Base from '../layouts/Base.astro';
 export const prerender = true;
 
 const canonicalURL = new URL('/', 'https://crontinel.com').toString();
-const title = 'Laravel Cron Monitoring for Scheduled Tasks, Queues, and Horizon | Crontinel';
-const description = 'Crontinel monitors Laravel scheduled tasks, queues, Horizon workers, backups, and agent runs so you catch silent failures before users do.';
+const title = 'Cron & Queue Monitoring | Crontinel';
+const description = 'Crontinel watches your scheduled tasks, queue workers, and supervisors. Catch silent failures and queue stalls before users do.';
 ---
 
 <Base title={title} description={description} canonical={canonicalURL}>
@@ -222,7 +222,7 @@ const description = 'Crontinel monitors Laravel scheduled tasks, queues, Horizon
 <!-- ============================== ANNOUNCEMENT BAR ============================== -->
 <div id="thenping-notice" style="background:#111111;border-bottom:1px solid rgba(74,222,128,0.15);padding:10px 16px;text-align:center;font-size:13px;color:#94a3b8;">
   <span style="color:#4ade80;font-weight:600;">thenping.me is no longer maintained</span>
-  - Crontinel is the active Laravel-native alternative.
+  - Crontinel is the active open-source alternative.
   <a href="/blog/thenping-me-is-dead/" style="color:#4ade80;text-decoration:underline;margin-left:8px;">Read more &rarr;</a>
   <button onclick="localStorage.setItem('thenping-dismissed','1');this.parentElement.style.display='none'" aria-label="Dismiss" style="margin-left:12px;color:#64748b;background:none;border:none;cursor:pointer;font-size:16px;line-height:1;">&times;</button>
 </div>
@@ -246,13 +246,13 @@ const description = 'Crontinel monitors Laravel scheduled tasks, queues, Horizon
       </span>
 
       <h1 class="display h1" id="headline">
-        Laravel cron<br/>
+        Your cron<br/>
         is <span class="accent">lying</span><br/>
         to you.<span class="cursor"></span>
       </h1>
 
       <p class="hero-sub" id="sub">
-        Crontinel watches Laravel scheduled tasks, queue workers, Horizon supervisors, backups, and agent runs,
+        Crontinel watches your scheduled tasks, queue workers, supervisors, backups, and agent runs,
         so you hear about the failure <em>before</em> your users do.
       </p>
 
@@ -265,7 +265,7 @@ const description = 'Crontinel monitors Laravel scheduled tasks, queues, Horizon
       </div>
 
       <div class="hero-trust mono">
-        <span>node · python · go · php · ruby · rails · cli · dotnet</span>
+        <span>polyglot · open core</span>
         <span class="sep">·</span>
         <span>MIT licensed</span>
         <span class="sep">·</span>
@@ -421,7 +421,7 @@ const description = 'Crontinel monitors Laravel scheduled tasks, queues, Horizon
         <div>
           <span class="b-eyebrow">Workers &amp; supervisors</span>
           <h3 class="b-title">See the worker, not just the URL.</h3>
-          <p class="b-desc">Per-worker status, paused detection, queue sparklines, failed job rate. Horizon, Sidekiq, Celery, BullMQ, RQ, Temporal. The moment one blinks, you know.</p>
+          <p class="b-desc">Per-worker status, paused detection, queue sparklines, failed job rate. Monitor every worker type — the moment one blinks, you know.</p>
         </div>
         <div class="horizon-grid" id="workers-grid">
           <!-- JS populates cells -->
@@ -758,42 +758,42 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <a class="pkg" href="https://github.com/crontinel/node" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-node">TS</span><span class="pkg-meta mono">TypeScript</span></div>
         <div class="pkg-name mono">crontinel/node</div>
-        <p class="pkg-desc">Node &amp; TypeScript. BullMQ, Agenda, node-cron, workers.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Node runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/python" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-py">PY</span><span class="pkg-meta mono">Python</span></div>
         <div class="pkg-name mono">crontinel/python</div>
-        <p class="pkg-desc">Celery, RQ, Huey, APScheduler, Prefect, Dramatiq.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Python runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/go" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-go">GO</span><span class="pkg-meta mono">Go</span></div>
         <div class="pkg-name mono">crontinel/go</div>
-        <p class="pkg-desc">Asynq, Machinery, Temporal, gocron, native tickers.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Go runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/rust" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · MIT</span></div>
         <div class="pkg-name mono">crontinel/rust</div>
-        <p class="pkg-desc">Tokio, async-std, apalis, tokio-cron-scheduler.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Rust runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/php" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-php">PHP</span><span class="pkg-meta mono">PHP · MIT</span></div>
         <div class="pkg-name mono">crontinel/php</div>
-        <p class="pkg-desc">Framework-agnostic PHP library. Symfony Messenger + plain cron.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for PHP runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-php">LA</span><span class="pkg-meta mono">PHP · MIT</span></div>
         <div class="pkg-name mono">crontinel/laravel</div>
-        <p class="pkg-desc">Laravel Horizon &amp; scheduler. Auto-detect, zero wrap.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection, zero wrap.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/ruby" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-rb">RB</span><span class="pkg-meta mono">Ruby · MIT</span></div>
         <div class="pkg-name mono">crontinel/ruby</div>
-        <p class="pkg-desc">Framework-agnostic Ruby gem. Sidekiq, Resque, DelayedJob, Rake.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Ruby runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/ruby-on-rails" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-rb">RA</span><span class="pkg-meta mono">Ruby · MIT</span></div>
         <div class="pkg-name mono">crontinel/ruby-on-rails</div>
-        <p class="pkg-desc">Rails engine. Auto-instruments ActiveJob and ActiveScheduler.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Rails runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · core</span></div>
@@ -803,12 +803,12 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <a class="pkg" href="https://github.com/crontinel/cli" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-cli">SH</span><span class="pkg-meta mono">Go</span></div>
         <div class="pkg-name mono">crontinel/cli</div>
-        <p class="pkg-desc">Language-agnostic. Wrap any cron, Docker job, K8s CronJob.</p>
+        <p class="pkg-desc">Language-agnostic. Wrap any cron, Docker, or K8s job.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/dotnet-sdk" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-cs">C#</span><span class="pkg-meta mono">.NET · MIT</span></div>
         <div class="pkg-name mono">crontinel/dotnet-sdk</div>
-        <p class="pkg-desc">Hangfire, Quartz.NET, native TaskScheduler, Worker Service.</p>
+        <p class="pkg-desc">Queue &amp; scheduler auto-detection for .NET runtimes.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-ai">AI</span><span class="pkg-meta mono">TypeScript · MIT</span></div>
@@ -926,7 +926,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       </div>
       <div class="sdk-panel" data-for="php" hidden>
         <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/php</span><button class="copy" data-copy="composer require crontinel/php">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/laravel   <span style="color:var(--text-3)"># or for Laravel</span></span><button class="copy" data-copy="composer require crontinel/laravel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/laravel   <span style="color:var(--text-3)"># or for PHP</span></span><button class="copy" data-copy="composer require crontinel/laravel">COPY</button></div>
         <div class="install-cmd"><span><span class="prompt">$</span> vendor/bin/crontinel check</span><button class="copy" data-copy="vendor/bin/crontinel check">COPY</button></div>
       </div>
       <div class="sdk-panel" data-for="cli" hidden>
@@ -953,27 +953,27 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     <div class="section-head reveal">
       <span class="eyebrow">Learn more</span>
       <h2 class="display h2">Start with the pages people actually search for.</h2>
-      <p class="body">If you're comparing tools or looking for a specific Laravel failure mode, these are the strongest pages on the site.</p>
+      <p class="body">If you're comparing tools or looking for a specific failure mode, these are the strongest pages on the site.</p>
     </div>
     <div class="seo-links reveal">
-      <a class="seo-link-card" href="/blog/laravel-cron-vs-queue-monitoring/">
-        <h3>Laravel cron vs queue monitoring</h3>
-        <p>See what cron monitoring covers, what queue monitoring covers, and why you need both for Laravel production apps.</p>
+      <a class="seo-link-card" href="/blog/cron-vs-queue-monitoring/">
+        <h3>Cron vs queue monitoring</h3>
+        <p>See what cron monitoring covers, what queue monitoring covers, and why you need both in production.</p>
       </a>
-      <a class="seo-link-card" href="/use-cases/laravel-horizon-monitoring/">
-        <h3>Laravel Horizon monitoring</h3>
+      <a class="seo-link-card" href="/use-cases/worker-monitoring/">
+        <h3>Worker & supervisor monitoring</h3>
         <p>Track paused supervisors, queue depth, and failing workers before the backlog becomes customer visible.</p>
       </a>
       <a class="seo-link-card" href="/use-cases/webhook-monitoring/">
-        <h3>Webhook monitoring for Laravel and API teams</h3>
+        <h3>Webhook monitoring for API teams</h3>
         <p>Catch delivery failures, retry storms, and stalled callback queues before customers notice.</p>
       </a>
       <a class="seo-link-card" href="/use-cases/cron-heartbeat-monitoring/">
-        <h3>Cron heartbeat monitoring for Laravel schedulers</h3>
+        <h3>Cron heartbeat monitoring</h3>
         <p>Catch the moment schedule:run stops arriving, runs late, or silently skips a job.</p>
       </a>
       <a class="seo-link-card" href="/use-cases/incident-alert-system/">
-        <h3>Incident alert system for Laravel failures</h3>
+        <h3>Incident alert system</h3>
         <p>Route the right failures to Slack, PagerDuty, or webhooks without drowning the team in noise.</p>
       </a>
       <a class="seo-link-card" href="/use-cases/open-source-self-hosted-status-page/">
