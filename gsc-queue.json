@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/use-cases/monitor-pennant-purge"
+  ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
@@ -124,7 +126,13 @@
     "https://crontinel.com/use-cases/monitor-migrate-rollback",
     "https://crontinel.com/use-cases/monitor-queue-worker-timeout",
     "https://crontinel.com/use-cases/open-source-self-hosted-status-page",
-    "https://crontinel.com/use-cases/webhook-monitoring"
+    "https://crontinel.com/use-cases/webhook-monitoring",
+    "https://crontinel.com/blog/cron-monitoring-pricing-compared-2026",
+    "https://crontinel.com/blog/migrate-from-better-stack-cron-monitoring",
+    "https://crontinel.com/integrations/discord",
+    "https://crontinel.com/integrations/microsoft-teams",
+    "https://crontinel.com/integrations/telegram",
+    "https://crontinel.com/vs/crontinel-vs-cronradar"
   ],
-  "last_push": "2026-07-08"
+  "last_push": "2026-07-10"
 }
