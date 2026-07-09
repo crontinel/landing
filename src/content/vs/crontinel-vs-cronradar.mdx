@@ -1,0 +1,90 @@
+---
+title: "Crontinel vs CronRadar for Laravel Cron and Queue Monitoring"
+description: "CronRadar auto-discovers Laravel scheduled tasks. Crontinel adds Horizon supervisor state, queue depth, webhooks, status pages, and a self-hosted OSS option. Compare depth vs simplicity."
+competitor: "CronRadar"
+date: 2026-07-08
+---
+
+CronRadar launched in 2026 as an AI-native cron monitoring platform with framework SDKs and aggressive SEO around Laravel auto-discovery. Their Laravel package can register scheduled tasks with minimal configuration.
+
+Crontinel targets the same Laravel teams but goes deeper on **queues**, **Horizon**, and **operations** (status pages, webhook monitoring, self-hosting). If you are evaluating CronRadar, this page is the fair side-by-side.
+
+## What CronRadar does well
+
+- **Auto-discovery** of scheduled tasks via the Laravel SDK (`cronradar/laravel` on Packagist)
+- **Per-monitor pricing** (~$1/monitor) for teams that want many small checks
+- **Multi-framework story** (Python, Node, .NET, Laravel) from one vendor
+- **Comparison content** and docs aimed at cron monitoring keywords
+
+For a greenfield app with a handful of scheduled commands and no Horizon, CronRadar is a credible lightweight option.
+
+## Where Crontinel goes further
+
+### Horizon and supervisor visibility
+
+CronRadar focuses on cron and scheduled tasks. It does not read Horizon's Redis state. When a supervisor pauses after deploy or Redis blips, cron heartbeats can still look "fine" while queues stall.
+
+Crontinel reports supervisor status, paused workers, queue depth, and oldest job age per queue.
+
+### No per-monitor instrumentation tax
+
+CronRadar's model scales cost with monitor count. Crontinel's SaaS tiers bundle apps and history; the **MIT-licensed** `crontinel/laravel` package can run fully self-hosted with a local dashboard at `/crontinel`.
+
+### Breadth beyond the scheduler
+
+Crontinel also covers:
+
+- Webhook endpoint monitoring
+- Public status pages
+- MCP and agent triggers for automation-heavy teams
+
+CronRadar is narrower by design.
+
+## Feature comparison
+
+| Capability | Crontinel | CronRadar |
+|---|---|---|
+| Laravel scheduler auto-tracking | Yes (events) | Yes (SDK / discovery) |
+| Per-task exit code and duration | Yes | Yes |
+| Horizon supervisor / paused | Yes | No |
+| Queue depth per queue | Yes | No |
+| Oldest job age alerts | Yes | No |
+| Self-hosted OSS option | Yes (MIT) | SaaS-focused |
+| Status pages | Yes | Not core |
+| Webhook monitoring | Yes | Not core |
+| Multi-framework SDKs | Laravel-first (+ Node/Python agents) | Strong multi-framework |
+
+## Pricing philosophy
+
+CronRadar: low entry per monitor; cost grows with every discovered task.
+
+Crontinel: free tier for one app; Pro/Team for more apps and retention; **unlimited self-host** with the open-source package.
+
+Pick CronRadar when monitor count is small and budget is strictly per-check. Pick Crontinel when Horizon and queues matter or you want one bill without counting monitors.
+
+## When CronRadar is the right choice
+
+- You need **Python or .NET** cron discovery in the same tool as Laravel
+- Your app has **few scheduled tasks**, no Horizon, and you want the cheapest per-monitor line item
+- You prefer a **newer SaaS** with minimal moving parts
+
+## When Crontinel is the right choice
+
+- You run **Laravel Horizon** or care about queue backlog before customers notice
+- You want **self-hosting** or air-gapped monitoring
+- You need **status pages** or **webhook checks** alongside cron
+- You are migrating from **Better Stack** or **thenping.me** and want Laravel-native depth ([migration guide](/blog/migrate-from-better-stack-cron-monitoring/))
+
+## Migration from CronRadar
+
+1. Install `crontinel/laravel` alongside or instead of `cronradar/laravel`
+2. Run `php artisan crontinel:install` and link the app in the dashboard
+3. Run one full `schedule:run` cycle and confirm tasks appear
+4. Configure alerts; add queue monitors if you use Horizon
+5. Remove CronRadar API keys and uninstall the package when satisfied
+
+Both tools can run in parallel during a trial week if you want to compare alert noise and dashboard signal.
+
+## Bottom line
+
+CronRadar competes on **simplicity and discovery**. Crontinel competes on **Laravel production depth**: scheduler plus queues plus optional SaaS or self-host. For many Laravel SaaS products, queue stalls cost more than a missed cron ping — that is the deciding line.

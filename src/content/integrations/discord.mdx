@@ -1,0 +1,63 @@
+---
+title: "Crontinel Discord Integration: Cron and Queue Alerts to Your Server"
+description: "Route Crontinel Laravel alerts to Discord with a webhook URL. Get notified when scheduled tasks fail, queues back up, or Horizon supervisors pause."
+date: 2026-07-08
+---
+
+Discord is a common home for small-team on-call and `#alerts` channels. Crontinel does not ship a native Discord bot; you use a **Discord incoming webhook** the same way you would for Slack-style JSON payloads.
+
+## Setup
+
+### 1. Create a Discord webhook
+
+In your Discord server:
+
+1. **Server Settings** → **Integrations** → **Webhooks** → **New Webhook**
+2. Pick the channel (e.g. `#cron-alerts`)
+3. Copy the webhook URL (`https://discord.com/api/webhooks/...`)
+
+### 2. Configure Crontinel
+
+Use the generic webhook channel and point it at Discord:
+
+```bash
+CRONTINEL_ALERT_CHANNEL=webhook
+CRONTINEL_WEBHOOK_URL=https://discord.com/api/webhooks/<id>/<token>
+```
+
+Discord expects a JSON body with a `content` field. Crontinel's webhook payload is structured JSON; if your Discord channel shows raw JSON, add a small relay (Cloudflare Worker, Zapier, or n8n) that maps `alert.message` to Discord `content`, or use a Discord-compatible formatter in your relay.
+
+**Simple relay pattern:** POST from Crontinel → your endpoint → Discord with:
+
+```json
+{ "content": "Crontinel: [app] task failed - details..." }
+```
+
+### 3. Test
+
+```bash
+php artisan crontinel:test-alert
+```
+
+Confirm a message appears in the target channel (directly or via your relay).
+
+## What to alert on
+
+Same events as other channels:
+
+- Scheduled task failure, late, or missed runs
+- Horizon supervisor paused or stopped
+- Queue depth and oldest-job-age thresholds
+- Failed job rate spikes
+
+## Tips
+
+- Use a dedicated `#infra` or `#cron` channel to avoid noise in general chat
+- Staging apps should post to a separate webhook from production
+- Pair Discord with PagerDuty for severity-based routing (Discord for warn, PagerDuty for page)
+
+## Related
+
+- [Slack integration](/integrations/slack/)
+- [Webhook integration](/integrations/webhook/)
+- [PagerDuty integration](/integrations/pagerduty/)
