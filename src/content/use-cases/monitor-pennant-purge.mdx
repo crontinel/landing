@@ -6,11 +6,11 @@ date: 2026-07-10
 
 You have a Laravel Pennant feature flag that toggles a new checkout flow. The flag is enabled for 10% of users, you test it, you flip it to 100%, and the rollout succeeds. Weeks later, another deployment accidentally re-enables an old experiment because stale flag metadata was never cleaned up. The staging cache still had the old value. `php artisan pennant:purge` was scheduled to run daily, but nobody noticed it had stopped firing three weeks ago.
 
-This is the specific problem with `pennant:purge` as a monitoring target. It is a maintenance command that runs invisibly in the background — until it stops, and stale data starts causing unpredictable behavior.
+That is the real problem with `pennant:purge` as a monitoring target. It is a maintenance command that runs invisibly in the background until it stops, and stale data starts causing unpredictable behavior.
 
 ## What php artisan pennant:purge Actually Does
 
-`pennant:purge` is the command that removes stale feature flag values from Pennant's configured storage driver. Laravel Pennant supports multiple drivers: array, database, and Redis cache. The purge command targets resolved feature flag values whose defining feature no longer exists or whose definition has changed.
+`pennant:purge` removes stale feature flag values from Pennant's configured storage driver. Laravel Pennant supports array, database, and Redis cache drivers. The purge command targets resolved feature flag values whose defining feature no longer exists or whose definition has changed.
 
 When you define a feature in `App\\Features\\`, Pennant resolves it once per user and caches the result. If you later rename or remove that feature class, the cached value for every user who resolved it remains in storage. `pennant:purge` finds and removes these orphaned entries.
 
@@ -35,17 +35,17 @@ php artisan pennant:purge
 
 ## Common Failure Modes
 
-**Scheduler stopped.** If your system cron entry broke or `schedule:run` crashed, `pennant:purge` never fires. Stale feature flag values accumulate indefinitely. The worst case is a feature class that was renamed — the old name still has cached values, so both the old and new feature names return data.
+**Scheduler stopped.** If your system cron entry broke or `schedule:run` crashed, `pennant:purge` never fires. Stale feature flag values accumulate indefinitely. The worst case is a feature class that was renamed -- the old name still has cached values, so both the old and new feature names return data.
 
-**Wrong environment scope.** Pennant stores resolved feature values per scope (typically per user). If the scheduled `pennant:purge` is running but your storage backend (Redis, database) is shared between environments, purging in ci can accidentally remove production feature flags. This is rare but happens when staging and production share infrastructure.
+**Wrong environment scope.** Pennant stores resolved feature values per scope (typically per user). If the scheduled `pennant:purge` is running but your storage backend (Redis, database) is shared between environments, purging in CI can accidentally remove production feature flags. Rare, but happens when staging and production share infrastructure.
 
-**Feature class autoloading failure.** Pennant resolves features by scanning the `App\\Features\\` namespace. If a feature class has a syntax error, a missing dependency, or a broken autoloader entry, `pennant:purge` may skip feature discovery and exit early without purging anything. The command still returns exit code 0 because it runs to completion — it just finds nothing to purge.
+**Feature class autoloading failure.** Pennant resolves features by scanning the `App\\Features\\` namespace. If a feature class has a syntax error, a missing dependency, or a broken autoloader entry, `pennant:purge` may skip feature discovery and exit early without purging anything. The command still returns exit code 0 because it runs to completion -- it just finds nothing to purge.
 
 **Large data sets timing out.** On long-running applications with millions of resolved feature values, `pennant:purge` can hit the PHP `max_execution_time` limit. The command starts, processes a batch, and gets killed mid-way. The next scheduled run picks up from where it left off, but if the gap is long enough, stale data accumulates faster than the purge can clean it.
 
 ## Building Visibility Into pennant:purge
 
-The first thing to check is whether `pennant:purge` is actually running on schedule. In your Crontinel dashboard, create a heartbeat job with an expected interval matching your schedule. If you run daily (recommended), set the expected interval to 25 hours to give a small grace window.
+Start by checking whether `pennant:purge` is actually running on schedule. In your Crontinel dashboard, create a heartbeat job with an expected interval matching your schedule. If you run daily (recommended), set the expected interval to 25 hours to give a small grace window.
 
 ```php
 // In App\\Console\\Kernel.php
@@ -89,13 +89,13 @@ A stable or decreasing count means the purge is keeping up. A growing count mean
 
 Three conditions to alert on: the heartbeat does not arrive within the expected window (the scheduler stopped), the command exits with a non-zero code (PHP error or Redis timeout), and stale feature keys keep growing despite successful pings (purge running but not keeping up with accumulation).
 
-The most important alert is the first one. If `pennant:purge` stops firing because your system cron broke or `schedule:run` crashed, stale values accumulate silently. The next time you run a deployment with renamed feature classes, the old values can resurface and produce behavior that is different from what the code expects.
+The first alert is the most important. If `pennant:purge` stops firing because your system cron broke or `schedule:run` crashed, stale values accumulate silently. The next time you run a deployment with renamed feature classes, the old values can resurface and produce behavior that is different from what the code expects.
 
 ## Quick Setup with Crontinel
 
 Add a heartbeat to your daily `pennant:purge` schedule in the Crontinel dashboard. Set the expected interval to 25 hours and the grace period to 3 hours. Deploy your changes. Verify you see a successful ping within 26 hours. Then comment out the schedule line on staging to confirm the alert fires.
 
-If you run `pennant:purge` on a different schedule (multiple times per day is common when iterating on features), adjust the interval to match plus one hour. The goal is to catch the stoppage before stale data causes a production incident — not to micro-manage the purge frequency.
+If you run `pennant:purge` on a different schedule (multiple times per day is common when iterating on features), adjust the interval to match plus one hour. The goal is to catch the stoppage before stale data causes a production incident, not to micro-manage the purge frequency.
 
 ## See also
 
