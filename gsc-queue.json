@@ -1,7 +1,5 @@
 {
-  "pending": [
-    "https://crontinel.com/use-cases/monitor-pennant-purge"
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
@@ -132,7 +130,8 @@
     "https://crontinel.com/integrations/discord",
     "https://crontinel.com/integrations/microsoft-teams",
     "https://crontinel.com/integrations/telegram",
-    "https://crontinel.com/vs/crontinel-vs-cronradar"
+    "https://crontinel.com/vs/crontinel-vs-cronradar",
+    "https://crontinel.com/use-cases/monitor-pennant-purge"
   ],
-  "last_push": "2026-07-10"
+  "last_push": "2026-07-11"
 }

@@ -1,5 +1,39 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-07 02:30 UTC — new use-case page: monitor-migrate-rollback
+Auto-generated: 2026-07-11 02:08 UTC — new use-case page: monitor-pennant-purge
+
+## Run Summary (2026-07-11)
+
+**New article published:**
+- `monitor-pennant-purge.mdx` — Monitoring php artisan pennant:purge in Laravel Production
+- URL: https://crontinel.com/use-cases/monitor-pennant-purge/
+- Keyword: "detect when Laravel pennant:purge stops cleaning stale feature flags"
+- Merged PR #148 (open since 2026-07-10 — never merged until now)
+- Covers scheduler stoppage, wrong environment scope in shared backends, feature class autoloading failures, large data set timeouts
+- ~670 words body, 3 code samples, humanizer pass applied
+- Live: HTTP 200 verified
+
+**GSC actions:**
+- Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC
+- URL moved pending → submitted in gsc-queue.json
+
+**GSC findings (30-day):**
+- Site still building search presence — minimal impressions/click data
+- monitor-route-cache: still no CTR data sufficient for action
+- Remaining pending topics (passport-purge, sanctum-prune-expired, schedule-interrupt, inspire) are all low-intent artisan commands — none clear the quality bar for new content
+
+**Self-improvement data:**
+- monitor-pulse-check (published 2026-06-24): ~17 days — still no clicks
+- monitor-scout-sync-index-settings (2026-07-01): ~10 days — no GSC data
+- monitor-event-clear (2026-07-03): ~8 days — no GSC data
+- monitor-db-wipe (2026-07-06): ~5 days — too new
+- monitor-migrate-rollback (2026-07-07): ~4 days — too new
+- monitor-pennant-purge (2026-07-10/11): just published — too new
+- No articles have enough GSC data (clicks/impressions) to trigger title rewrites or self-improvement queue expansion yet
+
+**Queue status:**
+- pennant-purge: completed (moved from pending, PR merged)
+- Remaining pending: passport-purge, sanctum-prune-expired, schedule-interrupt, inspire
+- Consider: queue renewal needed — replace low-intent topics with GSC gap topics once data accumulates
 
 ## Run Summary (2026-07-07)
 
