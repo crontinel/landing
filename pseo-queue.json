@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "pennant-purge",
     "passport-purge",
     "sanctum-prune-expired",
     "schedule-interrupt",
@@ -33,6 +32,7 @@
     "notifications-prune",
     "optimize",
     "optimize-clear",
+    "pennant-purge",
     "pulse-check",
     "pulse-restart",
     "queue-failed",
