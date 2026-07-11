@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-passport-purge"
+    "https://crontinel.com/use-cases/monitor-schedule-interrupt"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -137,5 +137,5 @@
     "https://crontinel.com/vs/crontinel-vs-cronradar",
     "https://crontinel.com/use-cases/monitor-pennant-purge"
   ],
-  "last_push": "2026-07-11"
+  "last_push": "2026-07-12"
 }
