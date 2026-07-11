@@ -1,5 +1,54 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-11 02:08 UTC — new use-case page: monitor-pennant-purge
+Auto-generated: 2026-07-12 02:15 UTC — new use-case page: monitor-schedule-interrupt
+
+## Run Summary (2026-07-12)
+
+**New article published:**
+- `monitor-schedule-interrupt.mdx` — How to Detect When Laravel schedule:interrupt Fails After Deployment
+- URL: https://crontinel.com/use-cases/monitor-schedule-interrupt/
+- Keyword: "detect when Laravel schedule:interrupt fails to stop stale schedule:run processes after deployment"
+- Distinct from existing monitor-schedule-run (cron-based scheduler) and monitor-schedule-work (daemon approach): covers the deployment safety gap when sub-minute scheduling is active
+- Covers missing interrupt call, wrong cache driver, timing issues with Supervisor restart, deploy script crash
+- ~780 words body, 4 code samples, humanizer pass applied (removed inline-header failure mode format)
+- Feature branch → PR #152 → squash merged → Cloudflare Pages auto-deploy (live: HTTP 200)
+
+**GSC actions:**
+- Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC — 0 errors, 0 warnings
+- URL added to gsc-queue.json (pending)
+- schedule-interrupt moved pending → completed in pseo-queue.json
+
+**GSC findings (28-day — 2026-06-14 to 2026-07-11):**
+- 7 total clicks across all pages — site building search presence
+- Homepage: 1 click, 393 imp, pos 5.6, CTR 0.3% — impressions growing, CTR low
+- **Pages with CTR ≥ 2% (trigger self-improvement queue expansion):**
+  - monitor-reverb-server: 1 click, 27 imp, pos 10.6, CTR 3.7% — WINNING
+  - monitor-telescope-clear: 1 click, 33 imp, pos 9.8, CTR 3.0% — WINNING
+  - laravel-cron-timezone-issues: 1 click, 41 imp, pos 7.4, CTR 2.4% — WINNING
+  - monitor-horizon-purge: 1 click, 43 imp, pos 7.0, CTR 2.3% — WINNING
+  - laravel-horizon-idle-workers: 1 click, 48 imp, pos 9.6, CTR 2.1% — WINNING
+  - pagerduty integration: 1 click, 2 imp, pos 1.5, CTR 50% — tiny sample, ignore
+- Pages with impressions but 0 clicks needing monitoring:
+  - about: 125 imp, pos 5.5, CTR 0% — consider internal link improvements
+  - homepage: 393 imp, CTR 0.3% — below 1.5% after 48h threshold... but data is still thin
+  - better-stack-cron-monitoring-gone: 25 imp, pos 5.1, CTR 0%
+- 7-day window shows 0 clicks across all pages — search data still minimal
+
+**Self-improvement data:**
+- No articles yet have enough GSC clicks (>2) to draw CTR conclusions. Single-click data is noisy. Monitoring continues.
+- Expansion topics queued from high-CTR pages (CTR ≥ 2%, even on 1 click, shows keyword-intent alignment):
+  - reverb-server queue expansions: connection drop monitoring, broadcast failure detection
+  - horizon-purge queue expansions: stale process cleanup monitoring, horizon:purge scheduling
+  - timezone-issues queue expansion: DST handling, server vs app timezone
+  - horizon-idle-workers queue expansion: worker starvation detection
+  - telescope-clear queue expansion: storage cleanup automation
+
+**Queue status:**
+- schedule-interrupt: completed
+- Remaining pending: sanctum-prune-expired (usable but narrow), inspire (not viable — recommend removal)
+- inspire should be removed from queue — Easter egg command, no production monitoring use case
+- Recommend: replace inspire with expansion topics from high-CTR pages
+
+**Next strong candidate:** sanctum-prune-expired — narrow topic, but has real production use case. Or consider generating expansion topics from high-CTR pages instead.
 
 ## Run Summary (2026-07-11)
 
@@ -173,12 +222,14 @@ Auto-generated: 2026-07-11 02:08 UTC — new use-case page: monitor-pennant-purg
 - Long-tail keywords like "how to monitor Laravel Reverb server in production" target low-competition niches
 - Problem-first structure: hook with the failure, then technical explanation, then monitoring solution
 - Daemon-specific failure modes (memory leak timing, OOM calculations, specific config flags) add credibility and differentiation from related pages
+- Cache driver misconfiguration as a failure mode resonates because it's a real, common deployment pitfall
+- Deployment-timing failure modes (interrupt called before/after restart) add credibility — teams deploying via Supervisor hit this
 
 ## Improvement Needed
-- GSC CTR on existing content is very low (mostly <1%) — need more impression data before acting
-- Monitor-route-cache title rewrite applied 2026-06-22 — check CTR change after 2026-06-29
-- Monitor-horizon-purge title rewrite applied 2026-06-22 — check CTR change after 2026-06-29
-- Monitor-reverb-server: check GSC data debut after 2026-06-28
+- GSC CTR on existing content is very low — homepage 0.3% on 393 impressions, needs internal link improvements to drive traffic to content pages
+- about page: 125 impressions, 0 clicks — consider adding contextual cross-links from blog posts
+- better-stack-cron-monitoring-gone: 25 imp, pos 5.1, CTR 0% — low impressions but good position; title rewrite candidate if impressions grow
+- Self-improvement queue expansion triggered for reverb-server, telescope-clear, horizon-purge, timezone-issues, horizon-idle-workers (all CTR ≥ 2% on 28-day data)
 
 ## Content Rules (accumulated learning)
 - Keyword must appear in H1, first paragraph, and at least one H2
@@ -190,21 +241,21 @@ Auto-generated: 2026-07-11 02:08 UTC — new use-case page: monitor-pennant-purg
 - Avoid em dashes and promotional framing ("most reliable", "fastest")
 - When covering related-but-distinct topics (daemon vs cron), explicitly differentiate the failure modes to avoid creating near-duplicate content
 - Humanizer pass: convert inline-header failure mode lists to natural paragraphs, reduce em dashes, remove "the key difference" and "the first step is" signposting
+- For deployment-safety topics, cite Deployer recipe and Laravel docs as authority sources
 
 ## Queue Notes
-- event-clear marked completed
-- monitor-event-clear URL submitted to GSC via sitemap (pending in gsc-queue.json)
-- Remaining pending: db-seed, db-wipe, migrate-rollback, pulse-restart, pennant-purge, passport-purge, sanctum-prune-expired, schedule-interrupt, about, inspire
-- All remaining pending topics are low-intent artisan commands — none clear the quality bar
-- **Consider queue renewal:** remove weak topics or replace with GSC gap topics
+- schedule-interrupt marked completed
+- schedule-interrupt URL added to gsc-queue.json pending — submit via sitemap
+- GSC 28-day data shows 5 pages with CTR ≥ 2% — expansion topics should be added to queue
+- Remaining pending: sanctum-prune-expired, inspire
+- Recommend: remove inspire (no production monitoring value), replace with high-CTR expansion topics
+- Consider: sanctum-prune-expired has a weak but real use case for teams using Sanctum API tokens
 
 ## Pending GSC improvements
-- Homepage: 116 impressions, 1 click (pos 4.8) — first click recorded! Position stable. Continue monitoring.
-- monitor-route-cache: 83 imp (7-day), pos 7.5, 0 clicks — queries are low-volume specific terms. No data-backed action yet.
-- monitor-horizon-purge title rewrite (2026-06-22): position 8.1, 12 imp, 0 clicks — insufficient data
-- monitor-reverb-server: position 10.9, 15 imp, 0 clicks — insufficient data
-- monitor-pulse-check: 14 days — no clicks, insufficient data
-- monitor-scout-sync-index-settings: 7 days — no GSC data visible yet
-- monitor-event-clear: 5 days — too new
-- monitor-db-wipe: 2 days — too new
-- monitor-migrate-rollback: 1 day — too new
+- Homepage: 393 imp (28-day), 1 click, pos 5.6, CTR 0.3% — impressions growing, keep monitoring
+- about: 125 imp, pos 5.5, 0 clicks — add cross-links from use-case pages
+- better-stack-cron-monitoring-gone: 25 imp, pos 5.1, 0 clicks — watch for CTR data
+- monitor-route-cache: position 5-7 across multiple queries, 0 clicks — keyword-specific pages need time
+- monitor-horizon-purge: 1 click, 43 imp, 7.0 pos, CTR 2.3% — healthy, queue expansion triggered
+- monitor-reverb-server: 1 click, 27 imp, pos 10.6, CTR 3.7% — high CTR, good keyword alignment
+- monitor-telescope-clear: 1 click, 33 imp, pos 9.8, CTR 3.0% — high CTR, queue expansion triggered
