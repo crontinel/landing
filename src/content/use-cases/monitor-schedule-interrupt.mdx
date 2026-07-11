@@ -1,0 +1,126 @@
+---
+title: "How to Detect When Laravel schedule:interrupt Fails After Deployment"
+description: "Learn how to detect when php artisan schedule:interrupt fails to stop stale schedule:run processes after deployment, preventing old code from running in production."
+date: 2026-07-12
+---
+
+You deploy new code. The rollout finishes without errors. But in the background, `schedule:run` is still running the previous version of your code, and it will keep doing so until the current minute cycle ends. If you're using sub-minute scheduling, that window is the entire minute — long enough for a critical task to execute against stale application state.
+
+`php artisan schedule:interrupt` exists to solve this. It signals the running `schedule:run` process to stop early. But the interrupt itself can fail, and when it does, there's no built-in feedback loop. You need monitoring that tells you whether the interrupt actually took effect.
+
+## How schedule:interrupt Actually Works
+
+Laravel's scheduler normally calls `schedule:run` once per minute via your system crontab. The command loads the application, evaluates which tasks are due, executes them, and exits. This works fine for minute-level scheduling.
+
+When you define sub-minute tasks — `->everyFiveSeconds()` or `->everyTenSeconds()` — Laravel changes the behavior. Instead of running `schedule:run` as a one-shot command, it enters a while loop that runs for the entire minute:
+
+```php
+// Inside Illuminate\Console\Scheduling\ScheduleRunCommand
+if ($this->cache->has('laravel-schedule-interrupt')) {
+    $this->cache->forget('laravel-schedule-interrupt');
+    break;
+}
+```
+
+The `schedule:interrupt` command writes a signal file to the cache:
+
+```php
+// php artisan schedule:interrupt
+Cache::store('schedule-interrupt')->forever('laravel-schedule-interrupt', true);
+```
+
+On the next loop iteration, `schedule:run` checks for this signal file, and if present, breaks out of the while loop and exits gracefully. The next cron-triggered `schedule:run` invocation starts fresh with the new code.
+
+The Laravel docs recommend adding this command to your deployment script right after the application finishes deploying:
+
+```bash
+php artisan schedule:interrupt
+```
+
+Deployer, a popular Laravel deployment tool, includes this as a standard step in its Laravel recipe. If the command is missing from your deploy script, the running `schedule:run` continues with old code until the minute expires naturally.
+
+## Common Failure Modes
+
+The most common problem is that the interrupt command is never called at all. Many deployment scripts run `php artisan migrate`, `php artisan config:cache`, and `php artisan queue:restart`, but forget `schedule:interrupt`. The command was introduced in Laravel 11 and is easy to miss if you migrated an older setup. Without it, sub-minute tasks keep running stale code for up to 60 seconds after deployment.
+
+Even when the interrupt is called, the cache driver can send the signal to the wrong place. The command stores the signal using the application's default cache driver. If your deployment runs in a different environment context — say a build step that uses `array` cache while production uses Redis — the signal goes to the wrong store and the running `schedule:run` never sees it.
+
+Timing also matters. If your deployment stops and restarts `schedule:run` via Supervisor before calling `schedule:interrupt`, the old process is already dead. The interrupt is harmless in that case, but the deployment killed running tasks without a controlled shutdown.
+
+Then there's the crash scenario. A failed migration or a configuration error causes the deployment script to exit before reaching the interrupt step. The command never runs, the running `schedule:run` keeps going, and nobody notices unless they read the deployment logs.
+
+## Building Visibility Into schedule:interrupt
+
+Start by adding the interrupt to your deploy script with explicit logging:
+
+```bash
+# In your deployment script
+echo "Interrupting running scheduler..."
+php artisan schedule:interrupt && echo "Scheduler interrupted successfully" || echo "WARNING: schedule:interrupt failed"
+```
+
+This gives you log-level feedback but does not catch the case where the interrupt command succeeds but the running `schedule:run` never receives the signal.
+
+A more reliable approach is tracking the schedule restart itself. Add a heartbeat task that records every time `schedule:run` starts a new cycle:
+
+```php
+use Illuminate\Support\Facades\Cache;
+
+Schedule::call(function () {
+    $cycle = Cache::get('schedule-cycle-id', 0) + 1;
+    Cache::forever('schedule-cycle-id', $cycle);
+})->everyMinute();
+```
+
+After a deployment, check that the cycle ID incremented. If it did, the old `schedule:run` was properly interrupted and a new cycle started. If it stayed the same, the interrupt may have missed its target.
+
+## Detecting When schedule:interrupt Fails
+
+The most direct signal is a time gap. `schedule:run` should restart within seconds after `schedule:interrupt` is called. If the cron fires on the minute and `schedule:run` takes the full 60 seconds to cycle out, the interrupt either never fired or was ignored.
+
+Monitor for this by tracking the interval between consecutive `schedule:run` lock releases:
+
+```php
+Schedule::call(function () {
+    $lastRun = Cache::get('schedule-last-finished');
+    $now = now();
+    $gap = $lastRun ? $now->diffInSeconds($lastRun) : 0;
+
+    if ($gap > 90) {
+        Log::warning('Scheduler cycle gap exceeds 90 seconds — possible missed interrupt', [
+            'gap_seconds' => $gap,
+            'last_finished' => $lastRun,
+        ]);
+    }
+
+    Cache::forever('schedule-last-finished', $now);
+})->everyMinute();
+```
+
+A gap longer than 90 seconds (60 for the normal cycle plus 30 for the interrupt delay) means the previous `schedule:run` ran to completion without being interrupted. This is worth alerting on.
+
+For full coverage, use a heartbeat monitor that expects the scheduler cycle signal within a defined window. Crontinel's deadline-based checks let you set a grace period that accommodates normal cycle time while alerting when the scheduler falls silent:
+
+```php
+Schedule::call(function () {
+    Http::get('https://hc.crontinel.com/heartbeat/scheduler-cycle');
+})->everyMinute();
+```
+
+If this heartbeat misses its deadline, either `schedule:run` is not running at all, or the interrupt has not been called and the old process continues unchecked.
+
+## Quick Setup with Crontinel
+
+1. Add `schedule:interrupt` to your deploy script if it's not there already
+2. Add the scheduler cycle heartbeat to your Laravel console kernel
+3. Create a Crontinel heartbeat check with a 120-second grace period to tolerate normal timing variance
+4. Deploy and verify the heartbeat registers as "OK" in the dashboard
+5. Test by deploying without the interrupt call — the heartbeat gap alert fires within two minutes
+
+About 10 minutes of setup work for a category of failure that most teams don't know they have until users report stale data.
+
+## See also
+
+- [How to monitor php artisan schedule:run in production](/use-cases/monitor-schedule-run)
+- [Monitoring php artisan schedule:work in Laravel production](/use-cases/monitor-schedule-work)
+- [Production cron job alerting](/use-cases/production-cron-job-alerting)
