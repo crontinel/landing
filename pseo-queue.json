@@ -2,7 +2,12 @@
   "in_progress": [],
   "pending": [
     "sanctum-prune-expired",
-    "inspire"
+    "reverb-connection-drops",
+    "broadcast-failure-detection",
+    "horizon-stale-process-cleanup",
+    "horizon-worker-starvation",
+    "telescope-storage-cleanup",
+    "laravel-schedule-timezone-mismatch"
   ],
   "completed": [
     "about",
