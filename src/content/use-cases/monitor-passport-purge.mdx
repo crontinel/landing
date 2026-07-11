@@ -1,0 +1,89 @@
+---
+title: "Monitor php artisan passport:purge in Laravel Production"
+description: "passport:purge cleans expired tokens, but when it fails your auth database grows unbounded — slowing queries and risking memory pressure. Here is how to detect purge failures before they degrade API performance."
+date: 2026-07-11
+---
+
+Laravel Passport issues OAuth tokens for your API clients. Every token, auth code, and refresh token has an expiry. On their own, these entries pile up in your database. The `passport:purge` command is what keeps that table clean.
+
+Without it running, a high-traffic API application can accumulate hundreds of thousands of expired rows in `oauth_access_tokens`, `oauth_auth_codes`, and `oauth_refresh_tokens` in a matter of weeks. Queries slow down. Memory usage creeps up. Eventually, your authentication layer becomes the bottleneck.
+
+## What passport:purge actually does
+
+`php artisan passport:purge` removes:
+
+- **Expired access tokens** — tokens past their `expires_at` date
+- **Expired auth codes** — authorization codes that were never exchanged for tokens
+- **Expired refresh tokens** — refresh tokens that can no longer be used
+
+```php
+// Under the hood, passport:purge runs something like:
+Passport::token()->where('expires_at', '<', now())->delete();
+Passport::authCode()->where('expires_at', '<', now())->delete();
+Passport::refreshToken()->where('expires_at', '<', now())->delete();
+```
+
+In production, this command typically runs on a schedule — hourly or daily depending on your token volume. A common cron entry looks like:
+
+```php
+// app/Console/Kernel.php
+$schedule->command('passport:purge')->daily();
+```
+
+## The four failure modes you cannot ignore
+
+### 1. The cron job never fires
+
+The most common failure: the cron entry is present in your scheduler but the system cron never invokes `php artisan schedule:run`. This happens after server migrations, container rebuilds, or when someone forgets to add the cron entry on a new server. Your `passport:purge` simply stops running. There is no error. No alert. The tokens just accumulate.
+
+### 2. The purge runs but hits a timeout
+
+On large Passport installations with hundreds of thousands of tokens, the delete queries can take minutes. If your cron or queue worker has a timeout of 60 seconds, the command gets killed mid-purge. Some tokens are deleted. Most are not. The next run starts from scratch, hits the same timeout, and never catches up.
+
+### 3. Database connection drops mid-purge
+
+If your database experiences a brief connectivity blip while `passport:purge` is in progress, Laravel throws a `QueryException`. The command exits with an error. But unless you are watching the artisan output, you will not know it failed. The cron log shows a non-zero exit code — but who reads cron logs?
+
+### 4. The passport tables are locked
+
+On busy API servers, concurrent authentication requests can hold row locks on the `oauth_access_tokens` table. When `passport:purge` tries to delete rows, it waits. And waits. Eventually, the database driver times out. The command exits without purging anything. Your daily schedule goes into a failure loop.
+
+## How to detect passport:purge failures
+
+The safest approach is a heartbeat-based monitor that checks three things:
+
+1. **Did passport:purge run?** The monitor expects a ping at the scheduled time. No ping means the scheduler entry is missing or the cron daemon isn't running.
+2. **Did it exit successfully?** A non-zero exit code means the purge failed — regardless of whether the scheduler thinks it ran.
+3. **How many expired tokens remain?** A persistent count of expired tokens above your normal baseline indicates the purge is running but not keeping up.
+
+```bash
+# Example heart beat check with curl
+curl -fsS -m 10 --retry 5 \
+  -d "source=passport-purge&host=$(hostname)" \
+  https://ping.crontinel.com/your-endpoint
+```
+
+Crontinel wraps this into a single check: you configure the artisan command, the expected schedule, and the acceptable token count threshold. If the command fails to run, exits with an error, or leaves too many expired tokens, you get alerted immediately.
+
+## The cost of missed purges
+
+A Laravel Passport application processing 10,000 API requests per day generates roughly:
+
+- 10,000 new access tokens per day
+- ~300 new refresh tokens per day
+- ~100 new auth codes per day
+
+Without `passport:purge`, after 30 days that is **300,000+ expired rows** in your oauth tables. Index scans slow down. `SELECT` queries on the tokens table that once took 5 ms now take 200 ms. Your API response times degrade gradually — too slowly to trigger a traditional alert, but fast enough to frustrate users.
+
+By the time someone investigates, the database is already under unnecessary load.
+
+## Crontinel makes passport:purge monitoring automatic
+
+Instead of writing custom health checks, parsing cron logs, and tracking token counts manually, Crontinel runs the check for you:
+
+- **Schedule verification** — confirms `passport:purge` fired at its expected interval
+- **Exit code tracking** — catches silent failures when the command returns non-zero
+- **Post-purge validation** — checks that expired token counts dropped as expected
+- **Dashboard view** — see purge history, failures, and trends across all your servers
+
+No extra infrastructure. No custom scripts. Just wire the artisan command into Crontinel and get alerted when your token cleanup stops working.

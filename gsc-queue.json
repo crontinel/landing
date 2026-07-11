@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/use-cases/monitor-passport-purge"
+  ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
@@ -91,6 +93,8 @@
     "https://crontinel.com/use-cases/monitor-schedule-run",
     "https://crontinel.com/use-cases/monitor-schedule-work",
     "https://crontinel.com/use-cases/monitor-scout-flush",
+    "https://crontinel.com/use-cases/monitor-scout-import",
+    "https://crontinel.com/use-cases/monitor-scout-sync-index-settings",
     "https://crontinel.com/use-cases/monitor-telescope-clear",
     "https://crontinel.com/use-cases/monitor-telescope-prune",
     "https://crontinel.com/use-cases/monitor-view-cache",
