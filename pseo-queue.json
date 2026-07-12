@@ -5,7 +5,10 @@
     "horizon-stale-process-cleanup",
     "horizon-worker-starvation",
     "telescope-storage-cleanup",
-    "laravel-schedule-timezone-mismatch"
+    "laravel-schedule-timezone-mismatch",
+    "kubernetes-laravel-horizon",
+    "long-running-cron-jobs",
+    "horizon-config-env-mismatch"
   ],
   "completed": [
     "about",
