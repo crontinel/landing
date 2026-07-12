@@ -1,7 +1,6 @@
 {
-  "in_progress": [],
+  "in_progress": ["sanctum-prune-expired"],
   "pending": [
-    "sanctum-prune-expired",
     "reverb-connection-drops",
     "broadcast-failure-detection",
     "horizon-stale-process-cleanup",
