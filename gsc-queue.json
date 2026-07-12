@@ -1,7 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-schedule-interrupt",
-    "https://crontinel.com/use-cases/monitor-sanctum-prune-expired"
+    "https://crontinel.com/use-cases/monitor-schedule-interrupt"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -43,6 +42,7 @@
     "https://crontinel.com/blog/what-laravel-horizon-redis-keys-mean",
     "https://crontinel.com/blog/why-generic-cron-monitors-miss-horizon-failures",
     "https://crontinel.com/blog/why-generic-uptime-monitors-miss-queue-failures",
+    "https://crontinel.com/use-cases/monitor-sanctum-prune-expired",
     "https://crontinel.com/changelog",
     "https://crontinel.com/faq",
     "https://crontinel.com/features",
@@ -138,5 +138,5 @@
     "https://crontinel.com/vs/crontinel-vs-cronradar",
     "https://crontinel.com/use-cases/monitor-pennant-purge"
   ],
-  "last_push": "2026-07-12"
+  "last_push": "2026-07-13"
 }
