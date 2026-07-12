@@ -1,0 +1,103 @@
+---
+title: "How to Monitor sanctum:prune-expired and Fix Expired Token Cleanup in Laravel"
+description: "Monitor sanctum:prune-expired in production so you catch missed cleanup runs and silent failures before expired tokens bloat your personal_access_tokens table."
+date: 2026-07-13
+---
+
+`sanctum:prune-expired` can exit 0 while expired tokens stay in your database. The command relies on a global config value, ignores per-token `expires_at` timestamps, and stops running entirely when the scheduler breaks.
+
+You set up the prune command. It runs daily. Your token table still grows. The command looks successful because it exits 0, but expired tokens stay in `personal_access_tokens` until something else catches the problem.
+
+## How sanctum:prune-expired Works
+
+`php artisan sanctum:prune-expired` queries the `personal_access_tokens` table for tokens whose `created_at` timestamp plus the configured expiration minutes exceeds the current time, then deletes matching rows in batches.
+
+The expiration value comes from `config/sanctum.php`:
+
+```php
+'expiration' => 60 * 24, // 24 hours
+```
+
+Passing the `--hours` flag overrides this:
+
+```bash
+php artisan sanctum:prune-expired --hours=48
+```
+
+The command uses `created_at` only. It does not look at the `expires_at` column, even if you set `$token->expires_at` explicitly when creating a token:
+
+```php
+$token = $user->createToken('api-token', ['*'], now()->addHours(2));
+// expires_at is set to +2 hours
+// sanctum:prune-expired still prunes based on created_at + config expiration
+```
+
+This is a documented limitation. If you set per-token expiration with `expires_at`, the prune command ignores it and uses the global config. Tokens expire correctly for authentication (Sanctum checks `expires_at`), but the prune command never deletes them if `created_at + config expiration` hasn't elapsed.
+
+## Common Failure Modes
+
+**No expiration configured.** If `config/sanctum.php` does not have an `expiration` value set, Sanctum creates tokens that never expire. Running `sanctum:prune-expired` without a configured expiration prunes nothing. The command exits 0 and your token table grows forever.
+
+**Scheduler not running.** The standard setup is `Schedule::command('sanctum:prune-expired --hours=24')->daily()`. If `schedule:run` is not firing from the system cron, the command never runs. Expired tokens accumulate without any alert because the command simply does not execute.
+
+**Per-token expires_at confusion.** You set `$token->expires_at = now()->addHours(2)` when creating API tokens for your mobile app. Users get 401s after 2 hours (Sanctum auth checks `expires_at` and rejects expired tokens). But `sanctum:prune-expired` looks at `created_at + 24h` (your global config), so tokens stay in the table for 22 more hours after they are already expired for auth purposes. The table never shrinks as fast as you expect.
+
+**Memory on large token tables.** On apps with millions of API tokens (SPA + mobile + third-party integrations), `sanctum:prune-expired` deletes in batches. If your token table has hundreds of thousands of expired rows, the command can be slow. On memory-constrained workers, it may be killed mid-run. The next scheduled run picks up the remaining rows, but if your token generation outpaces your prune batch throughput, the table keeps growing.
+
+## Building Visibility Into sanctum:prune-expired
+
+Add a before-and-after count check to track the token table. Write a small report command:
+
+```php
+// app/Console/Commands/ReportSanctumTokenCounts.php
+protected $signature = 'report:sanctum-token-counts';
+
+public function handle()
+{
+    $total = DB::table('personal_access_tokens')->count();
+    $expired = DB::table('personal_access_tokens')
+        ->where('expires_at', '<', now())
+        ->count();
+    
+    $this->info("Total tokens: {$total}");
+    $this->info("Expired tokens: {$expired}");
+    
+    if ($expired > 10000) {
+        $this->warn("Expired token backlog exceeds 10,000");
+    }
+}
+```
+
+Run this before and after your scheduled prune to confirm the command actually cleaned. Wire a heartbeat into your scheduler so you know the prune ran:
+
+```php
+Schedule::command('sanctum:prune-expired --hours=24')
+    ->daily()
+    ->withoutOverlapping(60)
+    ->onSuccess(fn () => Http::get(config('crontinel.sanctum_prune_ping')));
+```
+
+## Detecting When sanctum:prune-expired Fails
+
+Two alert conditions matter:
+
+**The ping does not arrive.** If your Crontinel heartbeat does not fire within the expected 25-hour window, the scheduler may be down. This is the same failure mode as every other scheduled command, and it is the most common cause of unbounded token table growth.
+
+**The expired token count keeps rising.** Even if the ping arrives, the command may be running but not keeping up. Set up a second scheduled task that runs `report:sanctum-token-counts` daily and compares the expired token count against the previous value. If expired tokens grow for three consecutive days despite the prune running, investigate the batch size and token generation rate.
+
+A daily `sanctum:prune-expired` without a heartbeat is indistinguishable from one that is silently deleting rows. The heartbeat makes the failure visible before your `personal_access_tokens` table hits a million rows.
+
+## Quick Setup with Crontinel
+
+Create a daily heartbeat job in Crontinel for `sanctum:prune-expired`. Expected interval: 25 hours. Grace period: 2 hours.
+
+On staging, intentionally break the scheduler and confirm you get an alert within 3 hours. Then fix it and confirm the ping arrives. This verification step is the only way to know your monitoring works before a real failure.
+
+If your app creates tokens at a high rate (thousands per day from API integrations), consider running the prune twice daily. The command is idempotent and overlap-safe, so scheduling it more frequently is low risk and prevents backlog between runs.
+
+## See also
+
+- [Crontinel homepage](/)
+- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
+- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
+- [Laravel queue monitoring](/use-cases/laravel-queue-monitoring)
