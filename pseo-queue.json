@@ -1,5 +1,5 @@
 {
-  "in_progress": ["sanctum-prune-expired"],
+  "in_progress": [],
   "pending": [
     "reverb-connection-drops",
     "broadcast-failure-detection",
@@ -48,6 +48,7 @@
     "reverb-start",
     "route-cache",
     "route-clear",
+    "sanctum-prune-expired",
     "schedule-interrupt",
     "schedule-run",
     "schedule-work",
