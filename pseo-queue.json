@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "reverb-connection-drops",
     "broadcast-failure-detection",
     "horizon-stale-process-cleanup",
     "horizon-worker-starvation",
@@ -59,6 +58,7 @@
     "telescope-clear",
     "telescope-prune",
     "view-cache",
-    "view-clear"
+    "view-clear",
+    "reverb-connection-drops"
   ]
 }
