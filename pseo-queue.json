@@ -1,14 +1,16 @@
 {
   "in_progress": [],
   "pending": [
-    "broadcast-failure-detection",
+    "horizon-config-env-mismatch",
     "horizon-stale-process-cleanup",
     "horizon-worker-starvation",
-    "telescope-storage-cleanup",
-    "laravel-schedule-timezone-mismatch",
     "kubernetes-laravel-horizon",
+    "laravel-schedule-timezone-mismatch",
+    "laravel-supervisor-configuration",
     "long-running-cron-jobs",
-    "horizon-config-env-mismatch"
+    "queue-latency-monitoring",
+    "self-hosted-monitoring-comparison",
+    "telescope-storage-cleanup"
   ],
   "completed": [
     "about",
@@ -62,6 +64,7 @@
     "telescope-prune",
     "view-cache",
     "view-clear",
-    "reverb-connection-drops"
+    "reverb-connection-drops",
+    "broadcast-failure-detection"
   ]
 }

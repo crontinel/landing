@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/blog/debug-laravel-reverb-connection-drops"
+    "https://crontinel.com/blog/laravel-broadcast-failure-detection"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -141,7 +141,9 @@
     "https://crontinel.com/integrations",
     "https://crontinel.com/use-cases",
     "https://crontinel.com/use-cases/monitor-passport-purge",
-    "https://crontinel.com/vs"
+    "https://crontinel.com/vs",
+    "https://crontinel.com/blog/debug-laravel-reverb-connection-drops/",
+    "https://crontinel.com/blog/monitor-laravel-pennant-purge/"
   ],
   "last_push": "2026-07-13"
 }

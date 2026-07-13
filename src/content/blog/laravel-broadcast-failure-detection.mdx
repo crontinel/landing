@@ -1,0 +1,175 @@
+---
+title: "Detecting Laravel Broadcast Failures Before Users Report Them"
+description: "Broadcasting silently fails in production — Pusher disconnects, Reverb drops, Soketi restarts. Here's how to detect broadcast failures, monitor WebSocket health, and catch silent failures before they reach your users."
+date: 2026-07-13
+tags: ["laravel", "broadcasting", "websocket", "reverb", "pusher"]
+---
+
+Your Laravel app emits real-time events: new orders, live notifications, chat messages. Users expect them to arrive instantly. When they don't — when a broadcast silently fails — nobody tells you. The event was dispatched. The queue processed it. But the WebSocket never delivered it.
+
+Broadcast failures are different from queue failures. A job failure leaves a trace in `failed_jobs`. A broadcast failure is invisible from the server side. The event fired successfully. The broadcasting driver returned 200. But the WebSocket connection dropped two minutes earlier, and Laravel has no built-in way to know.
+
+## Why broadcasts fail silently
+
+Laravel's broadcasting system is a fire-and-forget chain:
+
+```
+Dispatcher → Queue → Broadcast driver → WebSocket server → Client
+```
+
+A failure at any link in this chain can produce a "successful" server response while the client never receives the payload. Common failure modes:
+
+**WebSocket server crash or restart** — Reverb, Soketi, or Pusher's server goes down or restarts. The client connection drops. PHP emits the broadcast to the configured driver URL (or Pusher's REST API), but the client isn't connected to receive it. No log entry. No error.
+
+**REST API authentication failure** — Pusher's REST API returns 401 if the app key or secret is wrong in an environment that recently rotated credentials. The broadcast ends up in the queue as a "success" — the queue worker ran it — but the actual HTTP call to Pusher failed silently because Pusher's PHP client doesn't throw by default.
+
+**Connection pool exhaustion** — High-traffic apps with many simultaneous broadcasts can exhaust Reverb's connection pool or hit Pusher's rate limits. New broadcasts queue up, then time out. The dispatcher doesn't know.
+
+**Redis pub/sub dropout** — When using Redis as the broadcast backend (common with Reverb), a Redis connection blip between your app and the Redis server means messages enqueued but never forwarded to the WebSocket server.
+
+## What standard monitoring misses
+
+Generic uptime monitors check HTTP endpoints. Cron monitors check scheduled jobs. Neither checks whether WebSocket messages are actually flowing.
+
+A typical monitoring setup:
+- ✅ App responds on port 443
+- ✅ Scheduler runs every minute
+- ❌ No check: "Is the WebSocket server delivering data?"
+
+The gap is especially dangerous for apps that rely on real-time features. If your notification system, live dashboard, or collaborative feature depends on broadcasting, a dead WebSocket means those features are silently broken.
+
+## How to detect broadcast failures
+
+### 1. Heartbeat messages (the baseline)
+
+The most basic approach: broadcast a heartbeat message to a known channel every minute, and have a client-side monitor verify it arrives.
+
+**Server-side heartbeat command:**
+```php
+// app/Console/Commands/BroadcastHeartbeat.php
+Artisan::command('broadcast:heartbeat', function () {
+    broadcast(new \App\Events\Heartbeat(now()->toIso8601String()));
+})->everyMinute();
+```
+
+**Client-side monitor (Node.js):**
+```javascript
+const WebSocket = require('ws');
+const ws = new WS('wss://your-app.com/app/YOUR_KEY');
+
+let lastHeartbeat = Date.now();
+ws.on('message', (data) => {
+  const msg = JSON.parse(data);
+  if (msg.event === 'heartbeat') lastHeartbeat = Date.now();
+});
+
+setInterval(() => {
+  if (Date.now() - lastHeartbeat > 70000) {
+    // No heartbeat in 70 seconds — broadcast is down
+    // Trigger alert (webhook, PagerDuty, etc.)
+  }
+}, 10000);
+```
+
+Crontinel can wrap this pattern: it sends periodic heartbeats to a monitor endpoint. If the heartbeat stops arriving, it alerts you.
+
+### 2. Pusher WebHook monitoring
+
+Pusher sends WebHooks for channel occupancy, presence events, and — critically — connection events. Subscribe to `channel_exists` and `vacated` WebHooks:
+
+```
+POST /pusher/webhook (configured in Pusher dashboard)
+```
+
+```php
+Route::post('/pusher/webhook', function (Request $request) {
+    $payload = $request->all();
+    foreach ($payload['events'] as $event) {
+        if ($event['name'] === 'channel_vacated' && $event['channel'] === 'presence-critical') {
+            // All users left the critical channel — potential disconnect storm
+            // Trigger alert so you can investigate
+        }
+    }
+    return response('OK');
+});
+```
+
+Combine this with a Crontinel cron monitor that hits an endpoint every minute — if the endpoint doesn't respond in time, you know the WebSocket or the app handling it is down.
+
+### 3. Reverb health endpoint monitoring
+
+Reverb exposes a health endpoint out of the box:
+
+```bash
+curl https://your-app.com/reverb/health
+# Returns {"ok": true} when healthy
+```
+
+Monitor this endpoint with Crontinel as an HTTP check. If Reverb is unhealthy (process crash, port contention, OOM), you'll know within 60 seconds.
+
+### 4. Client-side error logging
+
+Configure your JavaScript to broadcast connection state changes to a logging endpoint:
+
+```javascript
+// In your Echo/Laravel Echo setup
+Echo.connector.pusher.connection.bind('state_change', (states) => {
+  if (states.current === 'disconnected' || states.current === 'failed') {
+    navigator.sendBeacon('/api/log-websocket-event', JSON.stringify({
+      previous: states.previous,
+      current: states.current,
+      timestamp: new Date().toISOString(),
+      url: window.location.href
+    }));
+  }
+});
+```
+
+Then set up a Crontinel monitor that tracks the frequency of `disconnected` events from your logs. If the rate spikes, investigate.
+
+### 5. Queue job broadcast audit
+
+For critical broadcasts, add a sentinel pattern: after broadcasting, dispatch a delayed self-check that verifies delivery:
+
+```php
+$broadcast = broadcast(new OrderPlaced($order));
+
+// Dispatch a verification job that checks the broadcast arrived
+OrderPlacedVerification::dispatch($order->id)
+    ->delay(now()->addSeconds(30));
+```
+
+```php
+class OrderPlacedVerification implements ShouldQueue
+{
+    public function handle(): void
+    {
+        $order = Order::find($this->orderId);
+        // Check if the expected side effect happened
+        // (external system received callback, user acknowledged notification, etc.)
+        if (!$order->broadcast_confirmed_at) {
+            // Broadcast never arrived — trigger alert
+            Alert::trigger('broadcast-missed', ['order_id' => $this->orderId]);
+        }
+    }
+}
+```
+
+## What Crontinel does differently
+
+Crontinel is designed for exactly these kinds of silent failures. It combines:
+
+- **Heartbeat monitors** — Crontinel expects a periodic ping. If the ping stops (because your WebSocket server is down or your broadcast chain broke), you get alerted.
+- **HTTP monitors** — Check Reverb health endpoints, Pusher WebHook endpoints, or your own broadcast status endpoints.
+- **Cron monitors** — If your broadcast heartbeat command (`broadcast:heartbeat`) stops running because the scheduler broke or a deploy removed it, Crontinel catches it.
+- **Queue depth alerts** — If broadcasts are failing and queuing up as retries, queue depth spikes tell you something is wrong.
+
+The key insight: broadcast failures are never a single red flag. They're a pattern of missing signals. Crontinel monitors the signals — heartbeats, health checks, queue depth, cron runs — and alerts you when the pattern breaks.
+
+## The takeaway
+
+Laravel broadcasting makes real-time features look easy. But "the event was dispatched" and "the client received it" are two different things. The gap between them is where silent failures live.
+
+If your app depends on WebSockets for critical features, set up at least one of the detection methods above before your users find the problem for you.
+
+And if you want a system that watches the watchers — monitoring your broadcast chain, your heartbeat commands, your queue health, and your cron jobs in one place — Crontinel has you covered.
