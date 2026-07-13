@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-schedule-interrupt"
+    "https://crontinel.com/blog/debug-laravel-reverb-connection-drops"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -136,7 +136,12 @@
     "https://crontinel.com/integrations/microsoft-teams",
     "https://crontinel.com/integrations/telegram",
     "https://crontinel.com/vs/crontinel-vs-cronradar",
-    "https://crontinel.com/use-cases/monitor-pennant-purge"
+    "https://crontinel.com/use-cases/monitor-pennant-purge",
+    "https://crontinel.com/use-cases/monitor-schedule-interrupt",
+    "https://crontinel.com/integrations",
+    "https://crontinel.com/use-cases",
+    "https://crontinel.com/use-cases/monitor-passport-purge",
+    "https://crontinel.com/vs"
   ],
   "last_push": "2026-07-13"
 }
