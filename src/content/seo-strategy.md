@@ -1,54 +1,43 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-12 02:15 UTC — new use-case page: monitor-schedule-interrupt
+Auto-generated: 2026-07-14 02:15 UTC — new use-case page: monitor-horizon-worker-starvation
 
-## Run Summary (2026-07-12)
+## Run Summary (2026-07-14)
 
 **New article published:**
-- `monitor-schedule-interrupt.mdx` — How to Detect When Laravel schedule:interrupt Fails After Deployment
-- URL: https://crontinel.com/use-cases/monitor-schedule-interrupt/
-- Keyword: "detect when Laravel schedule:interrupt fails to stop stale schedule:run processes after deployment"
-- Distinct from existing monitor-schedule-run (cron-based scheduler) and monitor-schedule-work (daemon approach): covers the deployment safety gap when sub-minute scheduling is active
-- Covers missing interrupt call, wrong cache driver, timing issues with Supervisor restart, deploy script crash
-- ~780 words body, 4 code samples, humanizer pass applied (removed inline-header failure mode format)
-- Feature branch → PR #152 → squash merged → Cloudflare Pages auto-deploy (live: HTTP 200)
+- `monitor-horizon-worker-starvation.mdx` — Detect When Laravel Horizon Workers Are Running But Not Processing Jobs
+- URL: https://crontinel.com/use-cases/monitor-horizon-worker-starvation/
+- Keyword: "detect when Laravel Horizon workers have stopped processing jobs"
+- Distinct from existing monitor-horizon-work (covers horizon:work command crash) and laravel-horizon-monitoring (product-oriented monitoring page): this covers worker throughput starvation — workers alive but not making progress
+- Covers 5 failure modes: slow jobs blocking pool, maxProcesses too low, Redis connection pool exhaustion, queue-weighted balance strategy, memory limit recycling loop
+- ~700 words body, 2 code samples, 5 H3 failure mode sections, humanizer pass applied
+- Feature branch → PR #159 → Cloudflare Pages auto-deploy (pending merge)
 
 **GSC actions:**
 - Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC — 0 errors, 0 warnings
 - URL added to gsc-queue.json (pending)
-- schedule-interrupt moved pending → completed in pseo-queue.json
+- horizon-worker-starvation moved pending → completed in pseo-queue.json
 
-**GSC findings (28-day — 2026-06-14 to 2026-07-11):**
-- 7 total clicks across all pages — site building search presence
-- Homepage: 1 click, 393 imp, pos 5.6, CTR 0.3% — impressions growing, CTR low
-- **Pages with CTR ≥ 2% (trigger self-improvement queue expansion):**
-  - monitor-reverb-server: 1 click, 27 imp, pos 10.6, CTR 3.7% — WINNING
-  - monitor-telescope-clear: 1 click, 33 imp, pos 9.8, CTR 3.0% — WINNING
-  - laravel-cron-timezone-issues: 1 click, 41 imp, pos 7.4, CTR 2.4% — WINNING
-  - monitor-horizon-purge: 1 click, 43 imp, pos 7.0, CTR 2.3% — WINNING
-  - laravel-horizon-idle-workers: 1 click, 48 imp, pos 9.6, CTR 2.1% — WINNING
-  - pagerduty integration: 1 click, 2 imp, pos 1.5, CTR 50% — tiny sample, ignore
-- Pages with impressions but 0 clicks needing monitoring:
-  - about: 125 imp, pos 5.5, CTR 0% — consider internal link improvements
-  - homepage: 393 imp, CTR 0.3% — below 1.5% after 48h threshold... but data is still thin
-  - better-stack-cron-monitoring-gone: 25 imp, pos 5.1, CTR 0%
-- 7-day window shows 0 clicks across all pages — search data still minimal
+**GSC findings (28-day — 2026-06-16 to 2026-07-13):**
+- 0 clicks across all pages — site still building search presence
+- Top query by impressions: "laravel monitoring" → laravel-cron-queue-monitoring-tools blog (59 imp, pos 64.5)
+- Notable: "laravel horizon jobs stuck in pending" query on laravel-horizon-monitoring page (1 imp, pos 27) — confirms search intent for this topic
+- monitor-config-cache: showing at positions 7-10 for config cache file queries (8 imp total) — good targeting
+- monitor-queue-flush: position 5.0 for "laravel queue flush" — strong position
+- monitor-queue-restart: position 10.0 for "php artisan queue:restart" — decent position
+- monitor-route-cache: position 7.1 for bootstrap/cache/routes-v7.php queries (8 imp)
+- No zero-click pattern is actionable yet — most pages average <5 impressions
 
 **Self-improvement data:**
-- No articles yet have enough GSC clicks (>2) to draw CTR conclusions. Single-click data is noisy. Monitoring continues.
-- Expansion topics queued from high-CTR pages (CTR ≥ 2%, even on 1 click, shows keyword-intent alignment):
-  - reverb-server queue expansions: connection drop monitoring, broadcast failure detection
-  - horizon-purge queue expansions: stale process cleanup monitoring, horizon:purge scheduling
-  - timezone-issues queue expansion: DST handling, server vs app timezone
-  - horizon-idle-workers queue expansion: worker starvation detection
-  - telescope-clear queue expansion: storage cleanup automation
+- No articles yet have enough GSC clicks to draw CTR conclusions
+- monitor-reverb-server (published earlier): still too few impressions for CTR analysis
+- monitor-telescope-clear: insufficient data
+- Homepage: 0 clicks on recent 28-day (was 1 click in earlier window) — too noisy
 
 **Queue status:**
-- schedule-interrupt: completed
-- Remaining pending: sanctum-prune-expired (usable but narrow), inspire (not viable — recommend removal)
-- inspire should be removed from queue — Easter egg command, no production monitoring use case
-- Recommend: replace inspire with expansion topics from high-CTR pages
+- horizon-worker-starvation: completed (PR #159, pending merge to main)
+- 9 topics remaining pending — next strong candidates: queue-latency-monitoring, horizon-stale-process-cleanup
+- Self-hosted monitoring comparison should be deferred — comparison articles on a new domain rarely rank without existing authority
 
-**Next strong candidate:** sanctum-prune-expired — narrow topic, but has real production use case. Or consider generating expansion topics from high-CTR pages instead.
 
 ## Run Summary (2026-07-11)
 

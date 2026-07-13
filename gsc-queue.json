@@ -1,6 +1,7 @@
 {
   "pending": [
-    "https://crontinel.com/blog/laravel-broadcast-failure-detection"
+    "https://crontinel.com/blog/laravel-broadcast-failure-detection",
+    "https://crontinel.com/use-cases/monitor-horizon-worker-starvation/"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",

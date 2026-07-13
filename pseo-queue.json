@@ -3,7 +3,6 @@
   "pending": [
     "horizon-config-env-mismatch",
     "horizon-stale-process-cleanup",
-    "horizon-worker-starvation",
     "kubernetes-laravel-horizon",
     "laravel-schedule-timezone-mismatch",
     "laravel-supervisor-configuration",
@@ -31,6 +30,7 @@
     "horizon-purge",
     "horizon-terminate",
     "horizon-work",
+    "horizon-worker-starvation",
     "migrate",
     "migrate-fresh",
     "migrate-rollback",
