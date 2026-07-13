@@ -1,0 +1,129 @@
+---
+title: "Debugging Laravel Reverb Connection Drops in Production"
+description: "Intermittent WebSocket disconnections in Laravel Reverb are hard to catch. Here's how to diagnose the root cause, monitor connection stability, and alert when Reverb drops clients."
+date: 2026-07-13
+tags: ["laravel", "reverb", "websockets", "debugging"]
+---
+
+Laravel Reverb makes real-time WebSocket communication feel magical — until connections start dropping in production and you're left guessing why.
+
+Unlike a failed HTTP request, a dropped WebSocket doesn't surface in your application logs. The client reconnects silently, and by the time someone reports "the dashboard stopped updating," the evidence is gone.
+
+This post walks through the most common causes of Reverb connection drops and how to monitor them before they turn into a fire.
+
+## Common Causes of Reverb Connection Drops
+
+### 1. Firewall and NAT Timeouts
+
+This is the most frequent culprit. Load balancers, reverse proxies, and cloud firewalls have idle connection timeouts that kill WebSocket connections that haven't sent data recently.
+
+**What to check:**
+
+```bash
+# Check if the WebSocket port is reachable from outside
+nc -zv your-app.com 6001
+
+# Verify TLS certificate
+echo | openssl s_client -connect your-app.com:6001 2>/dev/null | head -20
+```
+
+**Common timeout sources:**
+- AWS ALB / NLB — default idle timeout is 60 seconds
+- Cloudflare — 100-second timeout for free plan, 30 min for enterprise
+- Nginx proxy — `proxy_read_timeout` defaults to 60s
+- Docker / Kubernetes ingress controllers — vary by provider
+
+**Fix:** Increase idle timeout or implement Reverb's heartbeat ping interval (configurable in `config/reverb.php`) to keep connections alive.
+
+### 2. Redis Connection Backlog
+
+Reverb uses Redis to broadcast events. When Redis hits connection limits or memory pressure, Reverb can't forward messages, and clients eventually disconnect.
+
+**Signs of Redis pressure:**
+
+```bash
+redis-cli INFO clients
+# connected_clients: 256 → check against maxclients
+redis-cli INFO memory
+# used_memory_human: 2.5G → approach your instance limit?
+```
+
+Reverb's default configuration opens one Redis connection per WebSocket worker. With 16 workers and 500 concurrent clients, a small Redis instance can saturate quickly.
+
+**Fix:** Scale Redis to a larger tier, or increase `maxclients` and monitor connection counts.
+
+### 3. SSL/TLS Certificate Issues
+
+Production Reverb should always run over WSS (WebSocket Secure). Expired or misconfigured SSL certificates cause silent handshake failures.
+
+```bash
+# Check certificate expiration
+echo | openssl s_client -connect your-app.com:443 2>/dev/null | openssl x509 -noout -dates
+
+# Verify WebSocket SSL specifically (if on non-standard port)
+echo | openssl s_client -connect your-app.com:6001 2>/dev/null | openssl x509 -noout -dates
+```
+
+### 4. Reverb Worker Restarts
+
+When you deploy or restart your Reverb server, all existing WebSocket connections drop. This is normal behavior — but if your deployment script doesn't handle graceful shutdown, you'll see a wave of disconnection errors followed by reconnection thundering herd.
+
+**Graceful shutdown pattern:**
+
+```bash
+# Send SIGTERM to Reverb process
+kill -TERM $(pgrep -f "reverb:start")
+```
+
+Reverb handles SIGTERM by draining active connections before exiting. If you're using `kill -9` or container force-restarts, all connections drop immediately.
+
+### 5. Client-Side Disconnections
+
+Mobile network handoffs (WiFi → cellular), laptop sleep/wake cycles, and browser tab throttling all cause legitimate disconnections. These aren't server bugs, but your monitoring should distinguish them from server-side issues.
+
+## How to Detect When Reverb Connections Are Dropping
+
+Since WebSocket disconnections don't leave HTTP log entries, you need explicit monitoring:
+
+**Track these metrics:**
+- Active connection count (Reverb exposes this via Pulse or custom metrics)
+- Connection error rate vs. new connection rate
+- Redis subscriber count for the Reverb channels
+- Reverb process health and uptime
+
+**Using Crontinel to monitor Reverb:**
+
+A heartbeat check against your Reverb server endpoint can tell you if the process is alive and accepting connections. Configure a cron or scheduled task that pings Reverb's health endpoint every minute, and get alerted when the check fails:
+
+```
+php artisan reverb:status
+```
+
+When this returns non-zero or your WebSocket connectivity check times out, Crontinel catches it — even if Reverb appears fine from the outside.
+
+## Diagnosing a Reverb Connection Drop Incident
+
+When a user reports "the real-time stopped working," here's your triage checklist:
+
+1. **Check Reverb process** — `ps aux | grep reverb` — is it running?
+2. **Check Redis** — `redis-cli ping` — is Redis responsive?
+3. **Check recent deploys** — was Reverb restarted without graceful shutdown?
+4. **Check server logs** — `journalctl -u reverb` — any errors?
+5. **Check client console** — ask the user for browser DevTools → Network → WS frames
+
+Most connection drop incidents are solved before step 4 — it's usually a timeout, a restart, or a Redis issue.
+
+## Preventing Future Drops
+
+- Add a Reverb health endpoint behind the same proxy that serves your WebSocket connections, so tests go through the same infra
+- Set up automated alerts when connection counts drop suddenly
+- Implement client-side reconnection with exponential backoff (Laravel Echo handles this by default)
+- Log disconnection events server-side (custom Reverb middleware)
+
+Reverb is one of the most reliable WebSocket servers for Laravel when configured correctly. The connection drops you see are almost always infrastructure, not Reverb itself — and that's exactly where monitoring finds them.
+
+## Monitor Reverb Connection Health with Crontinel
+
+Crontinel's heartbeat monitoring can track your Reverb server's uptime and alert you when connections start failing. Set up a five-minute check against your Reverb health endpoint and know the moment something goes wrong — before it shows up in user reports.
+
+[Get started with Crontinel ↗](https://crontinel.com)

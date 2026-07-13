@@ -1,0 +1,131 @@
+---
+title: "How to Monitor Laravel pennant:purge in Production"
+description: "When you run php artisan pennant:purge to reset feature flag values during deployment, a silent failure means users see stale flags. Here's how to monitor the purge command and catch failures before they affect your feature rollouts."
+date: 2026-07-09
+tags: ["laravel", "pennant", "feature-flags"]
+---
+
+After updating feature flag percentages or changing your resolve logic in production, you run `php artisan pennant:purge` to clear cached feature values so they re-resolve on the next request. It's a quick command — usually finishes in under a second.
+
+But what if it doesn't?
+
+A failed or missed `pennant:purge` means some users keep seeing the old feature configuration while others get the new one. Feature rollouts become inconsistent. A/B tests return mixed results. The purge command is small, but it's a critical step in any deployment pipeline that touches Pennant features.
+
+## What `pennant:purge` Actually Does
+
+```bash
+php artisan pennant:purge
+```
+
+This command deletes all stored feature flag values from your configured Pennant store (database, Redis, array, or cache). Once purged, Pennant re-resolves each feature from scratch on the next check — calling your `resolve` method or reading the current percentage.
+
+You can also target specific features:
+
+```bash
+# Purge only specific features
+php artisan pennant:purge new-checkout-flow beta-search
+
+# Purge everything except specific features
+php artisan pennant:purge --except=new-checkout-flow
+
+# Purge only unregistered features (features removed from code)
+php artisan pennant:purge --except-registered
+
+# Target a specific store
+php artisan pennant:purge --store=redis
+```
+
+## Why a Failed Purge Matters
+
+Most teams run `pennant:purge` as part of a deploy hook or post-deployment script:
+
+```bash
+# deploy.sh
+php artisan down --retry=10
+php artisan migrate --force
+php artisan pennant:purge
+php artisan up
+```
+
+If the purge command exits with a non-zero code (database connection dropped, store unreachable, timeout), the script continues (unless you have `&&` chaining). The deploy appears successful, but feature flags are stale.
+
+The most common failure scenarios:
+
+**Database connection lost mid-purge** — If Pennant is backed by MySQL and the connection drops mid-operation, only some features are cleared. You get a partial purge — the worst kind, because it's invisible.
+
+**Redis store timeout** — With a Redis store under load, `pennant:purge` can timeout. Redis stays partly populated. Old feature values survive.
+
+**Forgetting to run it at all** — The most common failure. You update feature logic, deploy, and forget the purge step entirely. Feature flags stay frozen at their pre-deploy state.
+
+## How to Monitor pennant:purge with Crontinel
+
+Crontinel wraps any Artisan command and alerts you if it fails, times out, or stops sending heartbeats. Here's how to set it up for `pennant:purge`:
+
+### 1. Create a heartbeat endpoint in Crontinel
+
+Generate a unique heartbeat URL from your Crontinel dashboard. This URL is the ping target your purge script will call.
+
+### 2. Wrap the purge command
+
+Instead of running `pennant:purge` directly, wrap it in a heartbeat ping:
+
+```bash
+# deploy.sh
+php artisan down --retry=10
+php artisan migrate --force
+
+# Notify Crontinel before the purge
+curl -fsS -m 10 --retry 5 -o /dev/null \
+  "https://hc-ping.com/YOUR-HEARTBEAT-ID/start"
+
+# Run the purge
+php artisan pennant:purge
+
+# Notify Crontinel on completion
+curl -fsS -m 10 --retry 5 -o /dev/null \
+  "https://hc-ping.com/YOUR-HEARTBEAT-ID"
+
+php artisan up
+```
+
+If the purge command exits with an error, you can send a fail signal:
+
+```bash
+php artisan pennant:purge || curl -fsS -m 10 --retry 5 \
+  "https://hc-ping.com/YOUR-HEARTBEAT-ID/fail"
+```
+
+### 3. Set a grace period
+
+In Crontinel, set the expected heartbeat interval to match your deploy frequency. A 5-minute grace period gives enough room for deploy scripts that run migrations, purge features, and restart Horizon.
+
+### 4. Verify it works
+
+Test the full flow by triggering a deployment in staging first. Crontinel should show:
+- A "start" ping received
+- A completion ping within the grace period
+- An alert if either ping is missed
+
+## What Happens When You Catch a Failure
+
+When Crontinel alerts you that `pennant:purge` was missed or failed, you know exactly what happened:
+
+- **Missed start ping** → The deployment script never reached the purge step. Your deploy pipeline itself may have failed earlier.
+- **Start ping received, no completion** → The purge command ran but didn't exit cleanly. Check the store connection and command output.
+- **Fail signal sent** → The purge command returned a non-zero exit. Look at the specific error.
+
+This turns an invisible partial outage into a clear, actionable signal.
+
+## Beyond pennant:purge — Monitoring the Pennant Pipeline
+
+If you're running feature flag operations in production, consider monitoring these too:
+
+- **`pennant:feature`** — Listing and inspecting features. Use Crontinel to verify feature inspection scripts complete.
+- **`pennant:clear` (alias)** — Same purge behavior. Apply the same monitoring pattern.
+- **Deploy hooks** — Monitor the entire post-deploy pipeline, not just individual commands.
+
+## Summary
+
+`php artisan pennant:purge` is a small command with an outsized impact. When it fails silently, feature rollouts become inconsistent and debugging is a nightmare. A heartbeat-based monitor catches missed or failed purges in real time — before your users notice anything wrong.
+
+Wrap your purge command in a Crontinel heartbeat, set a reasonable grace period, and deploy with confidence that every feature flag change actually takes effect.

@@ -1,9 +1,14 @@
 {
   "in_progress": [],
   "pending": [
-    "sanctum-prune-expired",
-    "schedule-interrupt",
-    "inspire"
+    "broadcast-failure-detection",
+    "horizon-stale-process-cleanup",
+    "horizon-worker-starvation",
+    "telescope-storage-cleanup",
+    "laravel-schedule-timezone-mismatch",
+    "kubernetes-laravel-horizon",
+    "long-running-cron-jobs",
+    "horizon-config-env-mismatch"
   ],
   "completed": [
     "about",
@@ -45,6 +50,8 @@
     "reverb-start",
     "route-cache",
     "route-clear",
+    "sanctum-prune-expired",
+    "schedule-interrupt",
     "schedule-run",
     "schedule-work",
     "scout-flush",
@@ -54,6 +61,7 @@
     "telescope-clear",
     "telescope-prune",
     "view-cache",
-    "view-clear"
+    "view-clear",
+    "reverb-connection-drops"
   ]
 }
