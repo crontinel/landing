@@ -1,0 +1,146 @@
+---
+title: "Detect When Laravel Horizon Workers Are Running But Not Processing Jobs"
+description: "Your Horizon dashboard shows active supervisors and workers, but jobs sit in the queue for minutes. Here is how to catch worker starvation before it turns into a production incident."
+date: 2026-07-14
+---
+
+Your Horizon dashboard shows everything green. All three supervisors report as active. Worker counts look normal. But your monitoring shows queue depth climbing. The jobs are being enqueued. Nothing is dequeuing. You check Redis: 12,000 pending jobs and the count is still rising.
+
+You have a worker starvation problem. The Horizon process tree is alive, but the workers are not making progress through the queue. This is one of the hardest Laravel queue issues to catch because none of the usual health checks fail. No process crashed. No supervisor paused. The master is writing heartbeats. Everything looks fine on the dashboard. It just stopped doing useful work.
+
+## How Worker Pools Actually Stall
+
+Horizon boots with a supervisor configuration that looks simple on the surface. You set `maxProcesses` to 10, define a queue list like `['high', 'default', 'low']`, and Horizon forks workers accordingly. What happens next depends on the balance strategy and the job mix hitting the queue at any given moment.
+
+Each worker process is a separate PHP process that pops one job at a time from Redis. A worker picks a job, executes it, reports the result back to Horizon's Redis store, and picks the next job. The `maxProcesses` setting controls how many of these workers can exist simultaneously per supervisor. When all 10 workers are busy, new jobs wait. If one of those 10 workers picks a job that takes 5 minutes, that worker slot is blocked for 5 minutes. If two or three workers hit slow jobs at the same time, effective throughput drops proportionally.
+
+The auto-balancer (`balance: auto` in Horizon 5.x) tries to shift workers between queues based on load. But it has a cooldown period (`balanceCooldown`, default 3 seconds) and a max shift per cycle (`balanceMaxShift`, default 1). A sudden spike in slow jobs on the `default` queue can exhaust all worker slots before the balancer reacts.
+
+```php
+// config/horizon.php — a configuration prone to starvation
+'production' => [
+    'supervisor-1' => [
+        'connection' => 'redis',
+        'queue' => ['high', 'default', 'low'],
+        'maxProcesses' => 10,
+        'balance' => 'auto',
+        'balanceMaxShift' => 1,
+        'balanceCooldown' => 3,
+        'memory' => 128,
+        'timeout' => 300,
+    ],
+],
+```
+
+The timeout of 300 seconds means a worker stuck on a job holds a slot for 5 minutes before Horizon kills it. During that window, the effective pool size drops.
+
+## Common Causes of Worker Starvation
+
+### Slow jobs blocking the pool
+
+One job that takes 2–3 minutes to complete blocks a worker slot for the full duration. If you have a queue processing emails where each call to a sluggish external API takes 45 seconds, three concurrent email jobs can occupy 3 of your 10 workers for the entire run. The remaining 7 workers handle everything else. If your enqueue rate exceeds 7 workers' capacity, the queue grows.
+
+### maxProcesses set too low for peak load
+
+The configuration that works at 3 AM on a Sunday may fail at 10 AM on Monday when traffic spikes. Horizon does not auto-scale `maxProcesses`. You set it in config and it stays there until the next deploy. If peak load requires 15 workers but your config caps it at 10, starvation is predictable.
+
+### Redis connection pool exhaustion
+
+Every Horizon worker opens its own Redis connection for the `redis` queue driver. If your Redis server's `maxclients` is 256 and you have 200 workers across all supervisors, you are dangerously close to the limit. When a batch of jobs needs external API calls that block Redis for cache lookups, connection contention can make every worker slower, compounding the starvation.
+
+### Queue-weighted balance starving low-priority queues
+
+With `balance: auto`, Horizon dedicates more workers to busy queues. This is usually correct. But if the `default` queue has 5,000 jobs, the auto-balancer shifts most workers there, leaving `low` at zero workers. A recurring job on the `low` queue then waits indefinitely even though the supervisor shows as active and healthy.
+
+### Worker memory limit recycling loop
+
+Each worker has a `memory` limit (128 MB by default). When a worker exceeds it, it exits after the current job and the supervisor spawns a replacement. Under normal conditions this is fine. But if every worker is processing a memory-heavy job, they all hit the limit and restart simultaneously. During the restart window, throughput drops to zero. Depending on the supervisor's respawn timer, this can repeat every few minutes, creating a pattern where the queue never drains even though workers appear active.
+
+## Detecting Starvation vs. Process Failure
+
+The standard Horizon health checks catch process death (master supervisor not running, heartbeat missing). Worker starvation requires a different kind of check — one that measures throughput, not process existence.
+
+The basic signal is queue depth growth over time while Horizon reports as active:
+
+```php
+use Laravel\Horizon\Contracts\MasterSupervisorRepository;
+use Illuminate\Support\Facades\Redis;
+
+function checkWorkerStarvation(): array
+{
+    $masters = app(MasterSupervisorRepository::class)->all();
+
+    if (empty($masters)) {
+        return ['status' => 'down', 'message' => 'No master supervisor running'];
+    }
+
+    $queueSizes = [];
+    foreach (['high', 'default', 'low'] as $queue) {
+        $size = Redis::connection('horizon')->llen('queues:default:' . $queue);
+        $queueSizes[$queue] = $size;
+    }
+
+    $totalPending = array_sum($queueSizes);
+    $activeWorkers = 0;
+    foreach ($masters as $master) {
+        $activeWorkers += $master->totalWorkerCount ?? 0;
+    }
+
+    // If workers are active but queue is growing, something is wrong
+    return [
+        'status' => $activeWorkers > 0 && $totalPending > $activeWorkers * 10 ? 'starving' : 'healthy',
+        'active_workers' => $activeWorkers,
+        'total_pending' => $totalPending,
+    ];
+}
+```
+
+This identifies the case where workers exist but are not keeping up. A ratio of pending jobs to active workers beyond 10:1 sustained over multiple checks indicates starvation rather than a burst.
+
+## Setting Up Throughput Monitoring
+
+A cron-based approach runs the check every minute and alerts when the ratio exceeds your threshold:
+
+```bash
+# Run every minute via Laravel's scheduler
+php artisan check:horizon-throughput
+```
+
+But this has a circular dependency. If the scheduler breaks, you lose the throughput check too. An external monitor like Crontinel watches from outside your infrastructure. It polls Horizon's Redis state directly and alerts when queue depth grows faster than your average processing rate while workers report as active. No scheduler dependency, no application-level health endpoint needed.
+
+```php
+// Kernel.php — inside your app as a secondary check
+$schedule->command('check:horizon-throughput')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onFailure(function () {
+        // This only fires if the command itself fails
+        // Starvation won't trigger this
+    });
+```
+
+## Quick Setup with Crontinel
+
+Crontinel reads Horizon's Redis state directly to detect worker starvation regardless of whether your scheduler or web server is responsive.
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Configure a throughput threshold in your `.env`:
+
+```bash
+CRONTINEL_HORIZON_ENABLED=true
+CRONTINEL_QUEUE_DEPTH_THRESHOLD=100
+CRONTINEL_MAX_PENDING_PER_WORKER=10
+```
+
+When Crontinel detects active workers with a growing queue, you get a single alert that tells you the supervisor is alive but the work is not getting done. No dashboard watching required.
+
+## See also
+
+- [Monitoring horizon:work in Laravel production](/use-cases/monitor-horizon-work/) — catching the case where the master supervisor itself crashes
+- [Laravel Horizon monitoring](/use-cases/laravel-horizon-monitoring/) — supervisor status, queue depth, and failed job rate
+- [Laravel queue depth alert](/blog/laravel-queue-depth-alert/) — setting up queue threshold alerts
+- [Laravel queue backpressure](/blog/laravel-queue-backpressure/) — handling slow consumers and producer overflow
