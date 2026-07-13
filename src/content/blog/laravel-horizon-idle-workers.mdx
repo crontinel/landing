@@ -11,7 +11,7 @@ This is one of the more frustrating Horizon failure modes because everything loo
 
 ## Queue name mismatch
 
-The single most common cause. Workers are listening on `default`, but jobs are being dispatched to `high` or `emails` or a queue name you added last week. Horizon workers only process jobs from queues they're configured to listen on.
+The single most common cause. Workers are listening on `default`, but jobs are being dispatched to `high` or `emails` or a queue name you added last week. Horizon workers only process jobs from queues they're configured to listen on. A [config-environment mismatch](/blog/laravel-horizon-config-env-mismatch/) can also cause the wrong supervisor config to take effect — for example, production servers running the staging environment block and listening on completely different queues.
 
 Check your Horizon config:
 
