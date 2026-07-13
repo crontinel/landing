@@ -1,0 +1,55 @@
+---
+title: "Crontinel Microsoft Teams Integration: Alerts via Incoming Webhook"
+description: "Send Crontinel Laravel monitoring alerts to Microsoft Teams using an Incoming Webhook connector on your team channel."
+date: 2026-07-08
+---
+
+Many Laravel teams on Microsoft 365 use Teams for incident discussion. Crontinel alerts can land in a Teams channel through an **Incoming Webhook** connector.
+
+## Setup
+
+### 1. Add Incoming Webhook in Teams
+
+1. Open the Teams channel for alerts
+2. **⋯** next to the channel name → **Connectors** (or **Workflows** in newer tenants)
+3. Search for **Incoming Webhook**, configure name and icon, create
+4. Copy the webhook URL (often `https://outlook.office.com/webhook/...` or `https://*.webhook.office.com/...`)
+
+### 2. Point Crontinel at the webhook
+
+```bash
+CRONTINEL_ALERT_CHANNEL=webhook
+CRONTINEL_WEBHOOK_URL=https://your-teams-incoming-webhook-url
+```
+
+Teams webhooks accept JSON with a `text` field (and optional Adaptive Cards for richer formatting). Crontinel sends structured alert JSON. For first-class Teams cards, use a small Azure Function or Power Automate flow that transforms the payload:
+
+```json
+{ "text": "Crontinel alert: Horizon paused on production-api" }
+```
+
+### 3. Verify
+
+```bash
+php artisan crontinel:test-alert
+```
+
+## Alert types
+
+Teams receives the same alert classes as Slack and email:
+
+- Cron / scheduler failures and missed windows
+- Queue depth and Horizon supervisor state
+- Recovery notifications when issues clear
+
+## Governance
+
+- Restrict webhook creation to owners of the `#Production-Alerts` team
+- Rotate webhook URLs if a URL leaks (delete connector, recreate)
+- Document escalation: Teams message → on-call engineer → PagerDuty if no ack
+
+## Related
+
+- [Webhook integration](/integrations/webhook/)
+- [PagerDuty integration](/integrations/pagerduty/)
+- [Incident alert system for Laravel](/blog/incident-alert-system-laravel/)

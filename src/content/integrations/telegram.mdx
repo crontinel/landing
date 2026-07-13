@@ -1,0 +1,58 @@
+---
+title: "Crontinel Telegram Integration: Mobile-Friendly Cron and Queue Alerts"
+description: "Deliver Crontinel Laravel alerts to Telegram via bot API or webhook relay. Good for solo founders and small teams who live in Telegram."
+date: 2026-07-08
+---
+
+Telegram is popular for fast mobile notifications. Crontinel does not include a built-in Telegram bot; you connect via **webhook** to the Telegram Bot API or a relay service.
+
+## Option A: Webhook relay (recommended)
+
+1. Create a bot with [@BotFather](https://t.me/BotFather), get the token
+2. Obtain your chat ID (message the bot, then call `getUpdates` on the Bot API)
+3. Deploy a tiny relay (Cloudflare Worker, Vercel function, or self-hosted script) that:
+   - Accepts POST from Crontinel (`CRONTINEL_WEBHOOK_URL`)
+   - Maps fields to Telegram `sendMessage`
+
+Example Telegram API call your relay makes:
+
+```bash
+curl -s "https://api.telegram.org/bot<TOKEN>/sendMessage" \
+  -d "chat_id=<CHAT_ID>" \
+  -d "text=Crontinel: scheduled task invoices:sync failed (exit 1)"
+```
+
+Crontinel `.env`:
+
+```bash
+CRONTINEL_ALERT_CHANNEL=webhook
+CRONTINEL_WEBHOOK_URL=https://your-relay.example.com/crontinel-to-telegram
+```
+
+## Option B: Shared automation (n8n / Make)
+
+Use Crontinel webhook → n8n Telegram node. No custom code; good for teams already on automation platforms.
+
+## Test
+
+```bash
+php artisan crontinel:test-alert
+```
+
+Your relay should forward one test message to Telegram.
+
+## When Telegram fits
+
+- Solo dev or 2-person team without Slack
+- You want push notifications without installing another SaaS
+- Secondary channel while primary on-call stays in PagerDuty
+
+## Security
+
+- Never commit bot tokens to git; use env vars on the relay
+- Use a private group chat, not a public channel, for production alerts
+
+## Related
+
+- [Webhook integration](/integrations/webhook/)
+- [Slack integration](/integrations/slack/)

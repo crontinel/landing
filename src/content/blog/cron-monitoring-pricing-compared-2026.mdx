@@ -1,0 +1,74 @@
+---
+title: "Cron Monitoring Pricing Compared: Crontinel vs Cronitor, CronRadar, and Better Stack (2026)"
+description: "Side-by-side pricing for Laravel cron and queue monitoring: per-monitor SaaS vs bundled apps, free tiers, and self-hosted OSS. Updated July 2026."
+date: 2026-07-08
+tags: ["pricing", "cron monitoring", "laravel", "comparison"]
+keywords: ["cron monitoring pricing", "crontinel pricing", "cronitor pricing", "cronradar pricing"]
+---
+
+Choosing a cron monitor in 2026 means reading past headline prices. Better Stack **removed** cron monitoring entirely. Remaining tools split into **per-monitor** billing and **per-app / flat** tiers.
+
+This page compares what Laravel teams actually pay for scheduler visibility, plus when queue and Horizon depth matter more than ping checks.
+
+## Quick comparison table
+
+| Vendor | Entry price | How it scales | Horizon / queues | Self-host |
+|--------|-------------|---------------|------------------|-----------|
+| **Crontinel** | $0 (1 app) | $19 Pro (5 apps), $49 Team (unlimited apps) | Yes | Yes (MIT OSS) |
+| **Cronitor** | ~$19/mo | Per monitor tiers | No | No |
+| **CronRadar** | ~$1/monitor | Per discovered task | No | SaaS-first |
+| **Better Stack** | N/A | Cron product removed 2026 | N/A | N/A |
+| **thenping.me** | Shut down | N/A | N/A | N/A |
+
+List prices change; use each vendor's pricing page before purchase. Crontinel's public tiers are on [pricing](/pricing/).
+
+## Crontinel
+
+- **Free:** 1 app, limited history, enough to validate integration
+- **Pro ($19/mo):** Multiple apps, longer retention, Slack/email/PagerDuty/webhook
+- **Team ($49/mo):** Unlimited apps, team seats, custom rules
+- **OSS:** `composer require crontinel/laravel` — no SaaS fee if you self-host the dashboard
+
+**Best for:** Laravel apps with Horizon, teams that want one predictable bill without counting monitors.
+
+## Cronitor
+
+Heartbeat and schedule monitoring priced by **monitor count**. Strong for polyglot cron (shell scripts, non-Laravel jobs).
+
+**Best for:** Simple dead-man pings across many small jobs when you do not need queue internals.
+
+**Gap for Laravel:** No Horizon supervisor or queue depth without custom work.
+
+## CronRadar
+
+Low per-monitor positioning (~$1/monitor in marketing). Cost rises as auto-discovery registers more scheduled tasks.
+
+**Best for:** Greenfield apps with few tasks and multi-framework cron (Laravel + Python sidecars).
+
+See [Crontinel vs CronRadar](/vs/crontinel-vs-cronradar/) for feature depth.
+
+## Better Stack and thenping.me
+
+Do not budget for Better Stack cron in 2026; migrate if you still have heartbeat URLs ([migration guide](/blog/migrate-from-better-stack-cron-monitoring/)). thenping.me is closed; Crontinel published a [migration path](/blog/migrate-from-thenping-me/) for affected users.
+
+## Hidden costs to model
+
+| Cost type | Per-monitor tools | Crontinel-style |
+|-----------|-------------------|-----------------|
+| Adding 10 new scheduled tasks | Often +10 monitors | Usually same app tier |
+| Horizon / queue alerts | Extra vendor or DIY | Included in Laravel package |
+| Staging + production | 2× monitors each env | 2 apps on same plan |
+| Compliance / air-gap | Rare | Self-host OSS |
+
+## Recommendation by team size
+
+- **Solo, 1 Laravel app:** Crontinel free or CronRadar low monitor count — pick Horizon depth vs lowest line item
+- **Small SaaS (Horizon):** Crontinel Pro; avoid ping-only tools unless queues are trivial
+- **Agency, many small crons:** Cronitor or CronRadar per-monitor can win on shell-only workloads
+- **Regulated / self-host:** Crontinel OSS only
+
+## Next steps
+
+- [Full pricing](/pricing/)
+- [Crontinel vs Cronitor](/vs/crontinel-vs-cronitor/)
+- [Start free](https://app.crontinel.com/register)

@@ -59,8 +59,17 @@ RESEARCH/              # Research, waitlist, fallback plans
 docs/                  # Internal docs (browser setup, etc.)
 ```
 
-## Content plan
+## Content collections (July 2026)
 
-24 SEO pages total (v1): 10 blog, 4 vs/competitor, 6 use-case, 4 integration.
-Add as MDX files in the respective `src/content/` subdirectory.
-Track progress in `SEO/CONTENT_PLAN.md`.
+Production build emits **110+ prerendered routes** from MDX collections (counts drift as SEO pipeline adds pages):
+
+| Collection | Typical count | Path |
+|------------|---------------|------|
+| Blog | ~37 | `src/content/blog/` |
+| Vs / competitor | ~14 | `src/content/vs/` |
+| Use cases | ~60 | `src/content/use-cases/` |
+| Integrations | ~7+ | `src/content/integrations/` |
+
+The original v1 plan in `SEO/CONTENT_PLAN.md` tracked **24** seed pages; the daily SEO pipeline and pSEO use-case generator expanded this. Run `find src/content -name '*.mdx' | wc -l` and `npm run build` to refresh counts.
+
+**Homepage positioning:** Hero and meta copy still lead with **Laravel** (primary ICP). The same page also surfaces **Node** and **Python** SDK install tabs (`index.astro` SDK section). Broader framework SEO lives on blog/use-case pages and package docs—not only the H1.

@@ -1,0 +1,131 @@
+---
+title: "Migrate from Better Stack Cron Monitoring to Crontinel (Step-by-Step)"
+description: "Better Stack removed cron monitoring in 2026. This guide walks Laravel teams through auditing heartbeats, removing dead pings, and switching to event-based scheduler monitoring with Crontinel."
+date: 2026-07-08
+tags: ["better stack", "migration", "laravel", "cron monitoring", "scheduled tasks"]
+---
+
+Better Stack no longer offers cron or heartbeat monitoring. If you still have `curl` pings or SDK calls pointed at Better Stack URLs, those requests are hitting 404s. Your jobs may still run, but nobody is watching.
+
+This is the migration guide Better Stack did not publish: audit what you had, close the blind spot, and move to monitoring that understands Laravel's scheduler.
+
+## Before you start
+
+Gather:
+
+- A list of Better Stack monitor names and heartbeat URLs (export from old dashboards if you still have screenshots or Terraform)
+- Every place your app pings Better Stack: shell crons, `Http::get()` in scheduled tasks, deploy scripts
+- Your Laravel `routes/console.php` (or legacy `app/Console/Kernel.php`) schedule definitions
+
+If you cannot find the old URLs, search the codebase:
+
+```bash
+rg -i "betterstack|better.stack|uptime.better" app/ routes/ config/
+```
+
+## Step 1: Inventory scheduled work
+
+List tasks that depended on Better Stack:
+
+| Task | Old heartbeat? | Criticality |
+|------|----------------|-------------|
+| `schedule:run` wrapper | Often yes | High |
+| Nightly reports | Per-job ping | High |
+| Queue workers / Horizon | Rarely | Use queue monitoring instead |
+
+For each row, note whether the ping was **start**, **success**, or **failure** only. Better Stack could not see Laravel task exit codes unless you built that yourself.
+
+## Step 2: Assume a monitoring gap since the 404
+
+From the day Better Stack removed cron monitoring until you finish this migration, missed heartbeats would not have alerted anyone. Plan a one-time review:
+
+- Check logs for scheduled commands that failed silently
+- Compare recent cron run history in your app (if any) against expected schedules
+- Re-run critical jobs manually if you are unsure they ran (billing, cleanup, exports)
+
+## Step 3: Remove Better Stack ping code
+
+Delete or comment out heartbeat calls. Typical patterns to remove:
+
+```php
+// REMOVE: Better Stack success ping
+Http::get('https://uptime.betterstack.com/api/v1/heartbeat/xxxx');
+```
+
+```bash
+# REMOVE from crontab or Forge recipe
+curl -fsS https://uptime.betterstack.com/api/v1/heartbeat/xxxx
+```
+
+Do not leave dead URLs in production; they add noise and hide real HTTP failures in logs.
+
+## Step 4: Install Crontinel on the Laravel app
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Add to `.env`:
+
+```bash
+CRONTINEL_API_KEY=your_key_from_app_crontinel_com
+CRONTINEL_API_URL=https://app.crontinel.com
+```
+
+The package listens to `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed`. **No per-task ping URLs.** Every scheduled command registered in the scheduler is tracked automatically.
+
+Register at [app.crontinel.com](https://app.crontinel.com/register) and create a monitored app linked to this codebase.
+
+## Step 5: Map old monitors to Laravel tasks
+
+| Better Stack monitor | Crontinel equivalent |
+|----------------------|----------------------|
+| "Daily backup" heartbeat | Same `Schedule` entry; appears in cron history |
+| "Every 5 min" job | Schedule + missed-run detection |
+| Global `schedule:run` ping | Replaced by per-task events + optional agent |
+
+If you only had one monitor for the entire scheduler, Crontinel is strictly better: you see **which** command failed, duration, and exit code.
+
+## Step 6: Configure alerts
+
+In the Crontinel dashboard (or via package config), set channels you used with Better Stack:
+
+- Email
+- Slack
+- Webhook (for PagerDuty, Opsgenie, or custom routing)
+
+Test:
+
+```bash
+php artisan crontinel:test-alert
+```
+
+## Step 7: Horizon and queues (optional but recommended)
+
+Better Stack never integrated with Horizon. If you relied on cron pings while queues backed up, add queue depth and supervisor monitoring via the same Crontinel app. See [Horizon paused detection](/blog/horizon-paused-detection/) and queue depth guides on the blog.
+
+## Step 8: Decommission Better Stack cron artifacts
+
+- Remove monitors from IaC (Terraform, Pulumi) if cron resources still exist
+- Update runbooks that reference Better Stack heartbeat URLs
+- Point on-call docs to Crontinel alert routes
+
+Keep Better Stack only if you still use **uptime**, **logs**, or **incident** products separately. Cron monitoring is not coming back on that platform.
+
+## Verification checklist
+
+- [ ] No `betterstack` URLs remain in repo or server crontabs
+- [ ] `php artisan schedule:list` tasks appear in Crontinel after at least one run
+- [ ] Forced failure test (e.g. `schedule:run` with a failing command) triggers an alert
+- [ ] Team knows new dashboard URL and escalation path
+
+## Related reading
+
+- [Better Stack killed cron monitoring](/blog/better-stack-cron-monitoring-gone/) — what happened and why
+- [Crontinel vs Better Stack](/vs/crontinel-vs-better-stack/) — product fit for Laravel teams
+- [How to set up Laravel cron monitoring](/blog/how-to-set-up-laravel-cron-monitoring/) — greenfield setup
+
+---
+
+*Need help mid-migration? [Start free on Crontinel](https://app.crontinel.com/register) or self-host the open-source package with no SaaS dependency.*
