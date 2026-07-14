@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/blog/laravel-broadcast-failure-detection"
+    "https://crontinel.com/blog/laravel-horizon-config-env-mismatch"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -118,8 +118,6 @@
     "https://crontinel.com/vs/crontinel-vs-thenping",
     "https://crontinel.com/vs/crontinel-vs-uptimerobot",
     "https://crontinel.com/use-cases/monitor-storage-link",
-    "https://crontinel.com/use-cases/monitor-scout-import",
-    "https://crontinel.com/use-cases/monitor-scout-sync-index-settings",
     "https://crontinel.com/use-cases/monitor-db-wipe",
     "https://crontinel.com/blog/cron-job-runs-manually-but-not-on-schedule",
     "https://crontinel.com/blog/open-source-self-hosted-free-cron-monitoring",
@@ -142,8 +140,9 @@
     "https://crontinel.com/use-cases",
     "https://crontinel.com/use-cases/monitor-passport-purge",
     "https://crontinel.com/vs",
-    "https://crontinel.com/blog/debug-laravel-reverb-connection-drops/",
-    "https://crontinel.com/blog/monitor-laravel-pennant-purge/"
+    "https://crontinel.com/blog/debug-laravel-reverb-connection-drops",
+    "https://crontinel.com/blog/monitor-laravel-pennant-purge",
+    "https://crontinel.com/blog/laravel-broadcast-failure-detection"
   ],
-  "last_push": "2026-07-13"
+  "last_push": "2026-07-14"
 }

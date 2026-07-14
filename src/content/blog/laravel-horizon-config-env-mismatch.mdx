@@ -1,0 +1,121 @@
+---
+title: "How to Detect and Fix Laravel Horizon Config-Environment Mismatches"
+description: "When your Horizon config doesn't match the environment — wrong Redis host, stale supervisor definitions, or misplaced queues — jobs silently fail. Here's how to detect and prevent config-env mismatches in Laravel Horizon."
+date: 2026-07-14
+tags: ["laravel", "horizon", "queues", "deployment", "monitoring"]
+---
+
+Your Laravel app deploys cleanly. Horizon restarts. Everything looks green. But jobs are piling up in the `default` queue while your supervisors are all configured to watch `high` and `critical`.
+
+This is a **Horizon config-environment mismatch** — the most common silent failure pattern after deployments. Horizon loaded the wrong config for the environment it's actually running in, and nothing tells you about it until a customer notices their export never arrived.
+
+## What Is a Config-Environment Mismatch?
+
+Horizon's configuration lives in `config/horizon.php`. It defines **environments**, and within each environment, **supervisors** — the worker processes that drain specific queues.
+
+```php
+// config/horizon.php
+'environments' => [
+    'production' => [
+        'supervisor-1' => [
+            'connection' => 'redis-production',
+            'queue' => ['high', 'default'],
+            'balance' => 'auto',
+            'processes' => 5,
+            'tries' => 3,
+        ],
+    ],
+    'staging' => [
+        'supervisor-1' => [
+            'connection' => 'redis-staging',
+            'queue' => ['default'],
+            'balance' => 'simple',
+            'processes' => 2,
+        ],
+    ],
+],
+```
+
+A mismatch happens when the **wrong environment block** activates — or when the environment detection (`APP_ENV`) doesn't match where the config was cached. This is related to [why generic cron monitors miss Horizon failures](/blog/why-generic-cron-monitors-miss-horizon-failures/) — both are silent failure patterns that Horizon's dashboard won't surface.
+
+## Three Most Common Mismatch Patterns
+
+### 1. Cached Config Poisoning
+
+You deploy to production, but Horizon's worker processes (which are long-lived) still hold the **old cached config** in memory. Even if `config/horizon.php` has the right production settings, Horizon never re-reads it until you call `php artisan horizon:terminate` or `horizon:continue`.
+
+**The fix:** Always restart Horizon after every deploy that touches queue config. A `horizon:terminate` in your deploy script forces supervisors to restart with fresh config.
+
+```
+# deploy.sh
+php artisan migrate --force
+php artisan horizon:terminate
+```
+
+Without this step, your new supervisors run with old queue assignments — the classic mismatch.
+
+### 2. Environment Detection Mismatch
+
+Your `APP_ENV` says `production` but `config/horizon.php` keys the environment as `production` while the server's actual environment detection returns `prod`. Or you're running on a worker server that doesn't have `APP_ENV` set at all.
+
+Horizon matches the environment key exactly. If it doesn't find one, it falls back to the **default environment** in the config — which is usually `local`. Your production servers then run Horizon as if they're in a local dev environment, watching the wrong queues with the wrong concurrency.
+
+```php
+// horizon.php — if 'default' env is 'local', 
+// un-matched servers silently run local config
+'default' => env('APP_ENV', 'local'),
+```
+
+**The fix:** Audit your worker servers to ensure `APP_ENV` is explicitly set. Don't let Horizon guess. And add a `default` environment that's safe — or remove it so Horizon errors loudly instead of running silently wrong.
+
+### 3. Stale Supervisor After Deploy
+
+You deploy a new queue (e.g., `notifications`) and add a supervisor to `config/horizon.php` for it:
+
+```php
+'production' => [
+    'supervisor-notifications' => [
+        'connection' => 'redis',
+        'queue' => ['notifications'],
+        'processes' => 3,
+    ],
+],
+```
+
+But you forgot to terminate Horizon. The existing supervisors don't know about the new queue. Jobs dispatched to `notifications` sit in Redis forever.
+
+**The fix:** Treat `horizon:terminate` as mandatory after any `config/horizon.php` change. Make it part of your deploy checklist. If a supervisor stops processing after a deploy, the patterns in [horizon supervisor stopped jobs not processing](/blog/horizon-supervisor-stopped-jobs-not-processing/) can help diagnose whether config mismatch is the root cause.
+
+## How to Detect Mismatches Before They Hurt
+
+Horizon itself won't alert you when supervisors and queues are misaligned. You need external monitoring for:
+
+- **Queue depth on each named queue** — if `notifications` has 500+ pending jobs but the `high` queue is empty, your supervisors are watching the wrong queues.
+- **Supervisor process count** — after a deploy, confirm each supervisor started with the expected number of processes.
+- **Horizon snapshot freshness** — if Horizon's dashboard stops updating, supervisors may be running with stale config and can't report status.
+
+This is where Crontinel helps. It monitors queue depth per named queue, supervisor health, and Horizon process counts — and alerts you when they drift from expected baselines.
+
+```bash
+# Crontinel heartbeat — checks your Horizon worker is alive
+curl -fsS -m 10 --retry 3 \
+  -X POST https://app.crontinel.com/api/heartbeats \
+  -H "Authorization: Bearer $CRONTINEL_API_KEY" \
+  -d '{"service": "horizon-supervisor-1"}'
+```
+
+## Preventing Mismatches With a Deploy Checklist
+
+Add these steps to every deploy that touches queue infrastructure:
+
+1. **`php artisan config:clear`** — dump cached config before Horizon reads it
+2. **Verify `APP_ENV`** is set on the target server
+3. **`php artisan horizon:terminate`** — force supervisor restart
+**4. Check queue depth** on each named queue (Crontinel detects new queues and [monitors queue depth per seconds](/blog/laravel-queue-backpressure/) to surface backpressure before jobs pile up)
+5. **Verify supervisor count** matches expected replicas
+
+## The Bottom Line
+
+Horizon config-environment mismatches are invisible from inside the Laravel app. A supervisor running with wrong config looks perfectly healthy in Horizon's dashboard — it's just watching the wrong queues. External monitoring that tracks queue depth per name, supervisor process counts, and Horizon status is your best defense.
+
+Crontinel gives you that external view — with per-queue depth monitoring, supervisor health checks, and deployment-time validation. No false positives, no silent failures.
