@@ -1,7 +1,5 @@
 {
-  "pending": [
-    "https://crontinel.com/blog/laravel-horizon-config-env-mismatch"
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
@@ -142,7 +140,8 @@
     "https://crontinel.com/vs",
     "https://crontinel.com/blog/debug-laravel-reverb-connection-drops",
     "https://crontinel.com/blog/monitor-laravel-pennant-purge",
-    "https://crontinel.com/blog/laravel-broadcast-failure-detection"
+    "https://crontinel.com/blog/laravel-broadcast-failure-detection",
+    "https://crontinel.com/blog/laravel-horizon-config-env-mismatch"
   ],
-  "last_push": "2026-07-14"
+  "last_push": "2026-07-15"
 }
