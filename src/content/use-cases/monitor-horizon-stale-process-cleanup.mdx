@@ -1,0 +1,137 @@
+---
+title: "Monitor php artisan horizon:stale-process-cleanup in Production"
+description: "Laravel Horizon workers can accumulate stale processes over time, consuming memory and preventing clean restarts. Here's how to detect when your stale-process cleanup fails and what to do about it."
+date: 2026-07-15
+tags: ["laravel", "horizon"]
+---
+
+Laravel Horizon manages worker processes under a supervisor. **By design, it restarts workers periodically to prevent memory leaks.** By default, every worker is restarted after processing 100 jobs (`auto` balancing mode) or after its `memory` limit is reached.
+
+But in practice, stale processes accumulate.
+
+## Why stale Horizon processes are a real problem
+
+A "stale" Horizon worker is one that's still alive in the process table but no longer processing jobs. The parent supervisor might have died, the worker might be stuck in an infinite loop, or it might be holding a connection or file lock that prevents a clean restart.
+
+The symptoms are subtle:
+
+- `ps aux | grep horizon` shows more worker processes than expected
+- Memory usage on the server climbs slowly over days
+- Deployments that run `horizon:terminate` take too long because workers don't respond to SIGTERM
+- The Horizon dashboard shows fewer active workers than the process table shows running processes
+
+Some teams write a custom artisan command like `horizon:stale-process-cleanup` to find and kill these orphaned workers. But that command itself can fail — and if it does, the stale processes keep building until a manual intervention.
+
+## What should your stale-process cleanup do?
+
+A robust stale-process cleanup command typically:
+
+1. Lists all running Horizon worker processes via `ps` or a process manager API
+2. Cross-references them against Horizon's Redis supervisor/worker state
+3. Kills any worker that's been running longer than its configured max lifetime
+4. Logs the PID, age, and queue it was serving
+
+Here's a simplified version:
+
+```php
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+
+class CleanStaleHorizonWorkers extends Command
+{
+    protected $signature = 'horizon:stale-process-cleanup
+        {--max-age=3600 : Max worker age in seconds before considering stale}';
+
+    protected $description = 'Kill Horizon worker processes that exceed max age';
+
+    public function handle(): int
+    {
+        $maxAge = (int) $this->option('max-age');
+        $workers = $this->getHorizonWorkerProcesses();
+        $killed = 0;
+
+        foreach ($workers as $worker) {
+            $age = time() - $worker['started_at'];
+            if ($age > $maxAge) {
+                $this->killWorker($worker['pid']);
+                Log::warning('Killed stale Horizon worker', [
+                    'pid' => $worker['pid'],
+                    'age_seconds' => $age,
+                ]);
+                $killed++;
+            }
+        }
+
+        $this->info("Cleaned up {$killed} stale worker(s).");
+        return Command::SUCCESS;
+    }
+
+    protected function getHorizonWorkerProcesses(): array
+    {
+        $output = [];
+        exec('ps aux | grep "artisan horizon:work" | grep -v grep', $output);
+
+        $workers = [];
+        foreach ($output as $line) {
+            $parts = preg_split('/\s+/', $line);
+            // ps aux columns: USER PID CPU MEM VSZ RSS TTY STAT START TIME COMMAND
+            $workers[] = [
+                'pid' => $parts[1] ?? 0,
+                'started_at' => strtotime($parts[8] ?? 'now') ?: time(),
+            ];
+        }
+
+        return $workers;
+    }
+
+    protected function killWorker(int $pid): void
+    {
+        exec("kill -15 {$pid} 2>/dev/null");
+        // Wait 5 seconds, then force kill if still alive
+        usleep(5000000);
+        exec("kill -9 {$pid} 2>/dev/null");
+    }
+}
+```
+
+## Failure modes of the cleanup command itself
+
+### 1. The command runs but finds no stale workers (false negative)
+
+If `ps aux` output format differs between your OS versions (e.g., macOS vs Linux, or different Linux distributions), the column parsing in `getHorizonWorkerProcesses()` may not find any workers at all. The command exits with SUCCESS, reports "0 killed," and you think the cleanup ran when it actually checked nothing.
+
+**How to detect it:** Count how many workers the `ps` search returned. If it returns fewer than your configured supervisor processes, something is wrong — flag it.
+
+### 2. The command kills the wrong processes
+
+If your `grep` pattern is too broad (e.g., `grep horizon` instead of `grep "artisan horizon:work"`), it might match the cleanup command itself or other Horizon-related processes like `horizon:snapshot`. You end up killing the process that was trying to clean up.
+
+**How to prevent it:** Always include a process-name exclude filter: `grep -v "stale-process-cleanup"` in the worker search.
+
+### 3. Re-parented worker processes with no parent to restart them
+
+If you kill a worker process that was re-parented to init (PID 1) because its original Horizon supervisor died, no Horizon supervisor will restart it. The worker is gone, and the queue it was serving loses capacity permanently until Horizon itself is restarted.
+
+**How to detect it:** After cleanup, check the worker count in Horizon's Redis state vs. the expected supervisor configuration.
+
+## What Crontinel tracks
+
+Crontinel's Laravel package monitors your custom artisan commands the same way it monitors built-in Horizon commands. When `horizon:stale-process-cleanup` runs as a scheduled task, Crontinel captures:
+
+- **Exit code** — did the command succeed or fail?
+- **Duration** — is it taking longer than usual?
+- **Output** — how many stale workers were cleaned up?
+- **Failure rate** — if the cleanup command starts failing, that's a signal that the stale-process problem is escalating
+
+You get alerted immediately if the cleanup command fails, without having to wait for the next server outage caused by accumulated stale workers.
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+The install command walks you through connecting your application's scheduled tasks to Crontinel's monitoring dashboard, including any custom cleanup commands you've written.
