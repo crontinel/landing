@@ -21,6 +21,8 @@ Horizon is a supervisor of supervisors. If you have two supervisor groups – sa
 
 `php artisan horizon:pause` is a valid command, sometimes run during deployments. If it never gets `horizon:continue` called after, your queues silently stop processing. No cron missed a heartbeat because the scheduled commands are separate from Horizon workers. Everything looks fine.
 
+A related pattern is a [Horizon config-environment mismatch](/blog/laravel-horizon-config-env-mismatch/) — where the wrong supervisor config activates after a deploy because `APP_ENV` doesn't match or the cached config is stale.
+
 **3. The failed job rate spikes gradually**
 
 Jobs fail. That's normal. But when the failure rate climbs from 0.2/min to 8/min over two hours, you want to know before it becomes 40/min and your users start screaming. Generic monitors can't see job failure rates – they only know if a URL was pinged.
