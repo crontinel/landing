@@ -1,6 +1,6 @@
 # Crontinel Landing
 
-Marketing site for [Crontinel](https://crontinel.com), focused on background job and cron monitoring for Laravel. Built with Astro and deployed to Cloudflare Pages at [crontinel.com](https://crontinel.com).
+Marketing site for [Crontinel](https://crontinel.com), focused on background job and cron monitoring for any framework. Built with Astro and deployed to Cloudflare Pages at [crontinel.com](https://crontinel.com).
 
 ## Local development
 
