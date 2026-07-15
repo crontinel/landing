@@ -1,0 +1,183 @@
+---
+title: "Cron Monitoring Guide 2026: Detect Failures Before Users Do"
+description: "Complete guide to cron monitoring for engineering teams. Learn how to detect missed schedule runs, silent failures, worker stalls, and queue backpressure — with setup examples for any framework."
+date: 2026-07-15
+draft: false
+---
+
+Your scheduled tasks are the invisible backbone of your application. When they stop running — or worse, run but silently fail — the first sign is often a support ticket from a customer who noticed before you did.
+
+This guide covers what cron monitoring actually means, what to watch for beyond uptime, and how to set up real detection across any framework or stack.
+
+## What Cron Monitoring Actually Covers
+
+Most teams think cron monitoring means "did the job run?" But that binary check misses the most common failure modes:
+
+- **Missed runs** — The scheduler never fired the task. No log, no error, just silence.
+- **Silent failures** — The task ran but exited with a non-zero code or threw an uncaught exception that nobody saw.
+- **Worker stalls** — The process is alive but not processing anything. Memory leak, deadlock, or supervisor hang.
+- **Queue backpressure** — Jobs are being created faster than workers can consume them. Queue depth grows silently.
+- **Latency degradation** — Jobs still complete, but they take 10x longer than normal. Throughput drops.
+- **Schedule drift** — A task fires at the wrong time due to timezone misconfiguration or daylight saving shifts.
+
+Real cron monitoring catches all of these. Not just "is the process running."
+
+## What to Monitor
+
+### 1. Heartbeat — Did It Run?
+
+The foundation. Your task sends a signal when it starts (or finishes). If the signal doesn't arrive within the expected window, something is wrong.
+
+**What to track:**
+- Expected arrival window (e.g., every 5 minutes, every hour)
+- Actual arrival time vs expected
+- Missed heartbeats in a row before alerting
+
+**Related guides:**
+- [Cron Heartbeat Monitoring](/use-cases/cron-heartbeat-monitoring/) — set up heartbeat detection
+- [Monitor Schedule:Run](/use-cases/monitor-schedule-run/) — track Laravel's scheduler execution
+- [Monitor Schedule:Work](/use-cases/monitor-schedule-work/) — continuous scheduler worker
+
+### 2. Exit Status — Did It Succeed?
+
+A task that runs but fails silently is worse than one that doesn't run at all. You get a false sense of health while data goes stale.
+
+**What to track:**
+- Exit code of each run
+- Stdout/stderr output
+- Duration (did it complete in expected time?)
+
+**Related guides:**
+- [Deploy Hooks](/use-cases/deploy-hooks/) — post-deploy task monitoring
+- [Failed Job Retry](/use-cases/failed-job-retry/) — jobs that retry forever
+- [Monitor Queue Failed](/use-cases/monitor-queue-failed/) — failed queue jobs
+
+### 3. Queue Depth — Is There Backpressure?
+
+A growing queue means workers can't keep up. This is the earliest warning sign of production issues.
+
+**What to track:**
+- Queue size trend (is it growing?)
+- Oldest job age (how long has the oldest job been waiting?)
+- Throughput (jobs processed per minute)
+
+**Related guides:**
+- [Laravel Queue Monitoring](/use-cases/laravel-queue-monitoring/) — comprehensive queue monitoring
+- [Queue Depth Alert](/blog/laravel-queue-depth-alert/) — detecting backpressure
+- [Monitor Queue Work](/use-cases/monitor-queue-work/) — worker health
+
+### 4. Worker Health — Are Workers Actually Processing?
+
+A worker can be "running" but doing no useful work. Common causes: memory leaks, deadlocked database queries, stuck API calls.
+
+**What to track:**
+- Worker process status (alive vs actually processing)
+- Jobs processed per worker per minute
+- Memory usage trend
+- Last job completion time per worker
+
+**Related guides:**
+- [Laravel Horizon Monitoring](/use-cases/laravel-horizon-monitoring/) — monitor Horizon internals
+- [Worker Starvation Detection](/use-cases/monitor-horizon-worker-starvation/) — workers running but not processing
+- [Worker Timeout Monitoring](/use-cases/monitor-queue-worker-timeout/) — jobs that freeze
+- [Reverb Server Monitoring](/use-cases/monitor-reverb-server/) — WebSocket server health
+
+### 5. Processing Time — Is It Getting Slower?
+
+Latency degradation is the sneakiest failure mode. Jobs still succeed, but they take longer each day until the queue is hours behind.
+
+**What to track:**
+- Average processing time per job queue
+- P95 and P99 processing times
+- Dispatch-to-start latency
+- Throughput trend (jobs/min over time)
+
+**Related guides:**
+- [Queue Latency Monitoring](/use-cases/monitor-queue-latency/) — detect slow jobs
+- [Memory Leak Detection](/blog/laravel-queue-worker-memory-leak/) — workers leaking over time
+
+## Common Failure Scenarios
+
+### Scenario 1: Scheduler Stopped Running
+
+Your cron daemon crashed, the container restarted, or someone deployed without re-enabling the scheduler. No tasks fire for hours.
+
+**How to catch it:** Heartbeat on the scheduler itself. If `schedule:run` stops reporting in, alert immediately.
+
+**Guides:** [Cron Job Not Running?](/blog/laravel-cron-job-not-running/), [Schedule:Run Monitoring](/use-cases/monitor-schedule-run/)
+
+### Scenario 2: Jobs Run But Fail Silently
+
+A PHP fatal error in a job handler. The worker catches the exception, logs it, and moves on. Nobody checks the logs. The job never actually executed.
+
+**How to catch it:** Monitor failed job counts per queue. Alert on any increase above your baseline of zero.
+
+**Guides:** [Silent Failure Detection](/blog/debugging-silent-laravel-cron-failures/), [Failed Job Monitoring](/blog/laravel-failed-jobs-monitoring/)
+
+### Scenario 3: Workers Alive but Stalled
+
+Horizon shows "active" but jobs sit in the queue for minutes. The supervisor process is alive but workers are stuck on a database deadlock or Redis timeout.
+
+**How to catch it:** Track "oldest job age" alongside worker status. If workers are "running" but queue depth grows, workers are stalled.
+
+**Guides:** [Idle Workers Detection](/blog/laravel-horizon-idle-workers/), [Stalled Supervisor Detection](/blog/horizon-supervisor-stopped-jobs-not-processing/)
+
+### Scenario 4: Queue Backpressure
+
+A sudden spike in job creation (e.g., a webhook flood) overwhelms workers. Queue depth hits thousands. New jobs won't be processed for hours.
+
+**How to catch it:** Alert on queue depth thresholds and oldest job age. Auto-scale workers when queue exceeds thresholds.
+
+**Guides:** [Queue Backpressure](/blog/laravel-queue-backpressure/), [Queue Depth Alert](/blog/laravel-queue-depth-alert/)
+
+### Scenario 5: Timezone/Configuration Drift
+
+Deploying a server in a different timezone causes scheduled tasks to fire at the wrong time. Works in dev, breaks in production.
+
+**How to catch it:** Verify schedule arrival time against expected time. Alert if a task fires outside its expected window.
+
+**Guides:** [Timezone Issues](/blog/laravel-cron-timezone-issues/), [Cron Job Not Running After Deploy](/blog/laravel-cron-job-not-running-after-deploy/)
+
+## How to Choose a Monitoring Approach
+
+| Approach | Best For | Trade-off |
+|---|---|---|
+| **Heartbeat pings** | Simple "did it run?" checks | Misses silent failures |
+| **Exit code tracking** | Command-line tasks | Requires wrapper script |
+| **Queue depth monitoring** | High-volume job queues | Doesn't catch slow jobs |
+| **Worker health checks** | Long-running workers | More complex setup |
+| **Full observability** | Production systems | Most setup, most coverage |
+
+## Setting Up Monitoring
+
+The specific setup depends on your stack, but the pattern is always the same:
+
+1. **Instrument** — Add heartbeat or checkpoint calls to your tasks
+2. **Monitor** — Watch for missed signals, queue growth, and processing anomalies
+3. **Alert** — Notify the right person when thresholds are breached
+4. **Review** — Regularly check trends for gradual degradation
+
+For a quick start with any framework:
+
+```bash
+# Send a heartbeat when your task starts
+curl -s "https://crontinel.com/api/heartbeat/your-endpoint" \
+  --data-urlencode "status=running"
+
+# Your task does its work here
+
+# Signal completion
+curl -s "https://crontinel.com/api/heartbeat/your-endpoint" \
+  --data-urlencode "status=completed" \
+  --data-urlencode "duration=12.4"
+```
+
+The endpoint URL and payload format is framework-agnostic — works with any language or runtime that can make HTTP requests.
+
+## Next Steps
+
+Pick your most critical scheduled task and set up a heartbeat for it today. Then layer on queue depth monitoring and worker health checks as your system grows.
+
+- [Start monitoring in minutes with Crontinel](https://app.crontinel.com/register) — free for 1 app
+- Browse all [use-case guides](/use-cases/) for framework-specific setup patterns
+- Compare [cron monitoring tools](/vs/) to find the right fit for your team
