@@ -1,35 +1,39 @@
-# Show HN: Crontinel - open-source Laravel cron/queue/Horizon monitoring (no external service needed)
+# Show HN: Crontinel — open-source cron/queue/agent monitoring (self-host or SaaS, any stack)
 
-**Title:** I built an open-source tool that actually tells you when your Laravel cron jobs fail
+**Title:** I built an open-source tool that actually tells you when your cron jobs, queues, and AI agents fail
 
 ---
 
 I kept finding out about failed jobs the way nobody wants to: a user emails support.
 
-A Horizon supervisor would go down at 2am. A scheduled task would silently stop. Laravel's scheduler says what is supposed to run, not what actually failed or drifted late.
+A worker process would crash at 2am. A scheduled task would silently stop. The scheduler says what is *supposed* to run, not what actually failed or drifted late. And when I started building AI agents, I realized nobody was monitoring tool-call loops or model latency either.
 
 I built Crontinel to fix that.
 
 **What it monitors:**
-- Cron jobs: exit code, duration, late detection
+- Cron/scheduled tasks: exit code, duration, late detection
 - Queue depth: per-queue counts, failed job counts, oldest job age
-- Horizon: supervisor-level status (not just "Horizon is running")
+- Worker health: per-supervisor status, not just "process is running"
+- Agent runs: tool calls, model latency, token spend, loop detection
+- CI/CD: `crontinel check` in your deploy pipeline
 
-It hooks into Laravel's `ScheduledTaskFinished` and `ScheduledTaskFailed` events automatically. No wrapping, no modifying your existing commands.
+It hooks into your runtime's scheduler and queue events — not your endpoints. No endpoint pings, no per-task wrapping.
 
-Two commands to install:
+One SDK per stack:
 
 ```
+npm i @crontinel/node
+pip install crontinel
 composer require crontinel/laravel
-php artisan crontinel:install
+go get github.com/crontinel/go
+gem install crontinel
+dotnet add package Crontinel
 ```
 
-You get a local dashboard, CLI health check (`php artisan crontinel:check` for CI/CD), and Slack/email/webhook alerts. MIT licensed, PHP 8.2+, Laravel 11/12.
-
-There's also a hosted SaaS if you want multi-app dashboards and team access, but the package stands alone.
+MIT licensed, fully self-hostable. Local dashboard, CLI, no SaaS needed. There's also a hosted version for teams.
 
 GitHub: https://github.com/crontinel/crontinel
 Docs: https://docs.crontinel.com
 Site: https://crontinel.com
 
-Feedback welcome, especially on the package API and docs.
+Feedback welcome — especially on the SDK API, docs, and what runtime you'd want supported next.
