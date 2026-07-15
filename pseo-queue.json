@@ -5,7 +5,6 @@
     "laravel-schedule-timezone-mismatch",
     "laravel-supervisor-configuration",
     "long-running-cron-jobs",
-    "queue-latency-monitoring",
     "self-hosted-monitoring-comparison",
     "telescope-storage-cleanup"
   ],
@@ -65,6 +64,7 @@
     "reverb-connection-drops",
     "broadcast-failure-detection",
     "horizon-config-env-mismatch",
-    "horizon-stale-process-cleanup"
+    "horizon-stale-process-cleanup",
+    "queue-latency-monitoring"
   ]
 }

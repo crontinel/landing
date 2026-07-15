@@ -1,42 +1,38 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-14 02:15 UTC — new use-case page: monitor-horizon-worker-starvation
+Auto-generated: 2026-07-15 03:15 UTC — new use-case page: monitor-queue-latency
 
-## Run Summary (2026-07-14)
+## Run Summary (2026-07-15)
 
 **New article published:**
-- `monitor-horizon-worker-starvation.mdx` — Detect When Laravel Horizon Workers Are Running But Not Processing Jobs
-- URL: https://crontinel.com/use-cases/monitor-horizon-worker-starvation/
-- Keyword: "detect when Laravel Horizon workers have stopped processing jobs"
-- Distinct from existing monitor-horizon-work (covers horizon:work command crash) and laravel-horizon-monitoring (product-oriented monitoring page): this covers worker throughput starvation — workers alive but not making progress
-- Covers 5 failure modes: slow jobs blocking pool, maxProcesses too low, Redis connection pool exhaustion, queue-weighted balance strategy, memory limit recycling loop
-- ~700 words body, 2 code samples, 5 H3 failure mode sections, humanizer pass applied
-- Feature branch → PR #159 → Cloudflare Pages auto-deploy (pending merge)
+- `monitor-queue-latency.mdx` — Monitor Laravel Queue Processing Time — Detect When Jobs Run Slow
+- URL: https://crontinel.com/use-cases/monitor-queue-latency/
+- Keyword: "detect when Laravel queue processing time increases"
+- Distinct from existing monitor-queue-worker-timeout (covers frozen/hanging workers with exceeded --timeout): this covers performance degradation — jobs that process but take much longer than expected
+- Covers 4 failure modes: database query slowdowns, external API latency, resource contention, deadlock/lock contention
+- ~700 words body, 1 code sample, 4 H3 failure mode sections, humanizer pass applied
+- Feature branch → PR #162 → Cloudflare Pages auto-deploy (pending merge)
 
 **GSC actions:**
 - Sitemap (https://crontinel.com/sitemap.xml) re-submitted to GSC — 0 errors, 0 warnings
 - URL added to gsc-queue.json (pending)
-- horizon-worker-starvation moved pending → completed in pseo-queue.json
+- queue-latency-monitoring moved pending → completed in pseo-queue.json
+- monitor-horizon-stale-process-cleanup moved to gsc-queue submitted (merged via PR #161)
 
-**GSC findings (28-day — 2026-06-16 to 2026-07-13):**
-- 0 clicks across all pages — site still building search presence
-- Top query by impressions: "laravel monitoring" → laravel-cron-queue-monitoring-tools blog (59 imp, pos 64.5)
-- Notable: "laravel horizon jobs stuck in pending" query on laravel-horizon-monitoring page (1 imp, pos 27) — confirms search intent for this topic
-- monitor-config-cache: showing at positions 7-10 for config cache file queries (8 imp total) — good targeting
-- monitor-queue-flush: position 5.0 for "laravel queue flush" — strong position
-- monitor-queue-restart: position 10.0 for "php artisan queue:restart" — decent position
-- monitor-route-cache: position 7.1 for bootstrap/cache/routes-v7.php queries (8 imp)
-- No zero-click pattern is actionable yet — most pages average <5 impressions
+**GSC findings (28-day — 2026-06-17 to 2026-07-15):**
+- 0 clicks across most pages — site still building search presence
+- Top page by impressions: homepage (468 imp, pos 5.6, 1 click)
+- Top blog: laravel-cron-queue-monitoring-tools (425 imp, pos 20.1, 0 clicks)
+- Notable: monitor-telescope-clear (76 imp, pos 16.9, 1 click), laravel-horizon-idle-workers (74 imp, pos 14.6, 1 click)
+- monitor-reverb-server: 34 imp, pos 11.1, 1 click — improving
+- Sitemap healthy: 140 URLs, 0 errors, 0 warnings
 
 **Self-improvement data:**
 - No articles yet have enough GSC clicks to draw CTR conclusions
-- monitor-reverb-server (published earlier): still too few impressions for CTR analysis
-- monitor-telescope-clear: insufficient data
-- Homepage: 0 clicks on recent 28-day (was 1 click in earlier window) — too noisy
+- Still insufficient data for title rewrite decisions on any page
 
 **Queue status:**
-- horizon-worker-starvation: completed (PR #159, pending merge to main)
-- 9 topics remaining pending — next strong candidates: queue-latency-monitoring, horizon-stale-process-cleanup
-- Self-hosted monitoring comparison should be deferred — comparison articles on a new domain rarely rank without existing authority
+- queue-latency-monitoring: completed (PR #162, pending merge to main)
+- 6 topics remaining pending: kubernetes-laravel-horizon, laravel-schedule-timezone-mismatch, laravel-supervisor-configuration, long-running-cron-jobs, self-hosted-monitoring-comparison (deferred), telescope-storage-cleanup
 
 
 ## Run Summary (2026-07-11)

@@ -1,0 +1,71 @@
+---
+title: "Monitor Laravel Queue Processing Time — Detect When Jobs Run Slow"
+description: "Laravel queue workers are running but jobs take longer than expected. Here's how to detect queue latency degradation before it becomes an outage."
+date: 2026-07-15
+tags: ["laravel", "queue"]
+---
+
+Your Laravel queue is processing jobs. Horizon shows workers active. No failed jobs. On every dashboard that matters, things look fine.
+
+But users are starting to notice. The report export that usually takes 2 minutes is taking 20. The welcome email arrives 45 minutes after signup. When you dig, the queue has been running the whole time. Just slower than it should.
+
+No timeout, no crash, no error log. The queue was running at 20% throughput for three hours and nobody caught it.
+
+That is the queue latency problem: jobs are running, but they are not finishing in reasonable time.
+
+## How queue latency differs from worker timeouts
+
+A worker timeout means a job exceeded its `--timeout` limit. The worker dies, Horizon restarts it, and the failed job lands in `failed_jobs` where monitoring picks it up.
+
+Queue latency is sneakier. Every job finishes within its timeout. No errors. But the average processing time per job has quietly doubled or tripled.
+
+The causes stack up. A database query got slower after a table grew from 10k to a million rows. An API call started timing out on 5% of requests. Memory pressure triggers garbage collection between every job. None of these trip an alarm alone. Together they cut throughput in half.
+
+## Common causes of queue latency degradation
+
+### Database query slowdowns
+
+A job runs a `SELECT *` on a table that grew from 10,000 to 1,000,000 rows over six months. The query passed in staging but takes 10 seconds in production. Each job finishes, but the queue now processes 6 jobs per minute instead of 60.
+
+### External API latency
+
+Jobs that call external services (Slack, payment gateways, email providers) depend on upstream response times. If your email provider starts taking 5 seconds instead of 200ms, every notification job adds 5 seconds. At 50 jobs per minute, that is 250 seconds of extra processing the queue has to absorb.
+
+### Resource contention
+
+CPU and memory get squeezed by other processes on the same server. A deploy running npm builds, a backup process hammering disk I/O, or a cron job that overlaps with peak queue load. The workers stay alive but fight for resources.
+
+### Deadlock and lock contention
+
+Jobs that update the same rows (user balances, inventory counts) queue up behind database row locks. The job does not fail. It waits. When the queue processes sequentially, one slow job blocks everything behind it.
+
+## What to monitor for queue latency
+
+Standard queue monitoring watches whether jobs fail or workers crash. To catch latency degradation, track:
+
+- **Average job processing time per queue.** Watch per-minute throughput, but also how long each individual job takes.
+- **Dispatch-to-start time.** How long jobs sit before a worker picks them up. A growing gap means workers are saturated.
+- **P95 and P99 job processing time.** The tail tells you more than the average. If P95 jumps from 2 seconds to 30, something is wrong even if the average still looks fine.
+- **Throughput trend.** Jobs completed per minute, per hour. A steady decline signals a bottleneck building up.
+
+A sudden spike in processing time usually means a specific job class changed behavior (new deploy, external API change). A gradual increase over days or weeks points to data growth or resource pressure.
+
+## Quick Setup with Crontinel
+
+Crontinel monitors queue health beyond binary up-or-down checks. You can track processing time, queue depth, and throughput as heartbeat signals:
+
+```
+curl -s "https://crontinel.com/api/heartbeat/your-endpoint" \
+  --data-urlencode "status=processing_time_avg=12.4" \
+  --data-urlencode "status=queue_depth=342" \
+  --data-urlencode "status=throughput_minute=23"
+```
+
+When average processing time stays above your threshold for three heartbeats in a row, Crontinel alerts before users notice the lag. That gives you time to find the root cause (slow query, upstream timeout, memory leak) while the queue is still moving.
+
+## See also
+
+- [Laravel Queue Worker Timeout Monitoring](/use-cases/monitor-queue-worker-timeout/) (workers that freeze or crash)
+- [Monitor php artisan queue:work in Production](/use-cases/monitor-queue-work/)
+- [Laravel Queue Monitoring: Catch Failures Before Users Do](/blog/laravel-queue-monitoring-catch-failures/)
+- [Laravel Background Job Monitoring Checklist](/blog/laravel-background-job-monitoring-checklist/)
