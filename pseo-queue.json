@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "horizon-stale-process-cleanup",
     "kubernetes-laravel-horizon",
     "laravel-schedule-timezone-mismatch",
     "laravel-supervisor-configuration",
@@ -65,6 +64,7 @@
     "view-clear",
     "reverb-connection-drops",
     "broadcast-failure-detection",
-    "horizon-config-env-mismatch"
+    "horizon-config-env-mismatch",
+    "horizon-stale-process-cleanup"
   ]
 }
