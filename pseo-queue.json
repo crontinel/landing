@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "cron-monitoring-guide",
     "queue-monitoring-setup",
     "background-job-monitoring-comparison",
     "cron-job-not-running-troubleshoot",
@@ -10,7 +9,8 @@
     "queue-backpressure-detection",
     "failed-job-retry-monitoring",
     "cron-heartbeat-setup",
-    "monitoring-vs-observability"
+    "laravel-kubernetes-cron",
+    "cron-job-log-debugging"
   ],
   "completed": [
     "about",
@@ -75,6 +75,8 @@
     "laravel-supervisor-configuration",
     "long-running-cron-jobs",
     "self-hosted-monitoring-comparison",
-    "telescope-storage-cleanup"
+    "telescope-storage-cleanup",
+    "cron-monitoring-guide",
+    "monitoring-vs-observability"
   ]
 }

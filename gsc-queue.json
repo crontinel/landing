@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/blog/monitoring-vs-observability/"
+  ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
@@ -142,7 +144,10 @@
     "https://crontinel.com/blog/monitor-laravel-pennant-purge",
     "https://crontinel.com/blog/laravel-broadcast-failure-detection",
     "https://crontinel.com/blog/laravel-horizon-config-env-mismatch",
-    "https://crontinel.com/use-cases/monitor-horizon-stale-process-cleanup"
+    "https://crontinel.com/use-cases/monitor-horizon-stale-process-cleanup",
+    "https://crontinel.com/blog/cron-monitoring-guide/",
+    "https://crontinel.com/use-cases/monitor-horizon-worker-starvation/",
+    "https://crontinel.com/use-cases/monitor-queue-latency/"
   ],
-  "last_push": "2026-07-15"
+  "last_push": "2026-07-16"
 }
