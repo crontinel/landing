@@ -1,12 +1,16 @@
 {
   "in_progress": [],
   "pending": [
-    "kubernetes-laravel-horizon",
-    "laravel-schedule-timezone-mismatch",
-    "laravel-supervisor-configuration",
-    "long-running-cron-jobs",
-    "self-hosted-monitoring-comparison",
-    "telescope-storage-cleanup"
+    "cron-monitoring-guide",
+    "queue-monitoring-setup",
+    "background-job-monitoring-comparison",
+    "cron-job-not-running-troubleshoot",
+    "worker-stall-detection",
+    "schedule-missed-run-alert",
+    "queue-backpressure-detection",
+    "failed-job-retry-monitoring",
+    "cron-heartbeat-setup",
+    "monitoring-vs-observability"
   ],
   "completed": [
     "about",
@@ -65,6 +69,12 @@
     "broadcast-failure-detection",
     "horizon-config-env-mismatch",
     "horizon-stale-process-cleanup",
-    "queue-latency-monitoring"
+    "queue-latency-monitoring",
+    "kubernetes-laravel-horizon",
+    "laravel-schedule-timezone-mismatch",
+    "laravel-supervisor-configuration",
+    "long-running-cron-jobs",
+    "self-hosted-monitoring-comparison",
+    "telescope-storage-cleanup"
   ]
 }
