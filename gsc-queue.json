@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-horizon-stale-process-cleanup"
+    "https://crontinel.com/use-cases/monitor-queue-latency"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -143,7 +143,8 @@
     "https://crontinel.com/blog/debug-laravel-reverb-connection-drops",
     "https://crontinel.com/blog/monitor-laravel-pennant-purge",
     "https://crontinel.com/blog/laravel-broadcast-failure-detection",
-    "https://crontinel.com/blog/laravel-horizon-config-env-mismatch"
+    "https://crontinel.com/blog/laravel-horizon-config-env-mismatch",
+    "https://crontinel.com/use-cases/monitor-horizon-stale-process-cleanup"
   ],
   "last_push": "2026-07-15"
 }
