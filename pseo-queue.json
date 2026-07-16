@@ -8,8 +8,7 @@
     "schedule-missed-run-alert",
     "queue-backpressure-detection",
     "failed-job-retry-monitoring",
-    "cron-heartbeat-setup",
-    "laravel-kubernetes-cron"
+    "cron-heartbeat-setup"
   ],
   "completed": [
     "about",
@@ -77,6 +76,7 @@
     "telescope-storage-cleanup",
     "cron-monitoring-guide",
     "monitoring-vs-observability",
-    "cron-job-log-debugging"
+    "cron-job-log-debugging",
+    "laravel-kubernetes-cron"
   ]
 }

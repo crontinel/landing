@@ -1,0 +1,144 @@
+---
+title: "Monitoring Laravel Cron Jobs on Kubernetes: The Complete Guide"
+description: "Running Laravel's scheduler on Kubernetes introduces failure modes that never happen on a traditional server — pod restarts wipe cron state, horizontal scaling creates duplicate runs, and dead pods leave jobs unfinished. Here's how to monitor and debug Kubernetes cron jobs for Laravel."
+date: 2026-07-17
+tags: ["laravel", "kubernetes", "cron", "deployment", "monitoring"]
+---
+
+You moved your Laravel app to Kubernetes for scalability and resilience. Your scheduler runs as a Kubernetes CronJob. Everything should be better, right?
+
+Then you notice reports haven't been sent for three days. The `schedule:run` pod shows `Completed` in `kubectl get pods`, but your nightly export job never actually ran.
+
+Running Laravel's scheduler on Kubernetes introduces failure modes that don't exist on a single server. Here's what breaks and how to catch it.
+
+## Why Kubernetes CronJobs Fail Differently
+
+On a traditional VPS, the Laravel scheduler runs as a long-lived process:
+
+```
+* * * * * cd /app && php artisan schedule:run >> /dev/null 2>&1
+```
+
+If the scheduler stops, you notice within a minute.
+
+On Kubernetes, the scheduler becomes a **CronJob** — a pod that launches, runs `schedule:run`, and exits. This stateless model is great for infrastructure but terrible for observability.
+
+### Failure Mode 1: The Pod Exits Before the Job Finishes
+
+```yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: laravel-scheduler
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: scheduler
+            image: your-app:latest
+            command: ["php", "artisan", "schedule:run"]
+```
+
+If `schedule:run` takes longer than the pod's `activeDeadlineSeconds` (default: none, but teams often set it to 60), the pod is terminated mid-execution. A `Completed` status in `kubectl` doesn't mean your scheduled jobs finished — it just means the entrypoint exited.
+
+**The fix:** Set `spec.ttlSecondsAfterFinished` to 0 and monitor actual job completion via external heartbeats (more on this below).
+
+### Failure Mode 2: Horizontal Scaling Creates Duplicate Runs
+
+With multiple replicas of your app, each pod runs its own scheduler. On a single server, `withoutOverlapping()` prevents a command from running twice. On Kubernetes, two scheduler pods from different replicas can launch the same due job simultaneously — the mutex in the database or Redis works, but only if both pods check at the exact same instant.
+
+**The fix:** Run the scheduler as a dedicated CronJob (one pod per run, not one per replica). Even better, use the `onOneServer()` modifier:
+
+```php
+$schedule->command('reports:generate')
+    ->daily()
+    ->onOneServer()
+    ->withoutOverlapping();
+```
+
+This uses Laravel's cache mutex backed by Redis, which is shared across all pods.
+
+### Failure Mode 3: Image Pull Failures and Pending Pods
+
+A Kubernetes CronJob won't run if the image can't be pulled — new version with a typo in the tag, Docker Hub rate limit, or OOM on the node:
+
+```bash
+kubectl get pods --field-selector status.phase=Pending
+```
+
+A `Pending` pod is invisible to standard uptime checks. The CronJob still shows as active in `kubectl get cronjobs`, but no actual work is happening.
+
+## How to Detect KUbernetes Cron Failures
+
+You can't rely on `kubectl get cronjobs` alone. You need a heartbeat-based approach that works across pod restarts, node failures, and image issues.
+
+### Option 1: External Heartbeat Monitoring (Recommended)
+
+Add a healthcheck call to the end of your scheduler run:
+
+```php
+// app/Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->call(function () {
+        // Your existing scheduled logic
+    })->daily();
+
+    // Heartbeat: pings an external monitor after schedule:run completes
+    $schedule->call(function () {
+        $monitorUrl = config('services.crontinel.heartbeat_url');
+        if ($monitorUrl) {
+            Http::get($monitorUrl);
+        }
+    })->everyMinute();
+}
+```
+
+This tells you the scheduler finished — even if individual commands inside it failed.
+
+### Option 2: Monitor Pod Restarts and Failures
+
+```bash
+# Check for restarted scheduler pods
+kubectl get pods -l app=laravel-scheduler \
+  --field-selector status.phase!=Running
+
+# Check job failures
+kubectl get jobs --field-selector status.failed>0
+```
+
+Set up Prometheus alerts on these metrics.
+
+### Option 3: Log Aggregation via CronJob Events
+
+Route CronJob events to a centralized logger:
+
+```bash
+kubectl describe cronjob laravel-scheduler | grep "Events:"
+```
+
+Stream into your logging platform and alert on `Failed` or `BackoffLimitExceeded` events.
+
+## What Crontinel Does Differently
+
+Crontinel's heartbeat monitoring is **pod-independent** — it doesn't care if your scheduler runs as a CronJob, DaemonSet, or plain system cron. It checks that `schedule:run` actually completed successfully within the expected window, regardless of how Kubernetes scheduled (or failed to schedule) the pod.
+
+- **No kubectl required** — just an HTTP heartbeat on every scheduler tick
+- **Detects missing runs** — if the CronJob's pod fails silently, the heartbeat stops
+- **Works with any K8s setup** — EKS, GKE, AKS, or K3s on a single node
+
+## Summary
+
+| Failure Mode | Traditional Server | Kubernetes (CronJob) |
+|---|---|---|
+| Scheduler exits early | `ps aux` catches it | Pod shows `Completed` — looks fine |
+| Duplicate runs | Rare (single process) | Common with multiple replicas |
+| Image pull failure | N/A | Pod stays `Pending` silently |
+| Node goes down | Cron stops immediately | No automatic reschedule |
+
+The fundamental rule: **don't trust pod status — trust heartbeats.**
+
+To monitor your Laravel scheduler on Kubernetes, set up a free Crontinel account, add a heartbeat monitor, and add the heartbeat call to your scheduler. You'll know the instant a CronJob fails to run.
