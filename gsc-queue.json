@@ -1,6 +1,7 @@
 {
   "pending": [
-    "https://crontinel.com/blog/monitoring-vs-observability/"
+    "https://crontinel.com/blog/monitoring-vs-observability/",
+    "https://crontinel.com/use-cases/monitor-cron-job-log-debugging/"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -149,5 +150,5 @@
     "https://crontinel.com/use-cases/monitor-horizon-worker-starvation/",
     "https://crontinel.com/use-cases/monitor-queue-latency/"
   ],
-  "last_push": "2026-07-16"
+  "last_push": "2026-07-17"
 }

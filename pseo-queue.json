@@ -9,8 +9,7 @@
     "queue-backpressure-detection",
     "failed-job-retry-monitoring",
     "cron-heartbeat-setup",
-    "laravel-kubernetes-cron",
-    "cron-job-log-debugging"
+    "laravel-kubernetes-cron"
   ],
   "completed": [
     "about",
@@ -77,6 +76,7 @@
     "self-hosted-monitoring-comparison",
     "telescope-storage-cleanup",
     "cron-monitoring-guide",
-    "monitoring-vs-observability"
+    "monitoring-vs-observability",
+    "cron-job-log-debugging"
   ]
 }
