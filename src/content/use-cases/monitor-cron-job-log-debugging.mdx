@@ -1,0 +1,118 @@
+---
+title: "How to Debug a Laravel Cron Job That Fails With No Log Output"
+description: "Your Laravel cron job shows FAIL but there's nothing in the log. Here's how to find the real error, from output redirection gotchas to missing env vars and silent exceptions."
+date: 2026-07-17
+---
+
+A scheduled command runs. The cron entry is in place. The scheduler ticks every minute. But the output says FAIL and the log file is empty.
+
+This is more common than you think. The scheduler itself is working. The kernel dispatches the command. But something inside the command fails silently and the error never reaches `storage/logs/laravel.log`.
+
+The problem is rarely the scheduler. It is how Laravel captures, or fails to capture, output from the commands it runs.
+
+## Why cron job failures go missing from your logs
+
+The default crontab entry for Laravel routes all output to /dev/null:
+
+```
+* * * * * cd /var/www && php artisan schedule:run >> /dev/null 2>&1
+```
+
+`>> /dev/null` discards stdout. `2>&1` sends stderr along with it. If your command throws an exception that isn't caught and logged explicitly, the error text goes to the same silent sink.
+
+Even with `sendOutputTo()` configured, a PHP fatal error or uncaught exception can bypass your application's logging channel entirely. The scheduler knows the command did not complete. It records FAIL in its internal log. But it has no way to report what went wrong.
+
+## How to recover the error
+
+### Step 1: Run the command directly
+
+Skip the scheduler and run the Artisan command by hand:
+
+```bash
+cd /var/www && php artisan your:command --timeout=0 2>&1
+```
+
+This bypasses the scheduler's output handling and prints whatever the command would send to stderr. Missing class, database timeout, permission issue, you will see it here.
+
+### Step 2: Add output capture to the schedule definition
+
+In `App\Console\Kernel`, add logging to the specific command:
+
+```php
+$schedule->command('your:command')
+    ->everyMinute()
+    ->appendOutputTo(storage_path('logs/your-command.log'));
+```
+
+Every run of `your:command` now appends its output to `storage/logs/your-command.log`, including error messages. This is the minimum viable setup for any scheduled task running in production.
+
+### Step 3: Check the PHP error log separately
+
+Laravel's exception handler catches errors inside the application stack. But PHP-level errors (parse errors, memory exhaustion, execution timeouts) may never reach the application logger.
+
+Check the PHP-FPM or CLI error log:
+
+```bash
+tail -100 /var/log/php-fpm/error.log
+tail -100 /var/log/php_errors.log
+```
+
+On most setups, PHP writes fatal errors to its own log file before the application can capture them. If your cron fails silently and neither Laravel's log nor your custom output file shows anything, the PHP error log is where the answer lives.
+
+## Three failure modes you will encounter
+
+### 1. The deploy that changed the environment
+
+A new deploy adds a config value your scheduled command depends on. The config cache was not rebuilt. The command loads the old config from `bootstrap/cache/config.php`, finds a null value, and throws. The error route: `/dev/null`.
+
+**Fix:** Redirect the cron entry to a file for the first few minutes after a deploy:
+
+```bash
+* * * * * cd /var/www && php artisan schedule:run >> storage/logs/scheduler.log 2>&1
+```
+
+### 2. The env var that only exists in the login shell
+
+A scheduled command connects to an external API using a key from `.env`. The key loads fine when you run `php artisan your:command` from the command line. But cron runs with a minimal shell. `PATH` is short. `HOME` is not always set. Environment variables your dotfiles export are absent.
+
+If `.env` is missing or unreadable by the cron user, your command connects with a null API key and the request fails before any Laravel logging runs.
+
+**Fix:** Test from the cron user's shell:
+
+```bash
+sudo -u www-data env -i PATH=/usr/local/bin:/usr/bin:/bin php /var/www/artisan your:command
+```
+
+### 3. The job that times out without a trace
+
+A long-running scheduled command reaches the `--timeout` limit. The scheduler sends SIGTERM. If the command does not register a shutdown function or signal handler, the termination is logged nowhere. Not in your Laravel log. Not in Pulse. Not in Horizon. Just the FAIL entry in `schedule.log`.
+
+**Fix:** Add a signal-aware shutdown handler:
+
+```php
+pcntl_signal(SIGTERM, function () {
+    Log::warning('Command terminated by scheduler timeout');
+    // Clean up, mark incomplete work
+});
+```
+
+## How Crontinel catches what logs miss
+
+Log-based debugging works when you know where to look. But it is reactive. You find the error after the failure already happened.
+
+Crontinel checks whether scheduled tasks actually complete. It does not depend on your application's logging stack. Each command sends a heartbeat on start and another on finish. If the finishing heartbeat does not arrive on time, Crontinel alerts you before the next cron cycle:
+
+- Works with or without output logging. Does not depend on `sendOutputTo` or `appendOutputTo`.
+- Catches silent failures across deploys, config changes, and environment mismatches.
+- Records exit codes and durations for every scheduler run. You can see which command failed and how long it ran before dying.
+
+The debugging guide above stays useful. You will still need logs to fix the actual bug. Crontinel removes the blind spot in between.
+
+## Quick setup with Crontinel
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Add your API key to `.env` and define which schedules to monitor. Crontinel starts recording every scheduler run immediately and alerts you on the first missed or failed execution.

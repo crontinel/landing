@@ -222,3 +222,5 @@ Before marking a silent cron failure as resolved, confirm all of these:
 - No SELinux or permission denials in the audit log
 
 Silent failures rarely have a single cause. Most production incidents involve two or three of these factors overlapping. Fix the one you found, then check the rest before the next incident finds you.
+
+For a deeper walkthrough of recovering error output from cron jobs that fail with no visible error, including PHP-FPM log inspection and output redirection fixes, see [How to Debug a Laravel Cron Job That Fails With No Log Output](/use-cases/monitor-cron-job-log-debugging/).
