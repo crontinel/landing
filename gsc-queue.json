@@ -1,7 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/blog/monitoring-vs-observability/",
-    "https://crontinel.com/use-cases/monitor-cron-job-log-debugging/"
+    "https://crontinel.com/use-cases/queue-monitoring-setup/"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -148,7 +147,10 @@
     "https://crontinel.com/use-cases/monitor-horizon-stale-process-cleanup",
     "https://crontinel.com/blog/cron-monitoring-guide/",
     "https://crontinel.com/use-cases/monitor-horizon-worker-starvation/",
-    "https://crontinel.com/use-cases/monitor-queue-latency/"
+    "https://crontinel.com/use-cases/monitor-queue-latency/",
+    "https://crontinel.com/blog/monitoring-vs-observability/",
+    "https://crontinel.com/use-cases/monitor-cron-job-log-debugging/",
+    "https://crontinel.com/blog/monitoring-kubernetes-cron-jobs/"
   ],
   "last_push": "2026-07-17"
 }
