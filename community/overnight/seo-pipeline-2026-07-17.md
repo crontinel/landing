@@ -1,27 +1,36 @@
 # SEO Pipeline Archive — 2026-07-17
 
-## Articles Generated: 1
-- `cron-job-log-debugging` → `/use-cases/monitor-cron-job-log-debugging/`
+## Articles Generated: 2
+1. `cron-job-log-debugging` → `/use-cases/monitor-cron-job-log-debugging/`
+2. `queue-monitoring-setup` → `/use-cases/queue-monitoring-setup/`
 
-## Articles Committed: 1
-- `/use-cases/monitor-cron-job-log-debugging/`
+## Articles Committed: 2 (PR #173)
+- `/use-cases/monitor-cron-job-log-debugging/` (already live from earlier run)
+- `/use-cases/queue-monitoring-setup/` (PR #173 — auto-merge enabled)
 
 ## GSC Submission
-- Pending (will be submitted after deploy)
+- Pending for queue-monitoring-setup (will be submitted after deploy)
+- queue-monitoring-setup added to gsc-queue.json pending
 
-## GSC Diagnostics (28 days)
-- Total clicks: 8, impressions: 2913, CTR: 0.27%
-- Top impression pages: homepage (472), laravel-cron-queue-monitoring-tools (426), laravel-schedule-withoutoverlapping-explained (174), about (149), laravel-cron-vs-queue-monitoring (121)
-- 0-click pages with notable positions: about (149 imps, pos 5.5), better-stack-cron-monitoring-gone (59 imps, pos 4.3)
+## GSC Diagnostics (7 days, Jul 10-16)
+- Total clicks: 0, impressions: ~200+ (mostly site:crontinel.com queries)
+- Actual search queries: "laravel monitoring" (13 imps), "laravel heartbeat" (2), "queue monitor" (4), "cronradar" (1)
+- Site is very young in SEO terms — minimal organic traffic yet
+- siteOwner permission confirmed on sc-domain:crontinel.com ✓
 
-## GSC Errors: None
+## GSC Errors: None identified
 
 ## Queue Status
-- Pending topics remaining: 9
-  - queue-monitoring-setup, background-job-monitoring-comparison, cron-job-not-running-troubleshoot, worker-stall-detection, schedule-missed-run-alert, queue-backpressure-detection, failed-job-retry-monitoring, cron-heartbeat-setup, laravel-kubernetes-cron
+- In progress: queue-monitoring-setup (PR #173)
+- Pending topics remaining: 7
+  - background-job-monitoring-comparison, cron-job-not-running-troubleshoot, worker-stall-detection, schedule-missed-run-alert, queue-backpressure-detection, failed-job-retry-monitoring, cron-heartbeat-setup
 
 ## Notes
-- Published troubleshooting guide for debugging Laravel cron jobs via logs
-- Target keyword: "how to debug Laravel cron job failures using logs"
-- Conservative pacing: 1 article, problem/solution format (not artisan command)
-- Article is a practical step-by-step guide addressing a real common problem with clear search intent
+- Published step-by-step setup guide for Laravel queue monitoring in production
+- Target keyword: "how to set up Laravel queue monitoring in production"
+- Conservative pacing: 1 new article tonight, step-by-step setup guide format
+- Article covers: queue driver choice, process supervision (Supervisor/systemd), Horizon config, queue depth/age monitoring, failed job rate tracking, external heartbeats, testing alerts
+- Humanizer applied: removed title case headings, em dashes, "critical" emphasis, filler phrases
+- Internal linking: links to /integrations/laravel guide
+- Framework-agnostic check: article title is framework-neutral ("Laravel queue monitoring" is the topic, not the brand positioning)
+- Working tree clean after commit
