@@ -17,6 +17,7 @@
 | 2026-07-16 | Use-case | Cron Job Log Debugging | `/use-cases/monitor-cron-job-log-debugging/` |
 | 2026-07-16 | Reference | Competitors page | `references/competitors.md` |
 | 2026-07-17 | Blog | Monitoring Laravel Cron Jobs on Kubernetes | `/blog/monitoring-kubernetes-cron-jobs/` |
+| 2026-07-17 | Use-case | How to Set Up Laravel Queue Monitoring in Production | `/use-cases/queue-monitoring-setup/` |
 
 ### GSC 7-Day Performance (Jul 10-16)
 | Metric | Value |
@@ -45,10 +46,10 @@
 | Collection | Count |
 |------------|-------|
 | Blog | 44 (+7 this week) |
-| Use-cases | 69 (+7 this week) |
+| Use-cases | 70 (+8 this week) |
 | Vs | 14 (unchanged) |
 | Integrations | 7 (unchanged) |
-| **Total** | **134** (+14 this week) |
+| **Total** | **135** (+15 this week) |
 
 ### Friday Performance Observations
 1. **App subdomain pages leaking:** `app.crontinel.com/` (15 impressions) and `/forgot-password` (4 impressions) appearing in GSC — these should be noindexed.
@@ -58,11 +59,12 @@
 5. **Search Analytics API now works!** Previous limitation (404) has been resolved — full 7-day performance data is available.
 
 ### Tasks Completed This Week
-1. ✅ Daily content — 12 new pages published across blog, use-cases
+1. ✅ Daily content — 13 new pages published across blog, use-cases
 2. ✅ PR cleanup — stale PRs merged (#170 resolved)
-3. ✅ URL queue management — 149 URLs submitted to GSC
+3. ✅ URL queue management — 150 URLs submitted to GSC
 4. ✅ Competitor gap analysis (Thursday) — added competitors.md, new queue topics
 5. ✅ Performance review (Friday) — first successful 7-day GSC data pull
+6. ✅ Saturday — queue monitoring setup guide published
 
 ### Blockers & Action Items
 1. **🔴 app.crontinel.com pages in index** — Need to add `<meta robots="noindex">` to app pages or disallow in landing's internal links to app subdomain

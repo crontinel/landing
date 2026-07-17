@@ -9,8 +9,8 @@ All topics cover cron monitoring, Horizon internals, queue monitoring, alerting,
 ## VS Pages (14 published)
 crontinel-alternatives, crontinel-vs-betteruptime, crontinel-vs-cronitor, crontinel-vs-deadmanssnitch, crontinel-vs-forge-heartbeats, crontinel-vs-healthchecks-io, crontinel-vs-uptimerobot, crontinel-vs-lambdatest, crontinel-vs-thenping, crontinel-vs-cronofy, crontinel-vs-better-stack, crontinel-vs-pingdom, crontinel-vs-datadog, crontinel-vs-cronradar
 
-## Use-Case Pages (69 published)
-Covers artisan command monitoring (migrate, cache, queue, horizon, scout, telescope, pennant, schedule-interrupt, etc.) and broader use cases (multi-tenant, SaaS monitoring, deploy hooks, failed job retry, webhook monitoring, cron heartbeat, status page, incident alerting).
+## Use-Case Pages (70 published)
+Covers artisan command monitoring (migrate, cache, queue, horizon, scout, telescope, pennant, schedule-interrupt, etc.) and broader use cases (multi-tenant, SaaS monitoring, deploy hooks, failed job retry, webhook monitoring, cron heartbeat, status page, incident alerting, queue monitoring setup).
 
 ## Integration Pages (7 published)
 - /integrations/laravel

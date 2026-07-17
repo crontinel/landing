@@ -1,7 +1,8 @@
 {
-  "in_progress": [],
+  "in_progress": [
+    "queue-monitoring-setup"
+  ],
   "pending": [
-    "queue-monitoring-setup",
     "background-job-monitoring-comparison",
     "cron-job-not-running-troubleshoot",
     "worker-stall-detection",
