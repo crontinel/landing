@@ -1,8 +1,7 @@
 {
-  "pending": [
-    "https://crontinel.com/use-cases/queue-monitoring-setup/"
-  ],
+  "pending": [],
   "submitted": [
+    "https://crontinel.com/use-cases/queue-monitoring-setup/",
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
     "https://crontinel.com/use-cases/monitor-db-seed",
