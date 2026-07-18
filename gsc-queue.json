@@ -1,8 +1,7 @@
 {
-  "pending": [
-    "https://crontinel.com/blog/detect-laravel-worker-stalls/"
-  ],
+  "pending": [],
   "submitted": [
+    "https://crontinel.com/blog/detect-laravel-worker-stalls/",
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
     "https://crontinel.com/use-cases/monitor-db-seed",
