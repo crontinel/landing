@@ -1,0 +1,189 @@
+---
+title: "How to Detect Laravel Queue Worker Stalls: When Workers Go Silent"
+description: "A Laravel queue worker that's alive but not processing jobs is worse than a crashed worker — it gives no alert, no error, and no warning. Here's how to detect stalled workers, common causes, and how Crontinel catches silent failures before they compound."
+date: 2026-07-18
+tags: ["laravel", "queues", "workers", "horizon", "monitoring"]
+---
+
+Your Laravel queue worker is running. `ps aux` shows the process. Supervisord reports it as healthy. Horizon's dashboard shows it listening.
+
+But jobs aren't being processed.
+
+This is a **worker stall**. The process is alive but not doing any work. Worse than a crash because you get no alert, no error log, and no signal from your monitoring tools.
+
+## What a Worker Stall Looks Like
+
+A stalled worker still holds the Supervisor process slot. It still responds to signals. But it never picks up a new job from the queue.
+
+```bash
+# Everything looks fine
+ps aux | grep queue:work
+# => forge    12345  0.0  2.1  ... php artisan queue:work redis --sleep=3
+
+# But the queue depth keeps growing
+redis-cli LLEN queues:default
+# => 47   (was 12 an hour ago)
+```
+
+The gap between "process is running" and "jobs are being processed" is where stalls hide. Let's look at why.
+
+## Why Workers Stall
+
+### Redis Connection in a Degraded State
+
+The most common stall pattern. The worker's Redis connection enters a state where `BRPOP` (blocking right-pop) never returns — but the connection isn't closed, so the worker doesn't reconnect:
+
+```php
+// config/queue.php
+'redis' => [
+    'block_for' => null,  // Wait indefinitely
+    'after_commit' => true,
+],
+```
+
+With `block_for => null`, the worker calls `BRPOP` and waits forever. If Redis becomes temporarily unavailable and the client library doesn't detect the broken connection, the worker stays blocked on a dead socket.
+
+**What you see:**
+- Worker process is running (RSS memory stable)
+- No PHP errors or exceptions
+- Queue depth climbs
+- `php artisan queue:restart` fixes it temporarily
+
+### Memory Leak Hitting PHP's Limit
+
+Queue workers in Laravel run in a long-lived process. If a job leaks memory — holding onto a large Eloquent collection, creating circular references, or loading files into local variables — the worker eventually hits `memory_limit`:
+
+```ini
+; php.ini
+memory_limit = 128M
+```
+
+PHP doesn't always throw a `FatalError` immediately. Sometimes the Zend engine starts thrashing, garbage collection slows to a crawl, and the worker appears to hang while it tries to free memory.
+
+### Deadlocked Database Transaction
+
+If a job starts a database transaction and then crashes without committing or rolling back, the transaction can remain open in the worker's connection pool:
+
+```php
+public function handle()
+{
+    DB::beginTransaction();
+    
+    try {
+        // Process payment...
+        // If this throws and is caught elsewhere,
+        // the transaction is never committed or rolled back
+        $this->processPayment($order);
+        
+        DB::commit();
+    } catch (\Exception $e) {
+        // Missing: DB::rollBack()
+        Log::error('Payment failed: ' . $e->getMessage());
+    }
+}
+```
+
+The next job that hits this worker tries to acquire the same row lock and waits forever.
+
+### Supervisor-managed Worker After `queue:restart`
+
+When you run `php artisan queue:restart`, Laravel sets a restart flag in Redis. Workers check this flag after each job and exit gracefully. But Supervisor immediately starts a replacement worker — which reads the *same* restart flag and exits again:
+
+```ini
+; supervisor.conf
+[program:horizon]
+process_name=%(program_name)s_%(process_num)02d
+command=php /home/forge/current/artisan horizon
+autorestart=true
+```
+
+If your Redis is slow or the restart flag hasn't timed out, you get a loop of "start → detect restart flag → exit → restart" that looks like a stall.
+
+## Detecting Stalled Workers
+
+### Queue Depth Growth Rate
+
+Track queue depth over time. A growing queue when workers are "running" is the clearest signal:
+
+```bash
+# Every minute
+redis-cli LLEN queues:default >> /tmp/queue-depth.log
+
+# Stall alert: depth grows >10% over 5 checks
+awk 'NR>1{print $1-p}{p=$1}' /tmp/queue-depth.log | tail -5
+```
+
+### Job Completion Latency
+
+Measure the time between when a job is pushed and when it's processed:
+
+```php
+// App\Jobs\HeartbeatJob
+public function handle()
+{
+    $pushedAt = $this->payload()['pushedAt'] ?? null;
+    if ($pushedAt) {
+        $latency = microtime(true) * 1000 - $pushedAt;
+        Redis::set('queue:latency:heartbeat', $latency);
+    }
+}
+```
+
+A heartbeat job dispatched every 60 seconds that takes >120 seconds to process indicates a stall.
+
+### Supervisor Status Parsing
+
+Parse Supervisor's `status` output for workers that are running but not processing:
+
+```bash
+supervisorctl status | grep -E 'RUNNING'
+# Parse PID — check if worker's file descriptors show an open Redis connection
+# that hasn't received data in N seconds
+```
+
+### Application-Level Heartbeat
+
+The most reliable approach is having each worker emit a heartbeat after processing a job:
+
+```php
+// AppServiceProvider::boot()
+Queue::after(function ($event) {
+    Redis::setex(
+        'worker:heartbeat:' . getmypid(),
+        120,  // TTL = 2x expected interval
+        now()->toIso8601String()
+    );
+});
+```
+
+If a worker's heartbeat key expires, that worker has stalled.
+
+## Why Crontinel Catches Stalls That Other Tools Miss
+
+Crontinel's approach is different from traditional process monitoring:
+
+| Tool | What it detects | What it misses |
+|---|---|---|
+| Supervisor | Process exited | Stalled but running |
+| Horizon | Queue activity (if accessible) | Worker memory thrash |
+| New Relic / Datadog | APM errors | Silent stalls with no errors |
+| **Crontinel** | **Job completion + heartbeat + depth** | — (designed for this) |
+
+Crontinel monitors the **output** of your scheduled tasks and queue jobs — not just the process state. A cron job that runs but produces no data, or a worker that's alive but silent, triggers an alert within minutes.
+
+```bash
+# Add a cron job that Crontinel pings
+* * * * * curl -fsS --retry 3 https://crontinel.com/ping/YOUR-SECRET-KEY > /dev/null
+```
+
+If the ping stops arriving — because your worker stalled and the scheduled job never ran — Crontinel escalates via Slack, PagerDuty, or email.
+
+## Quick Prevention Checklist
+
+- **Set a reasonable `memory_limit`** — 256M minimum for queue workers
+- **Use `queue:work --timeout=60`** — workers that exceed 60s per job are killed and restarted
+- **Monitor Redis connection health** — check `CLIENT LIST` for idle connections
+- **Add a heartbeat job** that runs every minute and logs its own completion time
+- **Use Crontinel's heartbeat monitoring** — your workers ping every N seconds, and you're alerted if the ping stops
+
+A stalled worker is silent. Don't let it compound into hours of missed job processing. Add heartbeat monitoring today.

@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/queue-monitoring-setup/"
+    "https://crontinel.com/blog/detect-laravel-worker-stalls/"
   ],
   "submitted": [
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -150,7 +150,8 @@
     "https://crontinel.com/use-cases/monitor-queue-latency/",
     "https://crontinel.com/blog/monitoring-vs-observability/",
     "https://crontinel.com/use-cases/monitor-cron-job-log-debugging/",
-    "https://crontinel.com/blog/monitoring-kubernetes-cron-jobs/"
+    "https://crontinel.com/blog/monitoring-kubernetes-cron-jobs/",
+    "https://crontinel.com/use-cases/queue-monitoring-setup/"
   ],
-  "last_push": "2026-07-17"
+  "last_push": "2026-07-18"
 }
