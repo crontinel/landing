@@ -1,0 +1,250 @@
+---
+title: "How to Set Up Laravel Queue Monitoring in Production: Step-by-Step Guide"
+description: "A practical step-by-step guide to setting up queue monitoring in Laravel production, from choosing a queue driver to configuring Supervisor, tracking queue depth, and adding external heartbeat monitoring."
+date: 2026-07-17
+---
+
+You deployed your Laravel app to production. Queues are running. Jobs are processing. Everything looks fine until a customer reports an invoice that was never sent, a notification that never arrived, or a data export that never completed.
+
+Queue monitoring is the practice of tracking whether your background jobs are actually running and completing as expected. This guide walks through setting up production queue monitoring step by step.
+
+## Step 1: Choose your queue driver
+
+Your monitoring strategy starts with the queue driver. This decision determines what monitoring data is available.
+
+**Redis** gives you real-time queue metrics, Horizon compatibility, and connection-level insights. It is the recommended driver for production because the monitoring tooling is mature and the data is accessible without querying the database.
+
+**Database** (the `database` driver) works for smaller applications but provides less visibility. You cannot track real-time queue depth changes or per-worker metrics the same way. The `failed_jobs` table still works for tracking failures, but worker-level monitoring requires a separate approach.
+
+```php
+// .env — choose your driver
+QUEUE_CONNECTION=redis
+```
+
+If you are already using Redis for caching, using it for queues too means one fewer service to manage.
+
+## Step 2: Set up process supervision
+
+Queue workers are long-running PHP processes that can crash, hit memory limits, or get killed by the OS. Without a process manager, a crashed worker stays dead until someone notices.
+
+**Supervisor** is the most common process manager for Laravel queue workers on Linux servers:
+
+```ini
+; /etc/supervisor/conf.d/laravel-worker.conf
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /home/forge/app.com/artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+numprocs=4
+user=forge
+redirect_stderr=true
+stdout_logfile=/home/forge/app.com/storage/logs/worker.log
+stopwaitsecs=3600
+```
+
+Key settings for production:
+- **numprocs**: How many worker processes to run. Start with 4 and adjust based on your queue volume.
+- **tries=3**: How many times a failed job retries before landing in `failed_jobs`.
+- **max-time=3600**: Gracefully restart workers every hour to prevent memory leaks.
+- **stopwaitsecs=3600**: Give workers up to an hour to finish their current job before force-killing.
+
+After creating the config, reload Supervisor:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl start laravel-worker:*
+```
+
+**systemd** is an alternative if your server does not use Supervisor:
+
+```ini
+; /etc/systemd/system/laravel-queue.service
+[Unit]
+Description=Laravel queue worker
+After=network.target
+
+[Service]
+User=forge
+Group=forge
+WorkingDirectory=/home/forge/app.com
+ExecStart=/usr/bin/php artisan queue:work redis --sleep=3 --tries=3 --max-time=3600
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Either way, the goal is the same: if a worker dies, it restarts automatically within seconds.
+
+## Step 3: Install and configure Horizon (Redis users)
+
+If you use Redis for queues, install Laravel Horizon for the dashboard and supervisor management:
+
+```bash
+composer require laravel/horizon
+php artisan horizon:install
+php artisan migrate
+```
+
+Configure your production environment in `config/horizon.php`:
+
+```php
+'production' => [
+    'supervisor-1' => [
+        'connection' => 'redis',
+        'queue' => ['high', 'default', 'low'],
+        'maxProcesses' => 10,
+        'balance' => 'auto',
+        'balanceMaxShift' => 1,
+        'balanceCooldown' => 3,
+        'tries' => 3,
+        'timeout' => 300,
+    ],
+],
+```
+
+Instead of `queue:work`, run Horizon:
+
+```bash
+php artisan horizon
+```
+
+Horizon provides a dashboard at `/horizon` showing job throughput, failure rates, queue depth per named queue, and worker status. It also exposes a JSON endpoint at `/horizon/api/stats` that external monitoring tools can poll.
+
+**Tip**: if you are not using Redis, skip Horizon. The `database` queue driver cannot provide the real-time metrics Horizon needs. Rely on `failed_jobs` monitoring and external heartbeat checks instead.
+
+## Step 4: Monitor queue depth and age
+
+Queue depth (number of pending jobs) is the most basic metric, but it needs context. A queue with 500 jobs might be healthy if you have enough workers. The same queue with 2 workers might be critical.
+
+Laravel includes a built-in queue monitor command:
+
+```bash
+php artisan queue:monitor redis:default,redis:high --max=100
+```
+
+Schedule it to run every minute:
+
+```php
+// App\Console\Kernel.php
+protected function schedule(Schedule $schedule): void
+{
+    $schedule->command('queue:monitor redis:default,redis:high --max=100')
+        ->everyMinute()
+        ->withoutOverlapping();
+}
+```
+
+When a queue exceeds the threshold, Laravel dispatches a `QueueBusy` event. Listen for it and send an alert:
+
+```php
+// App\Providers\AppServiceProvider.php
+use Illuminate\Queue\Events\QueueBusy;
+
+public function boot(): void
+{
+    Event::listen(function (QueueBusy $event) {
+        Notify::slack("Queue {$event->connection}:{$event->queue} has {$event->size} pending jobs");
+    });
+}
+```
+
+**Oldest job age** catches a different failure mode: a single stuck job that blocks processing. A job sitting in the queue for 30 minutes with active workers usually means deserialization failed, a lock was never released, or the job payload is corrupted. This condition does not always increase queue depth significantly, so depth thresholds alone miss it.
+
+Monitor oldest job age by comparing the time the oldest job was pushed against the current time:
+
+```php
+function getOldestJobAge($queue): ?int
+{
+    $job = Redis::connection('horizon')->zrange(
+        'queues:default:' . $queue, 0, 0, true
+    );
+    if (empty($job)) return null;
+    $payload = json_decode(array_key_first($job), true);
+    return time() - ($payload['pushedAt'] ?? time());
+}
+```
+
+Alert when oldest job age exceeds 15 minutes for critical queues or 30 minutes for standard queues.
+
+## Step 5: Track failed job rate
+
+The `failed_jobs` table records every job that exhausted its retries. But the absolute count is less useful than the rate of change.
+
+A sudden spike in failures usually means an external dependency changed: a payment API changed its response format, a rate limit was hit, or a database migration altered a table the job depends on.
+
+Monitor the rolling failure rate:
+
+```bash
+# Jobs failed in the last 5 minutes
+php artisan queue:failed | wc -l
+```
+
+Crontinel computes this automatically per queue: a rolling failed-jobs-per-minute rate with configurable thresholds. When the rate spikes, you get an alert before the `failed_jobs` table grows large enough to notice in a dashboard.
+
+## Step 6: Add external heartbeat monitoring
+
+All the monitoring above shares a blind spot: it runs on the same server as your application. If the server goes down, the database is unreachable, or Redis stops responding, your internal monitoring goes down with it.
+
+External heartbeat monitoring solves this. Your application sends a ping to an external service at regular intervals. If the ping stops arriving, the external service alerts you.
+
+This catches failures that internal monitoring misses:
+- Server crash (OOM, hardware failure, cloud provider issue)
+- PHP-FPM or Redis process death
+- Network partition that isolates the server
+- Cron daemon failure (which means `schedule:run` never fires)
+
+The Laravel package pings Crontinel after every `schedule:run` execution, recording which tasks ran, their exit codes, and their durations. If a scheduled task fails or a heartbeat stops arriving, Crontinel alerts through Slack, email, PagerDuty, or webhook.
+
+```bash
+composer require crontinel/laravel
+php artisan vendor:publish --provider="Crontinel\Laravel\ServiceProvider"
+```
+
+No config files to edit. The package hooks into Laravel's scheduler events automatically.
+
+## Step 7: Test that your monitoring actually alerts
+
+The most skipped step in queue monitoring is testing that alerts actually fire. A configuration that looks correct on paper may fail from a permission issue, a wrong webhook URL, or a rate-limited notification channel.
+
+Test each layer:
+1. **Process supervision**: Kill a worker process (`kill -9 <pid>`). Confirm Supervisor or systemd restarts it within 3 seconds.
+2. **Queue depth alert**: Artificially fill a queue by dispatching 200 sleep jobs. Confirm the alert reaches you.
+3. **Failure rate alert**: Dispatch a job that always throws an exception. Confirm the `failed_jobs` table captures it and your alert fires.
+4. **External heartbeat**: Stop the cron daemon (`sudo service cron stop`) and confirm the external monitor alerts within 2 missed intervals.
+
+If any of these tests produce silence, the monitoring setup is incomplete.
+
+## Production monitoring checklist
+
+- [ ] Queue driver configured (Redis recommended for production)
+- [ ] Supervisor or systemd managing workers with auto-restart
+- [ ] Horizon installed and dashboard accessible (Redis users)
+- [ ] `queue:monitor` scheduled with per-queue thresholds
+- [ ] `QueueBusy` event listener configured to send alerts
+- [ ] External heartbeat monitoring configured
+- [ ] Alert channels tested (Slack, email, PagerDuty, webhook)
+- [ ] `failed_jobs` table monitored for rate spikes
+- [ ] Worker memory and timeout limits set appropriately
+- [ ] All monitoring has been tested with forced failures
+
+## Common failure modes
+
+**Workers crash silently.** Without Supervisor, a single memory leak in a job can take down all workers during a deploy, and nobody notices until queue depth hits thousands.
+
+**Horizon pauses during deploy but never resumes.** The `php artisan horizon:pause` command stops all workers. If the deploy script never calls `horizon:continue`, queues silently stop processing.
+
+**Queue depth thresholds set too high.** A threshold of 1,000 means you will not notice a problem until 1,000 jobs have queued up. For critical queues like invoices or password resets, set the threshold to 10 or lower.
+
+**External heartbeat never configured.** Internal monitoring works perfectly until the server itself goes down. An external ping is the only way to catch that failure mode.
+
+## Quick setup with Crontinel
+
+Crontinel combines internal queue monitoring (depth, failure rate, oldest job age) with external heartbeat checks in one tool. Install the package, configure your alert channels, and you get both layers without maintaining separate monitoring infrastructure.
+
+The [Laravel integration guide](/integrations/laravel) covers installation in detail. For Redis queue setups, Crontinel also reads Horizon's supervisor state directly, so a worker crash or pause shows up immediately without polling the Horizon dashboard.

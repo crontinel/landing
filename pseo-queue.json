@@ -1,10 +1,8 @@
 {
   "in_progress": [],
   "pending": [
-    "queue-monitoring-setup",
     "background-job-monitoring-comparison",
     "cron-job-not-running-troubleshoot",
-    "worker-stall-detection",
     "schedule-missed-run-alert",
     "queue-backpressure-detection",
     "failed-job-retry-monitoring",
@@ -77,6 +75,8 @@
     "cron-monitoring-guide",
     "monitoring-vs-observability",
     "cron-job-log-debugging",
-    "laravel-kubernetes-cron"
+    "laravel-kubernetes-cron",
+    "queue-monitoring-setup",
+    "worker-stall-detection"
   ]
 }
