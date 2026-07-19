@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/blog/laravel-schedule-missed-run-alert/"
+  ],
   "submitted": [
     "https://crontinel.com/blog/detect-laravel-worker-stalls/",
     "https://crontinel.com/use-cases/monitor-pulse-restart",
@@ -152,5 +154,5 @@
     "https://crontinel.com/blog/monitoring-kubernetes-cron-jobs/",
     "https://crontinel.com/use-cases/queue-monitoring-setup/"
   ],
-  "last_push": "2026-07-18"
+  "last_push": "2026-07-20"
 }
