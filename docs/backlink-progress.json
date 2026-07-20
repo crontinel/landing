@@ -1,0 +1,223 @@
+{
+  "current_index": 31,
+  "last_updated": "2026-07-19",
+  "sources": [
+    {
+      "name": "BetaList",
+      "url": "https://betalist.com",
+      "priority": "High — DR 76, takes 2-5 days approval",
+      "status": "blocked",
+      "notes": "Requires sign-in (X/Twitter or email magic link) to access submission form. Cannot automate — needs human to create account, fill product details, and submit screenshots. Free submission available once logged in."
+    },
+    {
+      "name": "SaaSHub",
+      "url": "https://saashub.com",
+      "priority": "High — DR 75, persistent SEO traffic",
+      "status": "blocked",
+      "notes": "Requires account creation (Google/email) and Cloudflare-protected submit page. API is read-only. Needs human to create account, fill submission form with product name/description/categories/competitors, wait 1-3 days approval."
+    },
+    {
+      "name": "AlternativeTo",
+      "url": "https://alternativeto.net",
+      "priority": "High — DR 80, persistent SEO traffic",
+      "status": "blocked",
+      "notes": "Requires account creation with 1-week waiting period before submitting 'Suggest new application'. Needs human to register, fill platform/license/description/tags, then approve."
+    },
+    {
+      "name": "Crunchbase",
+      "url": "https://crunchbase.com",
+      "priority": "High — DR 93, easy company profile",
+      "status": "blocked",
+      "notes": "Requires account registration (email/password or Google/LinkedIn) with social authentication before creating a company profile. Needs human to create account, fill company details, and save."
+    },
+    {
+      "name": "G2",
+      "url": "https://g2.com",
+      "priority": "High — DR 86, shows up in 'cron monitoring' searches",
+      "status": "blocked",
+      "notes": "Requires account creation to add listing. Free profile available but needs human to create account, fill software profile, and request reviews."
+    },
+    {
+      "name": "Capterra",
+      "url": "https://capterra.com",
+      "priority": "High — DR 85, add listing",
+      "status": "blocked",
+      "notes": "Same parent company as G2. Requires account creation. Paid listing model. Needs human to complete process."
+    },
+    {
+      "name": "GetApp",
+      "url": "https://getapp.com",
+      "priority": "High — DR 81, add listing",
+      "status": "blocked",
+      "notes": "Same parent company as G2. Requires account creation. Needs human to complete profile and listing setup."
+    },
+    {
+      "name": "Uneed",
+      "url": "https://uneed.best",
+      "priority": "High — DR 75, very easy submit product URL, dofollow backlink",
+      "status": "blocked",
+      "notes": "Submit page automatically scrapes product URL but requires account sign-up to complete and launch. 'No account needed to preview' but must create account to finalize. MCP/REST API at mcp.uneed.best is read-only — no write/submit endpoints."
+    },
+    {
+      "name": "DevHunt",
+      "url": "https://devhunt.org",
+      "priority": "Medium — DR 65, dev audience",
+      "status": "blocked",
+      "notes": "Requires GitHub account sign-in to submit dev tool. Needs human interaction."
+    },
+    {
+      "name": "LibHunt",
+      "url": "https://libhunt.com",
+      "priority": "Medium — DR 62, open source discovery",
+      "status": "blocked",
+      "notes": "Requires account creation to add OSS project. Needs human interaction."
+    },
+    {
+      "name": "Peerlist",
+      "url": "https://peerlist.io",
+      "priority": "Medium — DR 62, professional dev network",
+      "status": "blocked",
+      "notes": "Requires account creation and profile setup. Needs human interaction."
+    },
+    {
+      "name": "Fazier",
+      "url": "https://fazier.com",
+      "priority": "Medium — DR 58, indie maker community",
+      "status": "blocked",
+      "notes": "Requires account creation to submit product. Needs human interaction."
+    },
+    {
+      "name": "OpenSourceAlternative",
+      "url": "https://opensourcealternative.to",
+      "priority": "Medium — DR 56, OSS alternative traffic",
+      "status": "blocked",
+      "notes": "Requires account creation to submit OSS project. Needs human interaction."
+    },
+    {
+      "name": "Launching Next",
+      "url": "https://launchingnext.com",
+      "priority": "Medium — DR 55, launch calendar",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "MicroLaunch",
+      "url": "https://microlaunch.net",
+      "priority": "Medium — DR 50, very easy short form",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "Indie Hackers",
+      "url": "https://indiehackers.com",
+      "priority": "Medium — DR 49, founder audience",
+      "status": "blocked",
+      "notes": "Requires account creation. Writing a story post for backlink needs human author."
+    },
+    {
+      "name": "Failory",
+      "url": "https://failory.com",
+      "priority": "Medium — DR 48, directory traffic",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "Startup Stash",
+      "url": "https://startupstash.com",
+      "priority": "Low — DR 39, curated",
+      "status": "blocked",
+      "notes": "Curated directory, requires account and editorial review. Needs human interaction."
+    },
+    {
+      "name": "Startup88",
+      "url": "https://startup88.com",
+      "priority": "Low — DR 36, very easy",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "eResilience",
+      "url": "https://eresilience.com",
+      "priority": "Low — DR 35, easy",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "StartupBase",
+      "url": "https://startupbase.io",
+      "priority": "Low — DR 34, very easy",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "Starthub",
+      "url": "https://starthub.org",
+      "priority": "Low — DR 32, very easy",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "PitchGround",
+      "url": "https://pitchground.com",
+      "priority": "Low",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "Smol Launch",
+      "url": "https://smollaunch.com",
+      "priority": "Medium",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "Open Source Software Directory",
+      "url": "https://opensourcesoftwaredirectory.com",
+      "priority": "Medium",
+      "status": "blocked",
+      "notes": "Requires account creation or Google Sheets form submission. Needs human interaction."
+    },
+    {
+      "name": "Geekflare",
+      "url": "https://geekflare.com",
+      "priority": "Low",
+      "status": "blocked",
+      "notes": "Requires account creation for tool submission. Needs human interaction."
+    },
+    {
+      "name": "Postmake",
+      "url": "https://postmake.io",
+      "priority": "Low",
+      "status": "blocked",
+      "notes": "Requires account creation. Needs human interaction."
+    },
+    {
+      "name": "awesome-laravel (PR #662 follow-up)",
+      "url": "https://github.com/chiraggude/awesome-laravel/pull/662",
+      "priority": "High — already open, follow up",
+      "status": "pending",
+      "notes": "PR #662 by HarunRRayhan to add Crontinel under Monitoring section. Open since April 21, 2026. Mergerable, no comments from maintainer. Bumped with a comment on 2026-07-19. Awaiting maintainer review/merge."
+    },
+    {
+      "name": "awesome-selfhosted (PR needed)",
+      "url": "https://github.com/awesome-selfhosted/awesome-selfhosted-data",
+      "priority": "Medium",
+      "status": "blocked",
+      "notes": "Crontinel first released April 6, 2026 (~3.5 months ago). Awesome-selfhosted requires 'first released more than 4 months ago'. Will qualify around mid-August 2026. Revisit then with a YAML PR under software/crontinel.yml using Automation tag."
+    },
+    {
+      "name": "OSS Directory",
+      "url": "https://osssoftware.org",
+      "priority": "Low — DR 38, dofollow",
+      "status": "blocked",
+      "notes": "Uses Unicorn Platform builder. Submission requires filling complex web form or contributing to Google Sheets database. Needs human interaction. Low DR value (38)."
+    },
+    {
+      "name": "Product Hunt",
+      "url": "https://producthunt.com",
+      "priority": "High — DR 92, scheduled for launch day",
+      "status": "pending",
+      "notes": "Requires human to schedule and manage launch. Not suitable for automation. Schedule for designated launch day with prepared assets (screenshots, tagline, description)."
+    }
+  ]
+}
