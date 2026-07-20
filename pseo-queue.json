@@ -1,7 +1,5 @@
 {
-  "in_progress": [
-    "cron-monitoring-alert-fatigue"
-  ],
+  "in_progress": [],
   "pending": [
     "background-job-monitoring-comparison",
     "cron-heartbeat-setup",
@@ -22,6 +20,7 @@
     "config-cache",
     "config-clear",
     "cron-job-log-debugging",
+    "cron-monitoring-alert-fatigue",
     "cron-monitoring-guide",
     "db-backup",
     "db-seed",

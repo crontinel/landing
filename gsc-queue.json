@@ -1,9 +1,8 @@
 {
-  "pending": [
-    "https://crontinel.com/blog/laravel-schedule-missed-run-alert/",
-    "https://crontinel.com/blog/reduce-cron-alert-fatigue/"
-  ],
+  "pending": [],
   "submitted": [
+    "https://crontinel.com/blog/reduce-cron-alert-fatigue/",
+    "https://crontinel.com/blog/laravel-schedule-missed-run-alert/",
     "https://crontinel.com/blog/detect-laravel-worker-stalls/",
     "https://crontinel.com/use-cases/monitor-pulse-restart",
     "https://crontinel.com",
