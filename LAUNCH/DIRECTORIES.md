@@ -1,82 +1,99 @@
-# Crontinel — Free Directory Submission List
+# Backlink & directory opportunities for Crontinel — sorted by Domain Rating
 
-A curated list of free sites to submit crontinel.com for backlinks, traffic, and SEO value.
-Organised by DR (Domain Rating) for priority.
+Priority list for an open-source cron + queue monitoring SaaS to submit for backlinks, impressions, and user exposure. Free submissions only.
+
+## Master list (DR sorted)
+
+| # | Source | DR | Cost | Link type | Effort | Status |
+|---|--------|:--:|:----:|:---------:|:------:|:------:|
+| 1 | GitHub | 97 | Free | Follow | Low | ✅ Done |
+| 2 | GitHub Pages / Profile | 97 | Free | Follow | Low | ✅ Done |
+| 3 | Medium | 94 | Free | Follow (canonical) | Low | Pending |
+| 4 | Packagist | 94 | Free | Follow | Low | ✅ Done |
+| 5 | npm | 93 | Free | Follow | Low | Pending |
+| 6 | PyPI | 93 | Free | Follow | Low | Pending |
+| 7 | Crunchbase | 93 | Free | Follow | Low | Pending |
+| 8 | Hacker News | 91 | Free | Community link | Medium | Pending |
+| 9 | Product Hunt | 91 | Free | Traffic (nofollow) | Medium | Pending |
+| 10 | Indie Hackers | 81 | Free | Do-follow | Medium | Pending |
+| 11 | AlternativeTo | 80 | Free | Traffic (nofollow) | Low | Pending |
+| 12 | G2 | 86 | Free | Do-follow | Low | Pending |
+| 13 | Capterra | 85 | Free | Do-follow | Low | Pending |
+| 14 | SaaSHub | 75 | Free | Do-follow | Low | Pending |
+| 15 | BetaList | 76 | Free | Do-follow | Low | Pending |
+| 16 | Uneed | 75 | Free | Do-follow | Low | Pending |
+| 17 | DevHunt | 65 | Free | Do-follow | Low | Pending |
+| 18 | LibHunt | 62 | Free | Do-follow | Low | Pending |
+| 19 | Peerlist | 62 | Free | Follow | Low | Pending |
+| 20 | Tiny Startup | 69 | Free | Do-follow | Low | Pending |
+| 21 | TinyLaunch | 72 | Free | Do-follow | Low | Pending |
+| 22 | SideProjectors | 70 | Free | Do-follow | Low | Pending |
+| 23 | Indie Page | 66 | Free | Follow | Low | Pending |
+| 24 | Alternative Me | 75 | Free | Do-follow | Low | Pending |
+| 25 | Privacy Tools | 73 | Free | Do-follow | Low | Pending |
+| 26 | PeerPush | 69 | Free | Do-follow | Low | Pending |
+| 27 | TrustMRR | 68 | Free | Do-follow | Low | Pending |
+| 28 | Failory | 48 | Free | Follow | Low | Pending |
+| 29 | MicroLaunch | 50 | Free | Follow | Low | Pending |
+| 30 | Starthub | 32 | Free | Follow | Low | Pending |
+| 31 | Startup88 | 36 | Free | Follow | Low | Pending |
+| 32 | Launching Next | 55 | Free | Follow | Low | Pending |
 
 ---
 
-## Tier S — DR 80+ (High Authority, Simple Submission)
+## Quick-win tier (free, <15 min each)
 
-These are the most valuable backlinks. Submissions are straightforward — create an account, fill in a profile/product form.
+Low effort, high return. Batch these first.
 
-| # | Site | DR | Submission Complexity | Notes |
-|---|------|----|---------------------|-------|
-| 1 | [Product Hunt](https://producthunt.com) | 92 | Medium — need tagline, description, screenshots | Schedule for launch day |
-| 2 | [Crunchbase](https://crunchbase.com) | 93 | Easy — company profile form | Investors check this |
-| 3 | [AlternativeTo](https://alternativeto.net) | 80 | Easy — add product, pick categories | Persistent SEO traffic |
-| 4 | [G2](https://g2.com) | 86 | Easy — create page, request reviews | Shows up in "cron monitoring" searches |
-| 5 | [Capterra](https://capterra.com) | 85 | Easy — add listing | Same G2 network |
-| 6 | [GetApp](https://getapp.com) | 81 | Easy — add listing | Same G2 network |
+- [ ] **Crunchbase** — company profile (5 min)
+- [ ] **AlternativeTo** — add as alternative to Cronitor, Oh Dear, Better Stack, Healthchecks
+- [ ] **SaaSHub** — list as cron monitoring tool (5 min)
+- [ ] **BetaList** — submit as beta product (5 min, takes 2-5 days to approve)
+- [ ] **Uneed** — submit product URL (2 min)
+- [ ] **DevHunt** — submit as developer tool (5 min)
+- [ ] **LibHunt** — add open-source project (5 min)
+- [ ] **Peerlist** — create profile, add project (5 min)
+- [ ] **Alternative Me** — directory listing (5 min)
+- [ ] **TinyLaunch / Tiny Startup / SideProjectors** — profile forms (2 min each)
+- [ ] **Indie Page** — product profile (5 min)
+- [ ] **TrustMRR** — SaaS directory (5 min)
+- [ ] **Privacy Tools** — submit as privacy-respecting tool (5 min)
+- [ ] **PeerPush** — cross-promotion profile (5 min)
+- [ ] **MicroLaunch / Failory** — product submissions (3 min each)
+- [ ] **Starthub / Startup88 / Launching Next** — bulk directories (2 min each)
 
-## Tier A — DR 60-79 (Strong SEO Value)
+## Medium effort
 
-| # | Site | DR | Complexity | Notes |
-|---|------|----|-----------|-------|
-| 7 | [BetaList](https://betalist.com) | 76 | Easy — name, desc, URL, social links | Takes 2-5 days to approve |
-| 8 | [SaaSHub](https://saashub.com) | 75 | Easy — product profile, tags | Persistent SEO traffic |
-| 9 | [Uneed](https://uneed.best) | 75 | Very Easy — submit product URL | Dofollow backlink |
-| 10 | [DevHunt](https://devhunt.org) | 65 | Easy — submit dev tool, tag it | Dev audience |
-| 11 | [LibHunt](https://libhunt.com) | 62 | Easy — add OSS project | Open source discovery |
-| 12 | [Peerlist](https://peerlist.io) | 62 | Easy — create profile, add project | Professional dev network |
+Needs content or launch preparation.
 
-## Tier B — DR 40-59 (Good Backlinks)
+- [ ] **Product Hunt** — schedule a launch (needs screenshots, demo, description)
+- [ ] **Hacker News** — Show HN post on launch day
+- [ ] **Indie Hackers** — write building-in-public story
+- [ ] **Medium** — cross-post blog content with canonical link back
+- [ ] **G2 / Capterra** — claim listing, request initial reviews
 
-| # | Site | DR | Complexity | Notes |
-|---|------|----|-----------|-------|
-| 13 | [Fazier](https://fazier.com) | 58 | Easy — product submission | Indie maker community |
-| 14 | [OpenSourceAlternative](https://opensourcealternative.to) | 56 | Easy — submit OSS project | "OSS alternative to..." traffic |
-| 15 | [Launching Next](https://launchingnext.com) | 55 | Easy — submit startup | Launch calendar |
-| 16 | [MicroLaunch](https://microlaunch.net) | 50 | Very Easy — short form | Small but targeted |
-| 17 | [Indie Hackers](https://indiehackers.com) | 49 | Medium — write a story post | Good for founder audience |
-| 18 | [Failory](https://failory.com) | 48 | Easy — submit startup | Directory traffic |
+## SDK registries (already done or pending)
 
-## Tier C — DR 30-39 (Worth Doing)
+| SDK | Registry | DR | Status |
+|-----|----------|:--:|:------:|
+| Laravel | Packagist | 94 | ✅ Published |
+| Node.js | npm | 93 | Pending |
+| Python | PyPI | 93 | Pending |
+| PHP | Packagist | 94 | Pending |
 
-| # | Site | DR | Complexity |
-|---|------|----|-----------|
-| 19 | [Startup Stash](https://startupstash.com) | 39 | Medium — curated |
-| 20 | [Startup88](https://startup88.com) | 36 | Very Easy |
-| 21 | [eResilience](https://eresilience.com) | 35 | Easy |
-| 22 | [StartupBase](https://startupbase.io) | 34 | Very Easy |
-| 23 | [Starthub](https://starthub.org) | 32 | Very Easy |
+## Priority sequence
 
-## Quick-Entry Platforms (Content, Not Directories)
-
-| Platform | Traffic | Complexity | What To Post |
-|----------|---------|-----------|-------------|
-| [dev.to](https://dev.to) | High | Easy — write & publish | "How we built open-source cron monitoring" |
-| [Medium](https://medium.com) | High | Easy — cross-post | Same content |
-| [Hacker News](https://news.ycombinator.com) | Very High | Medium — title matters | "Show HN: Crontinel" on launch day |
-| [Reddit](https://reddit.com) | Very High | Easy — post in communities | r/laravel, r/devops, r/selfhosted, r/opensource |
-| [X/Twitter](https://x.com) | High | Easy — tweet & tag | Post when launching each directory |
-
-## Priority Order (Do This Sequence)
-
-| Order | Site | Why This Order |
+| Order | Site | Why this order |
 |-------|------|---------------|
 | 1 | **BetaList** | Takes 2-5 days approval, start now |
-| 2 | **SaaSHub** | Persistent SEO, takes 1-3 days |
-| 3 | **AlternativeTo** | "Alternatives to" search traffic, one-time setup |
-| 4 | **Crunchbase** | High DR, 5-min form |
-| 5 | **G2 / Capterra / GetApp** | Do all 3 at once (same parent company) |
-| 6 | **Uneed** | 2-min submission, instant approval usually |
-| 7 | **DevHunt** | Dev audience, schedule for launch day |
-| 8 | **LibHunt / Peerlist** | Quick forms, dev audience |
-| 9 | **Remaining Tier B** | Batch together |
-| 10 | **Tier C** | Batch together |
-| 11 | **Content platforms** | dev.to / Medium after launch |
-
-**Total: ~23 directories + 4 content platforms. All free.**
-
-Estimated time to submit all directories: 2-3 hours total.
-Estimated time for Tier S + A (priority 1-8): ~45 minutes.
+| 2 | **SaaSHub** | Persistent SEO traffic, dofollow |
+| 3 | **AlternativeTo** | "Alternatives to Cronitor/Oh Dear" traffic |
+| 4 | **Crunchbase** | DR 93, 5 min form |
+| 5 | **Uneed** | 2 min, instant approval, dofollow |
+| 6 | **DevHunt** | Developer audience |
+| 7 | **LibHunt / Peerlist** | Dev audience, quick forms |
+| 8 | **G2 / Capterra** | Enterprise buyers search here |
+| 9 | **Product Hunt** | Schedule for launch day |
+| 10 | **Hacker News** | Launch day post |
+| 11 | **Indie Hackers** | Build-in-public story |
+| 12 | All remaining quick-win sites | Batch 2-3 min each |
