@@ -1,0 +1,143 @@
+---
+title: "How to Detect Missed Laravel Schedule Runs Before They Cascade"
+description: "A missed Laravel schedule run can silently break your app. Learn how to detect missed runs using native tools and proactive heartbeat monitoring, and set up alerting that catches failures before users do."
+date: 2026-07-20
+tags: ["laravel", "scheduling", "monitoring"]
+---
+
+Your Laravel scheduler runs `php artisan schedule:run` every minute. The cron entry looks fine, the kernel defines every task correctly, the logs show nothing unusual. But somewhere between the cron daemon and your task handler, a run gets skipped — and you only find out when an invoice batch didn't send, a cleanup didn't fire, or a report was never generated.
+
+Missed schedule runs are insidious because Laravel's scheduler is silent on success and often silent on failure. Here's how to build detection and alerting that catches every missed run.
+
+## Why schedule runs get missed
+
+The most common root causes are unrelated to your application code:
+
+**PHP timeouts.** A long-running task exceeds `max_execution_time` (typically 30s in shared hosting, 240s in Laravel Forge). The scheduler never completes, and the mutex stays locked, skipping the next run.
+
+**Maintenance mode.** `php artisan down` blocks scheduled tasks that aren't marked `->evenInMaintenanceMode()`. If your deploy script puts the app in maintenance mode during the scheduler's minute, that run is lost.
+
+**Supervisor restarts.** Horizon or queue-worker supervisors restarting mid-run can leave the schedule:run process orphaned. The cron daemon considers the job done, but your task never executed.
+
+**Debian / Ubuntu cron anacron gap.** Default cron implementations on Ubuntu use anacron for missed jobs, but the default gap is 5 minutes between anacron runs. A job that fires during that gap and fails silently won't retry.
+
+**Cron daemon health.** If the system cron daemon itself stopped running (`systemctl status cron`), the scheduler never fires at all — yet the rest of your app works fine.
+
+## Detection method 1: Wrap every task with logging
+
+The lowest-effort approach is a custom output handler on your scheduled tasks:
+
+```php
+// app/Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->command('reports:generate')
+        ->daily()
+        ->after(function () {
+            Log::info('reports:generate completed successfully');
+        });
+}
+```
+
+The problem: `->after()` only fires when the task actually runs. If the run was skipped (stuck mutex, maintenance mode, or the scheduler never fired), you get no log — which looks identical to "nothing happened today."
+
+A better pattern is a **sentinel log** — one that fires even when no task ran:
+
+```php
+// bootstrap/app.php or a service provider
+$this->app->terminating(function () {
+    Log::info('schedule:run completed at ' . now());
+});
+```
+
+But even this only confirms the scheduler fired. It doesn't tell you *which* tasks ran.
+
+## Detection method 2: Heartbeat monitoring
+
+A heartbeat is an external check-in. Your scheduler pings a URL after every run, and an external service alerts you if the ping stops arriving.
+
+**Simple ping after every schedule:run:**
+
+```php
+// app/Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->call(function () {
+        file_get_contents('https://hc-ping.com/YOUR_UUID');
+    })->everyMinute();
+}
+```
+
+This tells you the scheduler is alive, but it doesn't verify that *specific* tasks actually executed.
+
+**Per-task heartbeats:**
+
+For critical tasks, create a dedicated heartbeat per task:
+
+```php
+$schedule->command('reports:generate')
+    ->daily()
+    ->thenPing('https://crontinel.com/api/heartbeat/reports-daily');
+```
+
+This pairs the task execution with a dedicated health check. If `reports:generate` stops running, the heartbeat stops pinging within minutes.
+
+## Detection method 3: The schedule:run exit code
+
+Every `php artisan schedule:run` returns an exit code. In production, your crontab entry typically looks like:
+
+```
+* * * * * cd /home/forge/your-site && php artisan schedule:run >> /dev/null 2>&1
+```
+
+This discards the exit code. A better approach captures it:
+
+```
+* * * * * cd /home/forge/your-site && php artisan schedule:run 2>&1 | logger -t laravel-scheduler
+```
+
+Now failed runs appear in syslog. But syslog monitoring is noisy — you need a dedicated health check.
+
+## Setting up Crontinel for missed-run detection
+
+Crontinel treats each scheduled task as an independent monitor. Instead of one heartbeat for the entire scheduler, you set up individual monitors for the tasks that matter most:
+
+1. **Define a monitor per critical task** — reports, cleanup, billing, data sync.
+2. **Set the expected interval** — every 5 minutes, hourly, daily.
+3. **Configure notification rules** — alert if no check-in after 2x the expected interval.
+4. **Add the ping call to your task** — either in `->thenPing()` or in the task's success handler.
+
+This catches the exact gap a generic uptime monitor misses: the task didn't error, it just never ran.
+
+For tasks that should run every minute, set a 2-minute grace period. For daily tasks, set a 2-hour grace period. Crontinel sends the alert to Slack, PagerDuty, Telegram, or email based on the task's severity.
+
+## Real-world failure scenario
+
+A production queue monitor runs nightly at 2:00 AM. It checks queue depth, failed jobs, and worker health. At 2:15 AM a developer triggers a Horizon supervisor restart as part of a deploy. The deploy script has:
+
+```bash
+php artisan down
+# ... deployment steps ...
+php artisan horizon:terminate
+php artisan up
+```
+
+At 2:00 the app was in maintenance mode. Laravel's scheduler silently skipped `queue-monitor:check`. No log, no error, no alert.
+
+The next morning the queue depth had hit 30,000. Workers were healthy but the backlog had been growing for 6 hours unnoticed because the nightly monitor never ran.
+
+**What a missed-run alert would have caught:** By 2:10 AM, the heartbeat for `queue-monitor:check` hadn't arrived. Crontinel fires a notification. The team sees the maintenance-mode gap, re-runs the monitor, and catches the backlog before it reaches 30,000.
+
+## Summary
+
+| Detection method | Catches scheduler failure | Catches individual task failure | Setup effort |
+|---|---|---|---|
+| Log wrapping | No | Partial | Low |
+| Sentinel log | Yes | No | Low |
+| Global heartbeat | Yes | No | Medium |
+| Per-task heartbeat | Yes | Yes | High |
+| Crontinel monitoring | Yes | Yes | Medium |
+
+A single-minute missed run is rarely a problem. But over days and weeks, unmonitored missed runs compound into incidents that erode trust and take hours to clean up. The fix is cheap: pick your critical tasks, add heartbeats, and configure alerting for the silence between runs.
+
+Ready to catch every missed schedule run? [Set up Crontinel](https://crontinel.com) in under 5 minutes — per-task heartbeats, multi-channel alerts, and a dashboard that shows you exactly which runs completed and which were skipped.
