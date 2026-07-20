@@ -1,0 +1,81 @@
+# Crontinel
+
+> Open-source monitoring for cron jobs, queues, workers, and background tasks. Catch silent failures before users notice. Framework-agnostic — Laravel, Node.js, Python, PHP, or any stack.
+
+## Core pages
+
+- [Home](https://crontinel.com/): Crontinel product overview — cron & queue monitoring for any framework
+- [Features](https://crontinel.com/features/): Full feature list — supervisors, queue depth, cron runs, alerts, integrations
+- [Pricing](https://crontinel.com/pricing/): Pricing plans — Free (1 app), Pro ($19.99/mo), Team ($49.99/mo)
+- [FAQ](https://crontinel.com/faq/): Frequently asked questions about Crontinel
+- [About](https://crontinel.com/about/): About Crontinel — the product and the team
+- [Security](https://crontinel.com/security/): Security practices, encryption, data handling
+- [Cookie Policy](https://crontinel.com/cookie-policy/): Cookie usage and consent
+
+## Documentation
+
+- [Docs Home](https://docs.crontinel.com/introduction/): Getting started guide and full documentation
+- [Installation](https://docs.crontinel.com/installation/): Quick start — 1-minute setup
+- [Laravel Package](https://docs.crontinel.com/laravel/): Laravel SDK setup and usage
+- [Node.js SDK](https://docs.crontinel.com/node/): Node.js SDK setup and usage
+- [Python SDK](https://docs.crontinel.com/python/): Python SDK setup and usage
+- [API Reference](https://docs.crontinel.com/api-reference/): Full API documentation
+
+## Blog
+
+- [Blog Home](https://crontinel.com/blog/): Crontinel blog — cron monitoring guides, tips, and comparisons
+- [Laravel Schedule WithoutOverlapping Explained](https://crontinel.com/blog/laravel-schedule-withoutoverlapping-explained/): How to use withoutOverlapping in Laravel
+- [Laravel Failed Jobs Monitoring](https://crontinel.com/blog/laravel-failed-jobs-monitoring/): How to track and monitor failed Laravel jobs
+- [Cron Monitoring Pricing Compared 2026](https://crontinel.com/blog/cron-monitoring-pricing-compared-2026/): Comparison of cron monitoring tools and their pricing
+- [Horizon Supervisor Stopped](https://crontinel.com/blog/horizon-supervisor-stopped-jobs-not-processing/): How to detect Horizon supervisor failures
+- [Better Stack Cron Monitoring](https://crontinel.com/blog/better-stack-cron-monitoring-gone/): What happened to Better Stack cron monitoring
+- [How to Set Up Laravel Cron Monitoring](https://crontinel.com/blog/how-to-set-up-laravel-cron-monitoring/): Step-by-step setup guide
+
+## Use Cases
+
+- [Use Cases Home](https://crontinel.com/use-cases/): All monitoring use cases by framework and scenario
+- [Monitor Laravel cron jobs](https://crontinel.com/use-cases/monitor-laravel-cache-clear-cron-job-failed/): Detect when cache-clear cron jobs fail
+- [Monitor Reverb server](https://crontinel.com/use-cases/monitor-reverb-server/): Monitor Laravel Reverb WebSocket server health
+- Monitor cron jobs in Node.js, Python, PHP — see [all use cases](https://crontinel.com/use-cases/)
+
+## Comparisons
+
+- [Comparisons Home](https://crontinel.com/vs/): Crontinel vs other monitoring tools
+- [Crontinel vs Oh Dear](https://crontinel.com/vs/oh-dear/)
+- [Crontinel vs Healthchecks.io](https://crontinel.com/vs/healthchecks-io/)
+- [Crontinel vs Better Stack](https://crontinel.com/vs/better-stack/)
+- [Crontinel vs Cronitor](https://crontinel.com/vs/cronitor/)
+- [Crontinel vs Dead Man's Snitch](https://crontinel.com/vs/dead-mans-snitch/)
+- [Crontinel vs Pulse](https://crontinel.com/vs/pulse/)
+- [Crontinel vs Checkly](https://crontinel.com/vs/checkly/)
+
+## Integrations
+
+- [Integrations Home](https://crontinel.com/integrations/): All supported integrations and alert channels
+- [Slack Integration](https://crontinel.com/integrations/slack/): Send alerts to Slack channels
+- [Discord Integration](https://crontinel.com/integrations/discord/): Send alerts to Discord channels
+- [Telegram Integration](https://crontinel.com/integrations/telegram/): Send alerts to Telegram
+- [Email Integration](https://crontinel.com/integrations/email/): Configure email alert notifications
+- [PagerDuty Integration](https://crontinel.com/integrations/pagerduty/): PagerDuty on-call alerting
+- [Webhook Integration](https://crontinel.com/integrations/webhook/): Custom webhook alert delivery
+- [Gotify Integration](https://crontinel.com/integrations/gotify/): Self-hosted push notifications
+
+## SDKs & Packages
+
+- [Crontinel Laravel Package](https://packagist.org/packages/crontinel/laravel): Composer package for Laravel — `composer require crontinel/laravel`
+- [Crontinel Node.js SDK](https://www.npmjs.com/package/crontinel): npm package — `npm install crontinel`
+- [Crontinel Python SDK](https://pypi.org/project/crontinel/): pip package — `pip install crontinel`
+- [Crontinel PHP SDK](https://packagist.org/packages/crontinel/php): Standalone PHP package
+
+## Open Source
+
+- [GitHub Organization](https://github.com/crontinel): Crontinel on GitHub
+- [Main Repo](https://github.com/crontinel/crontinel): Crontinel product hub — README with full ecosystem overview
+- [Laravel Package Source](https://github.com/crontinel/laravel): Open source Laravel SDK
+- [App Source](https://github.com/crontinel/app): Crontinel SaaS backend (Laravel + Livewire)
+- [Landing Page Source](https://github.com/crontinel/landing): This landing page (Astro)
+
+## Status & Support
+
+- [Status Page](https://status.crontinel.com): Crontinel service status
+- [Community](https://github.com/crontinel/crontinel/discussions): GitHub Discussions for community support
