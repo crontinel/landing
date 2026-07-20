@@ -1,0 +1,152 @@
+---
+title: "Laravel Scheduler Events: Build Custom Monitoring With Before and After Hooks"
+description: "Laravel's scheduler dispatches events on task start, finish, and failure. Learn how to hook into ScheduledTaskFinished, listen for failures, and wire real-time alerts — no external service required."
+date: 2026-07-21
+tags: ["laravel", "scheduler", "monitoring"]
+---
+
+Most Laravel teams monitor cron jobs the same way: check if the process runs at all, then hope nothing breaks. But Laravel's scheduler fires a rich set of events — `ScheduledTaskStarted`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` — that let you build custom monitoring into your application itself.
+
+This isn't about replacing an external monitoring service. It's about catching failures *before* your heartbeat check misses its window.
+
+## What Laravel Scheduler Events Actually Cover
+
+When the scheduler runs a command, it dispatches events at each lifecycle stage:
+
+| Event | Fired when | What you get |
+|---|---|---|
+| `ScheduledTaskStarting` | Before a task executes | The task expression, command string |
+| `ScheduledTaskStarted` | After a task starts execution | Task + process ID |
+| `ScheduledTaskFinished` | After a task completes (any exit code) | Task + output + exit code |
+| `ScheduledTaskFailed` | When a task throws an uncaught exception | Task + exception instance |
+
+The critical one most teams miss: **`ScheduledTaskFailed`**. If your artisan command throws halfway through, the scheduler catches it and dispatches this event — but **nobody is listening**.
+
+## Wiring a Scheduler Event Listener
+
+```php
+// app/Providers/EventServiceProvider.php
+
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Console\Events\ScheduledTaskFinished;
+use App\Listeners\ReportSchedulerFailure;
+
+protected $listen = [
+    ScheduledTaskFailed::class => [
+        ReportSchedulerFailure::class,
+    ],
+    ScheduledTaskFinished::class => [
+        LogSchedulerOutput::class,
+    ],
+];
+```
+
+The listener gets access to the exception and the full task context:
+
+```php
+// app/Listeners/ReportSchedulerFailure.php
+
+<?php
+
+namespace App\Listeners;
+
+use Illuminate\Console\Events\ScheduledTaskFailed;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
+
+class ReportSchedulerFailure
+{
+    public function handle(ScheduledTaskFailed $event): void
+    {
+        Log::warning('Scheduled task failed', [
+            'command' => $event->task->command,
+            'expression' => $event->task->expression,
+            'exception' => $event->exception->getMessage(),
+        ]);
+
+        // Send to Crontinel or wherever you track production health
+        Http::post(config('crontinel.heartbeat_url'), [
+            'status' => 'failed',
+            'task' => get_class($event->task),
+            'error' => $event->exception->getMessage(),
+            'time' => now()->toIso8601String(),
+        ]);
+    }
+}
+```
+
+## Why This Matters When Your Scheduler *Seems* Fine
+
+A heartbeat check tells you "the cron daemon ran at 02:00." It does not tell you:
+
+- Did the command throw an exception mid-execution?
+- Did it exit with code 1 because a service was unreachable?
+- Did it silently skip the real work because of a logic gate?
+
+These are **execution failures**, not scheduler failures. And they're the most common failure mode in production Laravel apps.
+
+```php
+// Example: A seemingly healthy cron that fails silently
+$schedule->command('emails:send-digest')
+    ->dailyAt('06:00')
+    ->withoutOverlapping();  // If the previous run didn't clean up, this silently skips
+```
+
+The scheduler runs. The process starts. But `withoutOverlapping()` prevents execution, no output is generated, no failure is logged, and your heartbeat arrives exactly on time — with zero actual work done.
+
+## Building a Scheduler Event Dashboard
+
+You can log scheduler events to your database for a real-time dashboard:
+
+```php
+// database/migrations/create_scheduler_events_table.php
+
+Schema::create('scheduler_events', function (Blueprint $table) {
+    $table->id();
+    $table->string('task');
+    $table->string('expression')->nullable();
+    $table->string('status'); // started, finished, failed
+    $table->integer('exit_code')->nullable();
+    $table->text('output')->nullable();
+    $table->text('error_message')->nullable();
+    $table->timestamp('ran_at');
+    $table->timestamps();
+});
+```
+
+Then listen to *all* scheduler events and write them to this table. Now you can query: "Which tasks failed most in the last 7 days?" or "Did the backup task run within its expected window?"
+
+## The Complete Monitoring Picture
+
+Scheduler events give you **inside-out** visibility. Pair them with **outside-in** heartbeat monitoring for full coverage:
+
+- **Inside-out (this approach):** Catches exceptions, exit codes, and execution failures that a heartbeat can't see.
+- **Outside-in (Crontinel or similar):** Verifies the scheduler process actually runs at the right time and alerts if the entire cron cycle is missing.
+
+A task that fails internally but still runs on schedule is the hardest scenario to debug. Scheduler events catch that gap.
+
+## Wiring External Alerts
+
+Use the `ScheduledTaskFinished` event to forward output and exit codes to an external monitor:
+
+```php
+use Illuminate\Console\Events\ScheduledTaskFinished;
+
+public function handle(ScheduledTaskFinished $event): void
+{
+    if ($event->task->exitCode !== 0) {
+        // Non-zero exit: forward to Crontinel for alerting
+        Http::post(config('crontinel.heartbeat_url'), [
+            'status' => 'degraded',
+            'exit_code' => $event->task->exitCode,
+            'output' => substr($event->task->output ?? '', 0, 2000),
+        ]);
+    }
+}
+```
+
+Now you know about failures within seconds, not hours.
+
+## Enabling Scheduler Events (Laravel 9+)
+
+Scheduler events are **enabled by default** since Laravel 9. If you're on an older version, make sure `schedule:run` isn't running with `--no-interaction` in a way that suppresses event dispatch. The framework handles this automatically in modern versions — just register your listeners.

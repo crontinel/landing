@@ -6,7 +6,6 @@
     "cron-job-not-running-troubleshoot",
     "failed-job-retry-monitoring",
     "queue-backpressure-detection",
-    "scheduler-events-custom-monitoring",
     "spatie-schedule-monitor-setup"
   ],
   "completed": [
@@ -70,6 +69,7 @@
     "schedule-missed-run-alert",
     "schedule-run",
     "schedule-work",
+    "scheduler-events-custom-monitoring",
     "scout-flush",
     "scout-import",
     "scout-sync-index-settings",

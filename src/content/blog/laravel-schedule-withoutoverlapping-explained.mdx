@@ -54,6 +54,8 @@ If a task throws an uncaught exception, exits due to a memory limit, or gets kil
 
 With the default 24-hour expiration, a task scheduled to run every five minutes will miss 288 executions before the lock clears.
 
+This scenario — a task that exits without completing but still triggers a normal heartbeat — is covered in depth in [Laravel Scheduler Events: Build Custom Monitoring With Before and After Hooks](/blog/laravel-scheduler-events-monitoring/), specifically how `ScheduledTaskFailed` events catch execution failures that external heartbeats can't detect.
+
 ```php
 // A task that crashes leaves the mutex locked
 $schedule->command('sync:inventory')
