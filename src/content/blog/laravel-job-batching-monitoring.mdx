@@ -1,0 +1,177 @@
+---
+title: "Laravel Job Batching: Monitor and Alert on Failures Before They Spiral"
+description: "How to detect and respond to Laravel job batch failures in production — covering cancellation, timeout, and silent degradation patterns."
+date: 2026-07-23
+tags: ["laravel", "queues", "horizon"]
+---
+
+## The Batch Failure Problem
+
+Laravel's `Bus::batch()` API makes it easy to fan out work across dozens or hundreds of jobs. But when a batch fails silently, the impact multiplies — a CSV export that stalls at 95%, a webhook fanout that drops half its deliveries, or a data sync that leaves records in an inconsistent state.
+
+The core issue: **batch failures don't always throw exceptions.** A single failed job can trigger `thenCatch()`, but the batch itself may appear "complete" in Horizon's UI. Without explicit monitoring, teams discover batch failures when customers complain — not when the failure happens.
+
+## How Laravel Job Batching Actually Works
+
+A batch is a logical grouping of jobs. Laravel tracks them in the `job_batches` table:
+
+```php
+Bus::batch([
+    new ExportOrders($userId),
+    new ExportCustomers($userId),
+    new ExportProducts($userId),
+])
+    ->then(function (Batch $batch) {
+        // All jobs completed successfully
+        Mail::to($user)->send(new ExportReady($batch->id));
+    })
+    ->catch(function (Batch $batch, Throwable $e) {
+        // At least one job failed
+        logger()->error("Batch {$batch->id} failed: {$e->getMessage()}");
+    })
+    ->finally(function (Batch $batch) {
+        // Batch is done (success or failure)
+    })
+    ->onConnection('redis')
+    ->onQueue('exports')
+    ->create();
+```
+
+The `job_batches` table stores:
+- `id` — UUID for the batch
+- `total_jobs`, `pending_jobs`, `failed_jobs` — counters
+- `failed_job_ids` — JSON array of failed job IDs
+- `created_at`, `cancelled_at`, `finished_at` — timestamps
+- `name` — optional human-readable label
+
+**Key detail:** The `failed_jobs` counter increments as jobs fail, but the batch's `finished_at` is only set when `pending_jobs` reaches zero. If a batch has 100 jobs and 1 fails, `failed_jobs` becomes 1, `pending_jobs` decreases by 1, and the batch continues processing the remaining 99 jobs.
+
+## Three Failure Modes That Slip Through Monitoring
+
+### 1. Partial Batch Success
+
+The most common pattern. A batch of 50 jobs processes 48 successfully, 1 fails (triggering `thenCatch`), and 1 is silently marked as failed but retried successfully. The `then` callback never fires because `failed_jobs > 0`. If your monitoring only watches for `finished_at` being set, you'll see the batch as "done" — but the `then` callback with your notification logic never ran.
+
+```php
+// This only fires if ALL jobs succeed
+Bus::batch($jobs)->then(function ($batch) {
+    // If any job failed, this never runs
+    // Customers never get their export email
+    MarkExportComplete::dispatch($batch->id);
+})->catch(function ($batch) {
+    // This fires, but is it logged anywhere?
+});
+```
+
+**Detection:** Query the `job_batches` table for batches where `failed_jobs > 0` AND `finished_at IS NOT NULL`. These are completed-but-partially-failed batches.
+
+### 2. Batch Cancellation
+
+Calling `$batch->cancel()` stops new jobs from being dispatched, but already-dispatched jobs keep running. The batch shows `cancelled_at` set, but `pending_jobs` may still be positive. Horizon's dashboard shows the batch as "cancelled" — but does your alerting system?
+
+```php
+// A timeout handler cancels the batch
+Bus::batch($jobs)->then(fn($batch) => $this->notify($batch))
+    ->catch(function ($batch) {
+        $batch->cancel(); // Stop processing
+        Log::warning("Batch cancelled: {$batch->id}");
+    })
+    ->create();
+```
+
+**Detection:** Check for `cancelled_at IS NOT NULL AND finished_at IS NULL`. These batches are in limbo — some jobs completed, some were never dispatched.
+
+### 3. Silent Batch Timeout
+
+When `timeout` is set on a batch, Laravel kills jobs that exceed the limit. But the timeout mechanism relies on the job's `timeout` property or the batch's `timeout` — and if neither is set, a hung job blocks the batch indefinitely.
+
+```php
+// This batch has no timeout — one hung job blocks everything
+Bus::batch([
+    new ProcessLargeFile($file), // This might take 30 minutes
+    new NotifyUser($userId),     // This is stuck waiting
+])->create();
+```
+
+**Detection:** Query for batches where `finished_at IS NULL AND created_at < now() - interval '1 hour'`. These are likely stuck.
+
+## Building Monitoring Queries
+
+Here are practical queries you can run against your production database or expose via a health-check endpoint:
+
+```php
+// Find partially failed batches (completed but with failures)
+$partialFailures = DB::table('job_batches')
+    ->where('failed_jobs', '>', 0)
+    ->whereNotNull('finished_at')
+    ->where('finished_at', '>', now()->subDays(7))
+    ->get();
+
+// Find stuck batches (never finished, older than 1 hour)
+$stuckBatches = DB::table('job_batches')
+    ->whereNull('finished_at')
+    ->whereNull('cancelled_at')
+    ->where('created_at', '<', now()->subHour())
+    ->get();
+
+// Find cancelled batches (cancelled but not finished)
+$cancelledBatches = DB::table('job_batches')
+    ->whereNotNull('cancelled_at')
+    ->whereNull('finished_at')
+    ->where('cancelled_at', '>', now()->subDays(7))
+    ->get();
+```
+
+Wrap these in a scheduled command that runs every 5 minutes and sends alerts to your monitoring system:
+
+```php
+// app/Console/Commands/CheckBatchHealth.php
+class CheckBatchHealth extends Command
+{
+    protected $signature = 'batch:health-check';
+
+    public function handle(): int
+    {
+        $partial = DB::table('job_batches')
+            ->where('failed_jobs', '>', 0)
+            ->whereNotNull('finished_at')
+            ->where('finished_at', '>', now()->subHours(6))
+            ->count();
+
+        $stuck = DB::table('job_batches')
+            ->whereNull('finished_at')
+            ->whereNull('cancelled_at')
+            ->where('created_at', '<', now()->subHour())
+            ->count();
+
+        if ($partial > 0 || $stuck > 0) {
+            // Alert your monitoring system
+            alert("Batch health: {$partial} partial failures, {$stuck} stuck");
+            return self::FAILURE;
+        }
+
+        return self::SUCCESS;
+    }
+}
+```
+
+## What Crontinel Catches That Horizon Doesn't
+
+Laravel Horizon's dashboard shows batch status in real-time, but it doesn't:
+
+1. **Alert on partial failures** — Horizon shows the batch as "completed" even with failed jobs
+2. **Detect stuck batches** — No automatic timeout or stuck-batch detection
+3. **Track batch failure rates over time** — Horizon shows current state, not historical patterns
+4. **Cross-batch correlation** — If the same job type fails across multiple batches, Horizon doesn't surface the pattern
+
+Crontinel monitors your queue workers and batch health continuously. When a batch starts accumulating failures, you get an alert before the customer notices. When a batch gets stuck, Crontinel catches the worker stall and notifies you — instead of waiting for someone to open Horizon at 2 AM.
+
+## Quick Checklist
+
+- [ ] Are you using `then()` callbacks for batch completion? If so, are they logged?
+- [ ] Do your batches have a `timeout` set? Unbounded batches can hang forever.
+- [ ] Are you monitoring the `job_batches` table for stuck or partially-failed batches?
+- [ ] Does your alerting system know about batch failures, or only individual job failures?
+- [ ] Are you cleaning up old `job_batches` rows? They grow unbounded without pruning.
+
+The gap between "batch completed" and "batch completed successfully" is where production incidents hide. Close it with explicit monitoring — not just Horizon's dashboard.

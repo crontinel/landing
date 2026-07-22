@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/blog/background-job-monitoring-comparison/"
+    "https://crontinel.com/blog/laravel-job-batching-monitoring/"
   ],
   "submitted": [
     "https://crontinel.com/blog/laravel-scheduler-events-monitoring/",
@@ -156,7 +156,8 @@
     "https://crontinel.com/use-cases/monitor-cron-job-log-debugging/",
     "https://crontinel.com/blog/monitoring-kubernetes-cron-jobs/",
     "https://crontinel.com/use-cases/queue-monitoring-setup/",
-    "https://crontinel.com/use-cases/spatie-schedule-monitor-setup"
+    "https://crontinel.com/use-cases/spatie-schedule-monitor-setup",
+    "https://crontinel.com/blog/background-job-monitoring-comparison/"
   ],
-  "last_push": "2026-07-22"
+  "last_push": "2026-07-23"
 }
