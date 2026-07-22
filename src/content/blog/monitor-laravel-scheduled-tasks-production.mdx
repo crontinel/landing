@@ -33,6 +33,8 @@ Laravel 9+ fires four events you can hook into for scheduled tasks:
 
 The most useful pair is `ScheduledTaskFinished` and `ScheduledTaskFailed`. Together they let you record every run and its outcome.
 
+For a complete walkthrough of wiring these events for real-time alerting and external monitoring, see [Laravel Scheduler Events: Build Custom Monitoring With Before and After Hooks](/blog/laravel-scheduler-events-monitoring/).
+
 Here's a basic event listener that logs task execution:
 
 ```php

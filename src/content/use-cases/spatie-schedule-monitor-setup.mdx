@@ -1,0 +1,154 @@
+---
+title: "Setting Up spatie/laravel-schedule-monitor in Production"
+description: "How to install, configure, and run spatie/laravel-schedule-monitor in a real Laravel production environment. Covers database setup, event listeners, monitoring missed schedules, and pairing it with Crontinel for alerting."
+date: 2026-07-22
+---
+
+If you are searching for *spatie schedule monitor setup*, you probably already know the package and want it running in production without second-guessing the configuration. This is the full walkthrough, including the parts the README glosses over.
+
+## What spatie/laravel-schedule-monitor does
+
+The package hooks into Laravel's scheduler events and records every scheduled task execution to a database table. After each `schedule:run`, it logs what was supposed to run, what actually ran, and what was missed. You get a table with run history and a simple UI to inspect it.
+
+What it does not do: alert you when something goes wrong. It records failures but does not send notifications, create incidents, or page anyone. That is where Crontinel comes in.
+
+## Installation
+
+```bash
+composer require spatie/laravel-schedule-monitor
+```
+
+Publish the config and migration:
+
+```bash
+php artisan vendor:publish --provider="Spatie\ScheduleMonitor\ScheduleMonitorServiceProvider" --tag="schedule-monitor-migrations"
+php artisan vendor:publish --provider="Spatie\ScheduleMonitor\ScheduleMonitorServiceProvider" --tag="schedule-monitor-config"
+```
+
+Run the migration:
+
+```bash
+php artisan migrate
+```
+
+This creates the `scheduled_tasks` and `scheduled_task_monitored_events` tables.
+
+## Configuration
+
+Open `config/schedule-monitor.php`. The key settings:
+
+```php
+// Only monitor specific commands (recommended for production)
+'monitored_commands' => [
+    // Add the artisan commands you want tracked
+    // Use '*' to monitor everything (not recommended)
+],
+
+// Commands to ignore
+'ignored_commands' => [
+    // Commands you don't care about monitoring
+],
+```
+
+The default config monitors everything, which floods the table with noise in production. Be explicit about which commands matter. Billing runs, data syncs, export jobs, and cleanup tasks are good candidates. Cache warming and route caching are not.
+
+## Registering the monitored events
+
+In your `AppServiceProvider` (or wherever you register scheduled tasks), tell the monitor which tasks to watch:
+
+```php
+// In your schedule method or service provider:
+Schedule::command('billing:process')
+    ->dailyAt('02:00')
+    ->monitor('billing-process');
+```
+
+The `monitor()` method gives the task a name the monitor tracks. Without it, the package tries to infer the name from the command signature, which works until you have two tasks running the same command at different frequencies.
+
+## What the database tells you
+
+After a few days of running, query the `scheduled_tasks` table:
+
+```sql
+SELECT name, last_run_at, last_failed_at, 
+       run_frequency, last_successful_run_at
+FROM scheduled_tasks
+ORDER BY last_run_at DESC;
+```
+
+You can also check missed runs:
+
+```sql
+SELECT name, last_run_at, 
+       DATEDIFF(NOW(), last_run_at) as days_since_last_run
+FROM scheduled_tasks
+WHERE run_frequency = 'daily'
+  AND last_run_at < DATE_SUB(NOW(), INTERVAL 2 DAY);
+```
+
+That query catches tasks that stopped running without throwing an error. The package records "missed" as a status when a task that should have run does not appear in the event log.
+
+## The gap: recording vs. alerting
+
+spatie/laravel-schedule-monitor is a logging tool. It writes data. It does not:
+
+- Send alerts when a task misses a run
+- Notify Slack or email when a scheduled job fails
+- Create incidents in PagerDuty or Opsgenie
+- Track heartbeat health across multiple servers
+
+If you only need historical run data and a dashboard to look at, the package is enough. If you need to know something went wrong before a customer reports it, you need alerting on top.
+
+## Pairing with Crontinel for production alerting
+
+Crontinel fills the gap between "the data is recorded somewhere" and "someone gets paged." Here is how the two work together:
+
+```php
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schedule;
+
+// Your monitored task
+Schedule::command('billing:process')
+    ->dailyAt('02:00');
+
+// A heartbeat check that Crontinel watches
+Schedule::call(function () {
+    Http::post('https://monitor.crontinel.com/heartbeat/billing', [
+        'app' => config('app.name'),
+    ]);
+})->dailyAt('02:05');
+```
+
+Crontinel watches for the heartbeat. If `billing:process` runs but the heartbeat never arrives, Crontinel alerts. If the heartbeat arrives but the billing job failed, spatie's table has the failure recorded. Between the two systems, you get real-time alerting and historical audit.
+
+## Common setup mistakes
+
+1. **Monitoring everything.** The default `'*'` wildcard floods the table with noise. Start with 3-5 critical tasks and expand from there.
+
+2. **Missing the `monitor()` call.** Without it, duplicate command signatures create confusion in the logs.
+
+3. **Running migrations in the wrong environment.** The package's migration creates tables in whatever database your `APP_ENV` points to. Make sure the schedule-monitor tables exist in production, not just local.
+
+4. **Forgetting the event listener.** The package relies on `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskSkipped` events. If you have disabled event dispatching or are using a custom scheduler, these events may not fire.
+
+5. **No index on `last_run_at`.** The table grows fast if you monitor high-frequency tasks. Add an index:
+
+```sql
+CREATE INDEX idx_scheduled_tasks_last_run_at ON scheduled_tasks (last_run_at);
+```
+
+## What Crontinel covers that the package does not
+
+- Real-time alerts when a scheduled task misses its window
+- Heartbeat monitoring for scheduler health across servers
+- Dashboard with run history, failure rates, and latency
+- Integration with Slack, PagerDuty, webhooks, and email
+- No database schema to maintain (Crontinel is a hosted service)
+
+For teams that want both the historical audit trail and real-time alerting, using both tools together covers more ground than either alone.
+
+## See also
+
+- [Cron heartbeat monitoring for Laravel schedulers](/use-cases/cron-heartbeat-monitoring/)
+- [Production cron job alerting for Laravel](/use-cases/production-cron-job-alerting/)
+- [How to monitor `php artisan schedule:run` in production](/use-cases/monitor-schedule-run/)
