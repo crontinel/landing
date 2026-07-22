@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "background-job-monitoring-comparison",
     "cron-heartbeat-setup",
     "cron-job-not-running-troubleshoot",
     "failed-job-retry-monitoring",
@@ -79,7 +78,8 @@
     "telescope-storage-cleanup",
     "view-cache",
     "view-clear",
-    "worker-stall-detection"
+    "worker-stall-detection",
+    "background-job-monitoring-comparison"
   ],
   "done": [
     "spatie-schedule-monitor-setup"

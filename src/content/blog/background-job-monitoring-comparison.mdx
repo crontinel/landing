@@ -1,0 +1,174 @@
+---
+title: "Background Job Monitoring: Built-In Tools vs Dedicated Services vs DIY"
+description: "Compare three approaches to monitoring background jobs in Laravel — framework built-ins, dedicated SaaS monitors, and DIY heartbeat solutions. Find the right fit for your stack."
+date: 2026-07-22
+tags: ["laravel", "queues", "monitoring", "comparison"]
+---
+
+Your queue workers are processing jobs right now. Some are running smoothly. Some are silently stuck. Some have been dead for hours and nobody noticed.
+
+The question isn't *whether* you need background job monitoring — it's *which approach* fits your team, budget, and reliability requirements. This post compares the three main options: framework built-in tools, dedicated monitoring services, and DIY heartbeat solutions.
+
+## The Problem With Flying Blind
+
+Background jobs fail silently by default. A worker crashes, a job exceeds its timeout, a queue backs up to thousands of pending items — and your application keeps running. Users don't notice until the delayed email arrives three hours late or the report they requested never shows up.
+
+The 2026 Laravel Queue Survey found that **68% of teams** discovered queue failures only after customer complaints, not monitoring alerts. That's a reactive posture that costs trust.
+
+## Approach 1: Framework Built-In Tools
+
+Laravel ships with Horizon (for Redis queues) and basic queue event listeners. Other frameworks have equivalents: Sidekiq's built-in Web UI, Celery's Flower, Bull's dashboard.
+
+### What You Get
+
+```php
+// Laravel queue event listener — basic failure detection
+Event::listen(function (JobFailed $event) {
+    \Log::error("Job failed: {$event->job->getJobId()}");
+    // Send notification...
+});
+```
+
+**Pros:**
+- Zero additional cost
+- Deep framework integration
+- No external dependencies
+- Works offline
+
+**Cons:**
+- Only monitors the framework you're using
+- No cross-service visibility (Redis + SQS + database queues)
+- Alert delivery is DIY (email, Slack webhook, custom)
+- No historical analytics or trend data
+- Horizon's dashboard requires authentication setup
+
+### When It Works
+
+Built-in tools are sufficient when you run a single queue driver, have a small team, and don't need alerting beyond "send me an email when something breaks." They're the starting point, not the destination.
+
+## Approach 2: Dedicated Monitoring Services
+
+Services like Crontinel, Cronitor, and Better Stack provide purpose-built queue and cron monitoring with alerting, dashboards, and incident management.
+
+### What You Get
+
+```bash
+# Crontinel — one command to monitor a queue worker
+npx @crontinel/node install --queue worker
+# or for Python:
+pip install crontinel && crontinel install --queue worker
+```
+
+**Pros:**
+- Framework-agnostic (monitor Laravel, Django, and Node workers in one dashboard)
+- Multi-channel alerts (Slack, email, PagerDuty, SMS)
+- Historical data: queue depth trends, processing rate, failure patterns
+- Dead letter queue tracking
+- Cron job monitoring alongside queue monitoring
+- Team collaboration (on-call rotations, acknowledgment workflows)
+
+**Cons:**
+- Monthly cost (typically $10-50/month for small teams)
+- External dependency — if the monitoring service is down, you're blind
+- Requires agent installation on your infrastructure
+
+### When It Works
+
+Dedicated services shine when you have multiple queue drivers, more than one developer on call, or SLA commitments that make downtime expensive. The cross-service visibility alone justifies the cost for most production applications.
+
+## Approach 3: DIY Heartbeat Solutions
+
+The classic approach: workers ping a heartbeat endpoint on a schedule, and an external service checks that the pings arrive.
+
+```php
+// Worker heartbeat — ping every 60 seconds
+Artisan::command('queue:work --once', function () {
+    file_put_contents(
+        storage_path('app/heartbeat.json'),
+        json_encode(['worker' => gethostname(), 'at' => now()->toIso8601String()])
+    );
+});
+```
+
+```python
+# External checker (cron or monitoring service)
+import requests, json, time
+from datetime import datetime, timedelta
+
+def check_heartbeat(worker_url, max_age_seconds=120):
+    data = json.loads(requests.get(worker_url).text)
+    last_ping = datetime.fromisoformat(data['at'].replace('Z', '+00:00'))
+    if datetime.now(timezone.utc) - last_ping > timedelta(seconds=max_age_seconds):
+        send_alert(f"Worker {data['worker']} heartbeat stale!")
+```
+
+**Pros:**
+- No additional cost beyond what you already pay for alerting
+- Full control over check logic and alert channels
+- Can monitor anything with a heartbeat endpoint
+
+**Cons:**
+- Significant maintenance burden (heartbeat logic, check scripts, alert delivery)
+- False positives: a worker processing a long job looks "dead" to a naive heartbeat check
+- No queue-depth visibility, no failure categorization, no trend data
+- Scaling: each new worker needs heartbeat configuration
+- Alert fatigue from poorly tuned thresholds
+
+### When It Works
+
+DIY heartbeats make sense for simple setups with one or two workers and a team that enjoys infrastructure work. Beyond that, the maintenance cost exceeds a dedicated service subscription.
+
+## Comparison Matrix
+
+| Feature | Built-In Tools | Dedicated Services | DIY Heartbeat |
+|---|---|---|---|
+| Setup time | Minutes | Minutes | Hours-days |
+| Monthly cost | $0 | $10-50+ | $0 (but dev time) |
+| Multi-framework | No | Yes | Manual |
+| Alert channels | DIY | Built-in (Slack, PagerDuty, SMS) | DIY |
+| Queue depth visibility | Limited | Yes | No |
+| Historical analytics | No | Yes | No |
+| Dead letter tracking | Limited | Yes | No |
+| Team collaboration | No | Yes | No |
+| Maintenance burden | Low | Low | High |
+| Offline operation | Yes | No | Partial |
+
+## The Hybrid Approach
+
+Most mature teams end up with a hybrid: framework event listeners for development environments and quick debugging, plus a dedicated service for production alerting and historical data.
+
+```php
+// Production: dual notification
+Event::listen(function (JobFailed $event) {
+    // Quick dev notification via framework
+    \Log::error("Job failed: {$event->job->getJobId()}");
+
+    // Production alert via monitoring service
+    if (app()->environment('production')) {
+        \Crontinel::alert('job_failed', [
+            'job' => get_class($event->job),
+            'queue' => $event->job->getQueue(),
+            'error' => $event->exception->getMessage(),
+        ]);
+    }
+});
+```
+
+## Making the Decision
+
+Ask yourself these questions:
+
+1. **How many queue drivers do you run?** If more than one, built-in tools won't give you a unified view.
+2. **Who gets alerted at 3 AM?** If it's "nobody until morning," you need a service with on-call routing.
+3. **Do you need to answer "was the queue healthy last Tuesday?"** If yes, you need historical data that built-in tools don't provide.
+4. **What's your team's capacity for infrastructure maintenance?** DIY heartbeats are a part-time job.
+
+For most production Laravel applications with more than one developer, a dedicated monitoring service pays for itself in the first week by catching failures that built-in tools miss and DIY solutions alert on too late.
+
+## Next Steps
+
+- **Evaluate Crontinel** — free tier covers most small-to-medium Laravel apps: `composer require crontinel/laravel`
+- **Audit your current setup** — run `php artisan crontinel:status` to see what's already monitored
+- **Set a baseline** — track queue processing rate for one week before adding alerts, so you can set realistic thresholds
+
+The best monitoring approach is the one that actually alerts your team before your users notice. Pick the level that matches your reliability requirements, and upgrade when your needs outgrow it.
