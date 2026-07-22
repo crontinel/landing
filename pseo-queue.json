@@ -5,8 +5,7 @@
     "cron-heartbeat-setup",
     "cron-job-not-running-troubleshoot",
     "failed-job-retry-monitoring",
-    "queue-backpressure-detection",
-    "spatie-schedule-monitor-setup"
+    "queue-backpressure-detection"
   ],
   "completed": [
     "about",
@@ -81,5 +80,8 @@
     "view-cache",
     "view-clear",
     "worker-stall-detection"
+  ],
+  "done": [
+    "spatie-schedule-monitor-setup"
   ]
 }
