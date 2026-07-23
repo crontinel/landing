@@ -1,11 +1,6 @@
 {
   "in_progress": [],
-  "pending": [
-    "cron-heartbeat-setup",
-    "cron-job-not-running-troubleshoot",
-    "failed-job-retry-monitoring",
-    "queue-backpressure-detection"
-  ],
+  "pending": [],
   "completed": [
     "about",
     "backup-clean",
@@ -79,7 +74,12 @@
     "view-cache",
     "view-clear",
     "worker-stall-detection",
-    "background-job-monitoring-comparison"
+    "background-job-monitoring-comparison",
+    "cron-heartbeat-setup",
+    "cron-job-not-running-troubleshoot",
+    "failed-job-retry-monitoring",
+    "queue-backpressure-detection",
+    "horizon-supervisor-restart-job-loss"
   ],
   "done": [
     "spatie-schedule-monitor-setup"

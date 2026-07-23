@@ -1,0 +1,203 @@
+---
+title: "What Happens to In-Flight Jobs When Horizon Supervisors Restart"
+description: "When a Horizon supervisor restarts in Laravel, in-flight jobs can be lost, retried, or left orphaned. Learn how to detect and prevent job loss during supervisor restarts."
+date: 2026-07-24
+tags: ["laravel", "horizon", "queues", "supervisor"]
+---
+
+When you run `php artisan horizon:terminate` or deploy code that kills a Horizon supervisor, something uncomfortable happens: workers stop mid-job. Some jobs finish cleanly. Others get retried. And a few quietly disappear into the ether.
+
+This is the **supervisor restart problem** — one of the most common sources of silent job loss in Laravel production environments. And most teams don't discover it until a customer reports a missing email or a payment that never processed.
+
+## How Horizon Supervisors Work
+
+A Horizon supervisor is a process that spawns and manages worker processes. Each worker picks a job from the queue, executes it, and returns for the next one. The supervisor monitors worker health, restarts crashed workers, and enforces configuration limits.
+
+When you run `php artisan horizon:terminate`, Horizon sends `SIGTERM` to the supervisor, which in turn sends `SIGTERM` to each worker. Workers have a grace period (configurable via `terminateAfter` in your Horizon config) to finish their current job before being killed.
+
+Here's what the restart sequence looks like:
+
+```
+php artisan horizon:terminate
+  → Supervisor receives SIGTERM
+    → Workers receive SIGTERM
+      → Workers finish current job (if within grace period)
+      → Workers exit after timeout
+  → Supervisor exits
+  → New supervisor starts (via process manager or deploy hook)
+    → New workers spawned
+```
+
+The problem is in that middle step. If a worker doesn't finish within the grace period, it gets killed. The job it was processing depends on the queue driver to handle the aftermath.
+
+## What Actually Happens to In-Flight Jobs
+
+The behavior depends entirely on your queue driver and configuration:
+
+### Redis Queue (default)
+
+Redis queues use a simple model: a job is popped from the queue, processed, and acked. If the worker dies before acking, the job remains in the queue. But here's the catch — Redis doesn't know the job was being processed. It just sees that the job was never removed.
+
+When a worker pops a job, it uses `LPOPLPUSH` (or similar) to move the job from the main queue to a processing list. If the worker dies, the job stays in the processing list until the `retryAfter` timeout expires, then it gets moved back to the main queue.
+
+**What this means:** Jobs get retried, but only after the `retryAfter` window. If that's set to 60 seconds, your customer waits a minute before the retry. If it's 30 minutes (the default), they wait half an hour.
+
+### SQS Queue
+
+SQS has a visibility timeout. When a worker pops a job, SQS hides it from other workers for the visibility timeout period. If the worker doesn't delete the job within that window, SQS makes it visible again for retry.
+
+**The gotcha:** If your `visibility_timeout` is shorter than your longest job, the job gets retried while still running. You end up with duplicate processing.
+
+### Database Queue
+
+Database queues use a `reserved_at` timestamp. A worker pops a job by setting `reserved_at` to the current time. Other workers skip reserved jobs. If the worker dies, the job stays reserved until the `retryAfter` window passes, then a cleanup command releases it back.
+
+**The risk:** The `queue:restart` command clears the `reserved_at` field on all jobs, immediately making them available for retry — even if they're actively being processed by surviving workers.
+
+## The `queue:restart` Trap
+
+Running `php artisan queue:restart` during a deploy is a common pattern. It tells all workers to exit after their current job. But it has a side effect that catches teams off guard:
+
+```php
+// queue:restart sets a restart flag in the cache
+// Workers check this flag after each job
+// If set, they exit gracefully
+```
+
+The problem is timing. If you run `queue:restart` and a worker is halfway through a 30-second job, it finishes the job, checks the flag, and exits. But if the worker was processing a long-running job (batch processing, report generation, file uploads), it might not check the flag for minutes. Meanwhile, your deploy has already started new workers, and now you have **two workers processing jobs from the same queue** — which can cause duplicate processing if the job isn't idempotent.
+
+## How to Detect Job Loss During Restarts
+
+The first step is knowing it's happening. Here are the signals:
+
+**1. Check the `failed_jobs` table:**
+
+```sql
+SELECT job, exception, failed_at 
+FROM failed_jobs 
+WHERE failed_at > NOW() - INTERVAL 1 HOUR
+ORDER BY failed_at DESC;
+```
+
+If you see a spike in failures around deploy times, workers are dying mid-job.
+
+**2. Monitor queue depth changes during deploys:**
+
+A healthy queue should drain steadily. If you see the queue depth spike immediately after a deploy, jobs are being re-queued because workers died before finishing them.
+
+**3. Watch Horizon's `processes` metric:**
+
+If the number of active workers drops to zero during a deploy and then climbs back up, the restart happened. If the queue depth didn't change proportionally, some jobs may have been lost.
+
+**4. Track job completion timestamps:**
+
+Add a `completed_at` timestamp to your jobs or use a monitoring middleware. If a job was started but never completed, and no failure was recorded, it was likely killed by a supervisor restart.
+
+## How to Prevent Job Loss
+
+### 1. Set Appropriate `terminateAfter`
+
+In your Horizon configuration, set the `terminateAfter` value based on your longest job:
+
+```php
+// config/horizon.php
+'environments' => [
+    'production' => [
+        'workers' => [
+            '*' => [
+                'timeout' => 60,        // Max seconds per job
+                'terminateAfter' => 120, // Seconds before force-kill after SIGTERM
+            ],
+        ],
+    ],
+],
+```
+
+If your longest job takes 30 seconds, set `terminateAfter` to at least 60 seconds. This gives workers time to finish before being killed.
+
+### 2. Use Idempotent Jobs
+
+Make every job idempotent — safe to run twice. This way, even if a job gets retried after a restart, it doesn't cause duplicate side effects:
+
+```php
+class SendInvoiceEmail implements ShouldQueue
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function handle(): void
+    {
+        // Check if invoice was already emailed
+        $invoice = Invoice::find($this->invoiceId);
+        if ($invoice->emailed_at) {
+            return; // Already sent, skip
+        }
+        
+        Mail::to($invoice->customer)->send(new InvoiceMail($invoice));
+        $invoice->update(['emailed_at' => now()]);
+    }
+}
+```
+
+### 3. Implement a Graceful Deploy Pattern
+
+Instead of killing workers immediately, use a two-phase deploy:
+
+```bash
+# Phase 1: Stop accepting new jobs
+php artisan queue:pause
+
+# Phase 2: Wait for in-flight jobs to finish
+sleep 30  # or poll queue depth
+
+# Phase 3: Deploy new code
+git pull && php artisan migrate
+
+# Phase 4: Resume
+php artisan queue:resume
+```
+
+This ensures all in-flight jobs complete before workers restart. It's slower but safer for critical jobs.
+
+### 4. Use Horizon's `kill` Command Carefully
+
+`php artisan horizon:terminate` sends a graceful SIGTERM. `php artisan horizon:kill` sends SIGKILL, which gives workers zero time to finish. Only use `horizon:kill` when you know no jobs are in flight.
+
+### 5. Monitor Supervisor Restarts
+
+Track when supervisors restart by watching the Horizon metrics:
+
+```php
+// In a scheduled task or monitoring job
+$metrics = Horizon::metrics();
+$processCount = $metrics->processes();
+$wait = $metrics->wait();
+
+// Alert if process count drops to zero unexpectedly
+if ($processCount === 0 && $wait > 0) {
+    // Supervisor just restarted — jobs may be in limbo
+    Log::warning('Horizon supervisor restarted with jobs waiting');
+}
+```
+
+## What Crontinel Sees in Production
+
+In our monitoring of Laravel queues across production environments, supervisor restarts are the #3 cause of job processing delays (behind queue depth spikes and worker memory leaks). The pattern is consistent:
+
+1. Deploy triggers `horizon:terminate`
+2. Workers die within the `terminateAfter` window
+3. Jobs get re-queued (or stuck in the processing list)
+4. New workers pick up the retried jobs
+5. Customers see delayed emails, missed notifications, or duplicate processing
+
+The fix is always the same: **make jobs idempotent, set appropriate timeouts, and monitor queue depth during deploys.**
+
+## Key Takeaways
+
+- Supervisor restarts can leave jobs in limbo depending on your queue driver
+- `queue:restart` can cause duplicate processing if workers are mid-job
+- The `terminateAfter` setting is your first line of defense
+- Idempotent jobs make retried jobs safe
+- Monitor queue depth during deploys to catch job loss early
+- Use `queue:pause` / `queue:resume` for critical job flows
+
+Your queue workers are the backbone of your Laravel application's background processing. Treating supervisor restarts as a first-class concern — with proper timeouts, idempotency, and monitoring — keeps that backbone strong even during deployments.
