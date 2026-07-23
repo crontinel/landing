@@ -1,6 +1,6 @@
 ---
 title: "Laravel withoutOverlapping() Deep Dive: When It Helps and When It Silently Kills Jobs"
-description: "withoutOverlapping() prevents duplicate task execution. It also silently skips tasks when the mutex gets stuck. Here's how the mutex works, where it breaks, and how to monitor for stuck locks."
+description: "withoutOverlapping() can silently skip your scheduled task forever after one stuck mutex — no error, no log. Here's how to catch it before customers do."
 date: 2026-04-07
 tags: ["laravel", "scheduling"]
 ---
