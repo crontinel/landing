@@ -1,6 +1,6 @@
 # Crontinel Competitors — Reference
 
-Last updated: 2026-07-16
+Last updated: 2026-07-23
 
 ## Established Competitors
 
@@ -65,3 +65,5 @@ Last updated: 2026-07-16
 2. **Log-based troubleshooting** — Using cron job output/logs to debug failures
 3. **General cron guide** — Cronitor has "Cron Jobs: The Complete Guide" — Crontinel now has `cron-monitoring-guide` (covered)
 4. **Django/Rails monitoring** — Crontinel focuses on Laravel; framework-specific content for other ecosystems could expand reach
+5. **Prometheus integration** — Better Stack has "PHP and Laravel Monitoring with Prometheus"; Crontinel has no Prometheus content (added to pseo-queue)
+6. **Cron scheduler alternatives** — Cronitor has a 50+ scheduler comparison directory; Crontinel lacks a cron scheduler alternatives page (added to pseo-queue)
