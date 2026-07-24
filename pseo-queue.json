@@ -81,7 +81,8 @@
     "cron-heartbeat-setup",
     "cron-job-not-running-troubleshoot",
     "failed-job-retry-monitoring",
-    "queue-backpressure-detection"
+    "queue-backpressure-detection",
+    "horizon-supervisor-restart-job-loss"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
