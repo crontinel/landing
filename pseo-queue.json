@@ -1,6 +1,9 @@
 {
   "in_progress": [],
-  "pending": [],
+  "pending": [
+    "prometheus-laravel-integration",
+    "cron-scheduler-alternatives"
+  ],
   "completed": [
     "about",
     "backup-clean",

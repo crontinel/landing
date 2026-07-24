@@ -1,12 +1,11 @@
 # Cloudflare Pages redirects
 # Format: source destination status
 
-# Force trailing slashes (Astro config: trailingSlash: 'always')
-# Catch non-trailing slash URLs and redirect to trailing slash
-/:slug          /:slug/         301
-
-# Broken signup/register pages → redirect to app
+# Specific rules FIRST (must come before catch-all)
 /register          https://app.crontinel.com/register  301
 /register/         https://app.crontinel.com/register  301
 /signup            https://app.crontinel.com/register  301
 /signup/           https://app.crontinel.com/register  301
+
+# Force trailing slashes (Astro config: trailingSlash: 'always')
+/:slug          /:slug/         301
