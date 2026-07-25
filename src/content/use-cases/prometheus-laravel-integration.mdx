@@ -1,0 +1,101 @@
+---
+title: "Monitoring Prometheus Metrics in Laravel Production"
+description: "Laravel apps that expose Prometheus metrics often miss cron and queue failures. Here is how to pair Prometheus with targeted cron monitoring so nothing slips through the gaps."
+date: 2026-07-25
+---
+
+You set up Prometheus to collect metrics from your Laravel application. Grafana dashboards show request rates, memory usage, and response times. The team feels good about observability. Then a scheduled report stops generating at 3 AM, a queue worker silently dies, and nobody notices until a customer complains about missing data the next morning.
+
+Prometheus is excellent at collecting numeric time-series data from applications that actively expose metrics. But cron jobs, scheduled tasks, and queue workers are not HTTP endpoints. They run in separate processes, on separate timelines, and most of them never expose a `/metrics` endpoint at all. A Prometheus scrape only catches what a process publishes during its brief execution window. If a cron job runs for two seconds every six hours, you need the scrape to land in that exact two-second window to see anything. Miss it, and Prometheus has no data point to report.
+
+## How Prometheus and Laravel actually work together
+
+The standard setup uses `promphp/prometheus_client_php` or a similar library to push metrics into Redis, then a Prometheus server scrapes those metrics via a `/metrics` endpoint exposed by your Laravel app or a sidecar. Common metrics include request duration, queue depth, active job count, and custom business counters.
+
+Prometheus pulls data at a fixed interval (typically 15 to 30 seconds). For HTTP request metrics, this works well because requests arrive continuously. For cron jobs that run every hour, the probability of a scrape landing during the job's execution is roughly 0.1%. You can add a custom metric that records "last successful run" timestamps, but only if the cron job itself is instrumented to push that metric.
+
+The fundamental mismatch is this: Prometheus assumes the thing it monitors is always running and periodically reachable. Cron jobs and queue workers are ephemeral. They start, do their work, and exit. If you forget to instrument a cron job, Prometheus sees nothing.
+
+## Where the gaps appear
+
+**Scheduled tasks with no metric instrumentation.** A cron job runs `php artisan send-daily-reports`. The command completes successfully, but nobody added a Prometheus counter for it. Prometheus has no visibility. The job could fail silently for days and the dashboards would look normal.
+
+**Queue workers that stop without restarting.** Horizon manages worker lifecycle, but if Supervisor is not configured or misconfigured, a worker that hits a memory limit simply exits. Prometheus might show "queue depth increasing" if you have that metric, but it will not tell you the worker is gone unless you also track active worker count.
+
+**Metric expiry and staleness.** Prometheus has a concept of staleness. If a metric stops being updated, Prometheus can mark it stale after two scrape intervals. But for a "last successful run" metric on an hourly cron, there can be 59 minutes of silence between updates. During that silence, you cannot distinguish "running fine, just between executions" from "has not run in six hours."
+
+**Grafana dashboards that miss the point.** A Grafana panel showing "requests per second" and "CPU usage" tells you the web server is healthy. It tells you nothing about whether the nightly data export completed or whether the queue has jobs stuck for 30 minutes.
+
+## Building a complete monitoring stack with Crontinel
+
+The fix is not to replace Prometheus. It is to add the piece that Prometheus cannot do well: process-level, schedule-aware monitoring for cron jobs and background workers.
+
+**Step 1: Install Crontinel alongside your Prometheus stack.**
+
+```bash
+composer require crontinel/crontinel
+```
+
+Add the Crontinel heartbeat to each scheduled task that matters:
+
+```php
+// app/Console/Kernel.php
+$schedule->command('send-daily-reports')
+    ->dailyAt('06:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// Add the heartbeat
+$schedule->command('cron:heartbeat', ['send-daily-reports'])
+    ->everyMinute();
+```
+
+Each heartbeat call tells Crontinel "this job should have run by now." If Crontinel does not receive the signal within the expected window, it fires an alert.
+
+**Step 2: Monitor Horizon workers separately.**
+
+```php
+// In your HorizonServiceProvider or config/horizon.php
+Horizon::afterMonitoring(function ($metrics) {
+    // Push worker count to Prometheus if you want both views
+    app(Prometheus::class)->gauge('horizon_workers_active', $metrics->workers->count());
+});
+```
+
+This gives you the Prometheus metric for dashboarding and Crontinel for alerting when workers disappear.
+
+**Step 3: Set up alerting thresholds.**
+
+In your Crontinel dashboard, configure per-job alert windows:
+
+- `send-daily-reports` — alert if no heartbeat in 30 minutes after scheduled time
+- `queue-monitor` — alert if queue depth exceeds 500 for more than 10 minutes
+- `cleanup-expired-sessions` — alert if no heartbeat in 2 hours
+
+The key difference from Prometheus alerts: Crontinel knows the schedule. It does not ask "has this metric changed?" It asks "did this job run when it was supposed to?"
+
+## When to rely on Prometheus alone
+
+Prometheus is the right tool for:
+
+- HTTP request latency and throughput
+- Database query performance (with Laravel Telescope + Prometheus exporter)
+- Infrastructure metrics (CPU, memory, disk, network)
+- Business metrics that update on every request (orders per minute, active users)
+
+The pattern to remember: Prometheus monitors things that are always running. Crontinel monitors things that run on a schedule.
+
+## Quick setup with Crontinel
+
+Getting started takes a few minutes. Install the package, add the heartbeat to your scheduled tasks, and register your server in the Crontinel dashboard. No changes to your Prometheus or Grafana setup needed.
+
+Crontinel works as a standalone layer on top of your existing monitoring. You keep your Prometheus dashboards for infrastructure and request metrics. Crontinel handles the cron and queue monitoring that Prometheus was never designed for.
+
+```bash
+composer require crontinel/crontinel
+php artisan crontinel:register
+```
+
+Then add heartbeats to your most critical scheduled tasks. Start with the ones that, if they fail silently, would cause customer-facing problems. The nightly report generator. The data sync. The cleanup job that prevents your database from growing unbounded.
+
+You do not need to instrument every cron job on day one. Start with the three that would hurt the most if they stopped running, then expand from there.
