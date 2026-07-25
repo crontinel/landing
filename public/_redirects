@@ -7,5 +7,6 @@
 /signup            https://app.crontinel.com/register  301
 /signup/           https://app.crontinel.com/register  301
 
-# Force trailing slashes (Astro config: trailingSlash: 'always')
-/:slug          /:slug/         301
+# NOTE: Removed catch-all /:slug /:slug/ 301 redirect
+# It was redirecting /logo.png to /logo.png/ which 404s
+# Astro's trailingSlash: 'already handles trailing slashes at build time
