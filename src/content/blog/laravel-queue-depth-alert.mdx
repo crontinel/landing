@@ -87,7 +87,7 @@ function getPendingDepth(string $queue = 'default'): int
 
 ## Setting thresholds per queue
 
-Not all queues deserve the same alert threshold. A notification queue that usually sits at 0 should alert at depth 50. A batch-processing queue that normally runs at 500 should alert at 2000.
+Not all queues deserve the same alert threshold. A notification queue that usually sits at 0 should alert at depth 50. A batch-processing queue that normally runs at 500 should alert at 2000. And if you're using queue priority (dispatching critical jobs to a `high` queue and bulk work to `low`), your thresholds need to account for that separation — a `high` queue that stays above 0 means critical jobs are waiting. See [Laravel Queue Priority](/blog/laravel-queue-priority-laravel/) for how to set up priority tiers.
 
 Here's a simple config-driven check you can schedule every minute:
 

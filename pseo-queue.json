@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "queue-priority-laravel",
     "redis-queue-performance"
   ],
   "completed": [
@@ -86,7 +85,8 @@
     "prometheus-laravel-integration",
     "cron-scheduler-alternatives",
     "queue-worker-memory-leak",
-    "artisan-schedule-work-monitoring"
+    "artisan-schedule-work-monitoring",
+    "queue-priority-laravel"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
