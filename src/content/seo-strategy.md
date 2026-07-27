@@ -1,5 +1,27 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-15 03:15 UTC — new use-case page: monitor-queue-latency
+Auto-generated: 2026-07-27 03:11 UTC — queue cleanup, no new content
+
+## Run Summary (2026-07-27)
+
+**Articles Generated: 0** — queue cleanup only.
+
+**Queue cleanup:**
+- Removed 5 duplicate/redundant/niche topics from pending (queue-worker-memory-leak, artisan-schedule-work-monitoring already existed; job-retry-backoff-strategy, laravel-queue-lag-detection overlapped with existing content; kubernetes-cronjob-concurrency too niche)
+- Remaining pending: queue-priority-laravel, redis-queue-performance
+- Total completed: 82 topics
+
+**GSC findings (28-day — 2026-06-29 to 2026-07-26):**
+- 12 total clicks across 138 URLs — site still early in search lifecycle
+- Top: monitor-reverb-server (3 clicks, 58 imp, pos 10.0, CTR 5.17%)
+- Second: withoutoverlapping-explained (2 clicks, 308 imp, pos 9.4, CTR 0.65%)
+- Homepage: 1 click, 435 imp, pos 4.4, CTR 0.23%
+- Most pages: 0 clicks, minimal impressions
+- artisan command pages: near-zero search demand (confirmed dead-end)
+
+**Recommendations:**
+- Refresh high-impression pages instead of new content
+- Queue renewal needed — remaining 2 topics are low-priority
+- Homepage meta audit — 435 imp at pos 4.4 with 1 click suggests title/meta could improve
 
 ## Run Summary (2026-07-15)
 
