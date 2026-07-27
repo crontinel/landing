@@ -1,11 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "queue-worker-memory-leak",
-    "job-retry-backoff-strategy",
-    "laravel-queue-lag-detection",
-    "kubernetes-cronjob-concurrency",
-    "artisan-schedule-work-monitoring",
     "queue-priority-laravel",
     "redis-queue-performance"
   ],
@@ -89,7 +84,9 @@
     "queue-backpressure-detection",
     "horizon-supervisor-restart-job-loss",
     "prometheus-laravel-integration",
-    "cron-scheduler-alternatives"
+    "cron-scheduler-alternatives",
+    "queue-worker-memory-leak",
+    "artisan-schedule-work-monitoring"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
