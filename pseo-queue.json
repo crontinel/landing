@@ -1,7 +1,8 @@
 {
   "in_progress": [],
   "pending": [
-    "cron-scheduler-alternatives"
+    "queue-priority-laravel",
+    "redis-queue-performance"
   ],
   "completed": [
     "about",
@@ -82,7 +83,10 @@
     "failed-job-retry-monitoring",
     "queue-backpressure-detection",
     "horizon-supervisor-restart-job-loss",
-    "prometheus-laravel-integration"
+    "prometheus-laravel-integration",
+    "cron-scheduler-alternatives",
+    "queue-worker-memory-leak",
+    "artisan-schedule-work-monitoring"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
