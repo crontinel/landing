@@ -150,6 +150,10 @@ If you're on infrastructure that supports it, add workers when depth exceeds a t
 
 Horizon's auto-balancer scales processes up when queues have work and scales down when they're idle. The limitation is that it only scales within the configured range on a single server. For horizontal scaling across multiple servers, you need an external orchestrator.
 
+### Prioritize critical jobs
+
+Another mitigation for backpressure: route time-sensitive jobs to a dedicated high-priority queue so they bypass the backlog entirely. Even if your default queue is backed up with report generation jobs, payment confirmations on a `high` queue process immediately. See [Laravel Queue Priority: Why Your Critical Jobs Are Stuck Behind Trivial Ones](/blog/laravel-queue-priority-laravel/) for the full setup.
+
 ### Circuit-break failing external calls
 
 If the backpressure originates from a slow external service, stop calling it:

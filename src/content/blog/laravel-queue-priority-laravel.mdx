@@ -1,0 +1,186 @@
+---
+title: "Laravel Queue Priority: Why Your Critical Jobs Are Stuck Behind Trivial Ones"
+description: "Laravel queues process jobs FIFO by default. Without explicit priority configuration, payment confirmations sit behind welcome emails. Here's how to fix it."
+date: 2026-07-28
+tags: ["laravel", "queues", "redis", "performance"]
+---
+
+Your payment confirmation job should never wait behind a welcome email. But out of the box, Laravel's queue system doesn't care about urgency — it processes jobs in strict first-in, first-out order.
+
+If your queue has bursty traffic, this means critical jobs (password resets, payment receipts, invoice generation) can get stuck behind low-priority work (notification digests, report generation, cache warming). The fix requires deliberate queue design, not just faster workers.
+
+## How Laravel Queue Priority Actually Works
+
+Laravel's queue system supports multiple queues per connection, and each worker can listen to specific queues in a defined order. Priority is implicit — the worker pulls from the first queue listed, then falls back to the next.
+
+Here's the key insight: **priority is determined by queue name order, not by a priority field on the job.** A job dispatched to the `high` queue will always be picked up before a job on the `default` queue.
+
+```
+# .env
+QUEUE_CONNECTION=redis
+
+# Worker listens to high first, then default, then low
+# (configured in supervisor or your deploy command)
+```
+
+The worker command defines priority:
+
+```bash
+# High priority queue gets processed first
+php artisan queue:work --queue=high,default,low
+```
+
+This means any job on the `high` queue jumps ahead of everything on `default` — regardless of when it was dispatched. Jobs on `low` only run when both higher queues are empty.
+
+## The Common Mistake: Single-Queue Architecture
+
+Most Laravel projects use a single `default` queue for everything:
+
+```php
+// Dispatching to default queue (implicit)
+Mail::to($user)->queue(new WelcomeMail($user));
+
+// This also goes to default — same queue
+Mail::to($admin)->queue(new PaymentReceipt($payment));
+
+// And this too
+ProcessRefund::dispatch($refund);
+```
+
+All three jobs sit in the same Redis list. If you have 50 welcome emails queued up, the payment receipt and refund processing wait their turn. With a busy queue, this can mean minutes of delay for time-sensitive operations.
+
+The problem compounds with worker count. Even with 10 workers listening to the same queue, they all pull from the same list. You're parallelizing work, not prioritizing it.
+
+## Building a Priority System
+
+### Step 1: Define Your Queues
+
+Pick queue names that reflect your actual priority tiers. The names are arbitrary strings — use what makes sense:
+
+```php
+// config/queue.php
+'connections' => [
+    'redis' => [
+        'driver' => 'redis',
+        'connection' => 'default',
+        'queue' => 'default',
+        'retry_after' => 90,
+        'block_for' => null,
+    ],
+],
+```
+
+Common pattern:
+
+| Queue name | Use case |
+|---|---|
+| `high` | Payment confirmations, password resets, security alerts |
+| `default` | General notifications, email sending, non-urgent tasks |
+| `low` | Report generation, cache warming, analytics aggregation |
+| `bulk` | Mass emails, export jobs, heavy batch processing |
+
+### Step 2: Dispatch to the Right Queue
+
+```php
+// Critical — goes to high
+Mail::to($user)->queue(new PaymentReceipt($payment));
+// Explicitly: Mail::to($user)->queue((new PaymentReceipt($payment))->onQueue('high'));
+
+// Normal priority — stays on default
+Mail::to($user)->queue(new WelcomeMail($user));
+
+// Low priority — deferred until everything else is done
+GenerateMonthlyReport::dispatch()->onQueue('low');
+```
+
+For classes that always belong to a specific queue, set the property:
+
+```php
+class PaymentReceipt extends Mailable
+{
+    public $queue = 'high';
+    // ...
+}
+
+class CacheWarmer extends Job
+{
+    public $queue = 'low';
+    // ...
+}
+```
+
+### Step 3: Configure Workers with Queue Order
+
+This is where the actual priority enforcement happens. Each worker needs the `--queue` flag:
+
+```ini
+# /etc/supervisor/conf.d/crontinel-worker.conf
+
+[program:crontinel-worker]
+command=php artisan queue:work --queue=high,default,low --sleep=3 --tries=3
+process_name=%(program_name)s_%(process_num)02d
+numprocs=4
+autostart=true
+autorestart=true
+stopwaitsecs=3600
+```
+
+With 4 workers all configured to `--queue=high,default,low`, they'll always drain `high` before touching `default`, and `default` before `low`.
+
+### Step 4: Bulk Jobs on Dedicated Workers
+
+For heavy batch jobs (report generation, export processing), isolate them on separate workers so they can't block the main queues:
+
+```ini
+[program:crontinel-bulk-worker]
+command=php artisan queue:work --queue=bulk --sleep=5 --tries=3 --max-time=3600
+numprocs=1
+```
+
+A single bulk worker with `--max-time=3600` means a stuck export job automatically gets killed after an hour, freeing the queue for fresh work.
+
+## When Things Go Wrong: Queue Depth Monitoring
+
+Setting up priorities is step one. Knowing when your queues are backing up is step two.
+
+If your `high` queue depth is climbing (more jobs arriving than processing), you have a capacity problem. If your `default` queue is deep but `high` is empty, your priorities are working but you might need more workers.
+
+Laravel doesn't expose queue depth natively — you need to read Redis directly or use a monitoring tool:
+
+```bash
+# Check queue depth in Redis
+redis-cli LLEN queues:high
+redis-cli LLEN queues:default
+redis-cli LLEN queues:low
+```
+
+Or monitor continuously. A depth spike on `high` means critical jobs are waiting. A steadily growing `default` means you need more workers or lighter jobs.
+
+This is exactly where Crontinel helps — it watches your queue depth in real time and alerts you before jobs start timing out. Instead of discovering your payment queue backed up at 2am because a batch export consumed all your workers, you get notified the moment the `high` queue crosses your threshold.
+
+## The Gotcha: Dispatch Order Doesn't Determine Priority
+
+A common misunderstanding: if you dispatch a job to `high` and then immediately dispatch one to `default`, the `default` job might get picked first if a worker was already idle and listening on `default`.
+
+Priority is about **queue-level ordering**, not dispatch timing. The `--queue=high,default,low` flag means a worker always checks `high` first. But if a worker is currently processing a `default` job and finishes, it'll check `high` first on its next pull — so a `high` job dispatched during that processing window still wins.
+
+The practical takeaway: always dispatch time-critical jobs to the correct queue immediately. Don't rely on dispatch order for priority.
+
+## Measuring the Impact
+
+After implementing queue priority, track these metrics:
+
+- **Time-to-first-process for high-priority jobs** — should drop dramatically
+- **Queue depth per tier** — `high` should rarely exceed a few jobs
+- **Worker utilization** — if `low` and `bulk` are always empty while `high` fills up, you need more workers
+
+Laravel's queue system gives you the tools. The default FIFO configuration works fine for simple projects, but any application with real users hitting real payment flows needs explicit priority tiers. The cost is a few extra queue names and dispatch calls — the benefit is critical jobs always processing first.
+
+Don't let your payment confirmation sit behind a newsletter digest. Set up queue priorities, monitor your depths, and keep the critical path fast.
+
+---
+
+**Related reading:**
+- [Laravel Queue Depth Monitoring: Alert Before the Backlog Explodes](/blog/laravel-queue-depth-alert/) — query depth per queue and set thresholds that actually work
+- [Queue Backpressure in Laravel: When Depth Spikes and Jobs Start Timing Out](/blog/laravel-queue-backpressure/) — how cascading timeouts turn a minor slowdown into an outage
+- [Laravel Queue Worker Died: How to Detect and Recover](/blog/laravel-queue-worker-died-detect-recover/) — detecting silent worker failures before they become customer problems
