@@ -1,8 +1,6 @@
 {
   "in_progress": [],
-  "pending": [
-    "redis-queue-performance"
-  ],
+  "pending": [],
   "completed": [
     "about",
     "backup-clean",
@@ -86,7 +84,8 @@
     "cron-scheduler-alternatives",
     "queue-worker-memory-leak",
     "artisan-schedule-work-monitoring",
-    "queue-priority-laravel"
+    "queue-priority-laravel",
+    "redis-queue-performance"
   ],
   "done": [
     "spatie-schedule-monitor-setup"

@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/blog/laravel-queue-priority-laravel/"
+    "https://crontinel.com/use-cases/monitor-redis-queue-performance/"
   ],
   "submitted": [
     "https://crontinel.com/vs/crontinel-vs-thenping",
@@ -161,7 +161,8 @@
     "https://crontinel.com/vs/crontinel-vs-better-stack",
     "https://crontinel.com/use-cases/monitor-schedule-run",
     "https://crontinel.com/use-cases/prometheus-laravel-integration",
-    "https://crontinel.com/blog/cron-scheduler-alternatives/"
+    "https://crontinel.com/blog/cron-scheduler-alternatives/",
+    "https://crontinel.com/blog/laravel-queue-priority-laravel/"
   ],
-  "last_push": "2026-07-28"
+  "last_push": "2026-07-29"
 }
