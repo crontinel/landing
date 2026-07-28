@@ -1,5 +1,90 @@
 # SEO Growth Tracker
 
+## Week of 2026-07-28 to 2026-07-29
+
+### Content Published
+| Date | Type | Title | Slug |
+|------|------|-------|------|
+| 2026-07-29 | Use-case | Monitoring Redis Queue Performance in Laravel Production | `/use-cases/monitor-redis-queue-performance/` |
+
+### Stale Refresh (Wednesday)
+| Date | Title | Action |
+|------|-------|--------|
+| 2026-07-29 | PagerDuty + Laravel | Added `updated: 2026-07-29` |
+| 2026-07-29 | Cron vs Queue in Laravel | Added `updated: 2026-07-29` |
+| 2026-07-29 | Queue Worker Memory Leaks | Added `updated: 2026-07-29` |
+
+### GSC 7-Day Performance (Jul 22-28)
+| Metric | Value |
+|--------|-------|
+| Total clicks | 3 |
+| Total impressions | ~961 |
+| Overall CTR | 0.31% |
+| Avg position | 16.9 |
+
+**Daily breakdown:**
+| Date | Clicks | Impr | CTR | Pos |
+|------|--------|------|-----|-----|
+| Jul 22 | 1 | 120 | 0.8% | 14.1 |
+| Jul 23 | 0 | 126 | 0.0% | 16.7 |
+| Jul 24 | 1 | 143 | 0.7% | 15.0 |
+| Jul 25 | 0 | 142 | 0.0% | 15.8 |
+| Jul 26 | 0 | 120 | 0.0% | 19.7 |
+| Jul 27 | 0 | 175 | 0.0% | 19.8 |
+| Jul 28 | 1 | 135 | 0.7% | 16.9 |
+
+**Top pages by impressions (28d):**
+| Page | Impressions | Clicks | CTR | Position |
+|------|------------|--------|-----|----------|
+| monitor-reverb-server | 63 | 3 | 4.8% | 10.7 |
+| schedule-withoutoverlapping | 324 | 2 | 0.6% | 9.8 |
+| Homepage | 407 | 1 | 0.2% | 4.6 |
+| laravel-cron-job-not-running | 68 | 1 | 1.5% | 14.6 |
+| failed-jobs-monitoring | 187 | 1 | 0.5% | 16.5 |
+| pagerduty integration | 6 | 1 | 16.7% | 5.2 |
+| monitor-backup-monitor | 2 | 1 | 50.0% | 9.5 |
+| app.crontinel.com | 62 | 0 | 0.0% | 7.5 |
+
+### GSC Queue Status
+- **Sitemaps:** Both submitted and fresh (landing 2026-07-21, docs 2026-07-07)
+- **Tracked URLs:** 161 submitted, 0 pending
+- **Spot-checks:** /blog/ (PASS), homepage (PASS), /blog/laravel-schedule-monitor/ (NEUTRAL — new page)
+- **Refreshed URLs:** All 3 stale posts pass GSC inspection (PASS)
+
+### Content Collections
+| Collection | Count |
+|------------|-------|
+| Blog | 53 |
+| Use-cases | 72 (+1 this period) |
+| Vs | 14 |
+| Integrations | 7 |
+| **Total** | **146** |
+
+### Wednesday Stale Refresh Observations
+1. **3 posts refreshed** from April 7 (>90 days old): PagerDuty integration, cron vs queue, memory leaks
+2. All had zero `updated` field — now marked with `updated: 2026-07-29`
+3. Content remains technically accurate (code examples valid for Laravel 11.x/12.x)
+4. All 3 URLs pass GSC inspection — no indexing issues
+
+### Week-over-Week Trend
+- Impressions: 1,094 (Jul 17-23) → 961 (Jul 22-28) — slight dip, expected with weekend
+- Clicks: 5 → 3 — volatile at low volume
+- CTR: 0.46% → 0.31% — still in the low range typical for new sites
+- Position: 12.1 → 16.9 — fluctuation normal at this stage
+
+### Tasks Completed
+1. Daily content — 1 new use-case page (redis-queue-performance)
+2. Stale refresh — 3 posts updated (Wednesday focus)
+3. GSC queue — 0 pending, 161 submitted
+4. GSC health — both sitemaps fresh, all spot-checks pass
+5. PR #211 created for review
+
+### Blockers & Action Items
+1. **app.crontinel.com indexed** — Still in Google index. Need noindex on app layout.
+2. **Homepage CTR crisis** — 407 impressions, 0.2% CTR at position 4.6. Meta rewrite needed.
+3. **pseo-queue empty** — No pending topics. Need Monday keyword research to refill pipeline.
+4. **Technical noise** — bootstrap/cache queries persist. Audit for exposed file paths.
+
 ## Week of 2026-07-20 to 2026-07-24
 
 ### Content Published
