@@ -1,0 +1,133 @@
+---
+title: "Monitoring Redis Queue Performance in Laravel Production"
+description: "Redis-backed queues degrade silently — latency creeps up, throughput drops, and jobs pile up before anyone notices. Here's how to detect Redis queue performance issues before they become incidents."
+date: 2026-07-29
+tags: ["laravel", "redis", "queues", "performance"]
+---
+
+Your Redis queue is fast. Until it isn't.
+
+A Redis-backed Laravel queue can process thousands of jobs per second on a healthy day. Then, without a code change or deploy, throughput drops to 200 jobs/second. Jobs that used to complete in 50ms now take 800ms. The queue depth climbs. Your dashboard doesn't show it because the worker count hasn't changed and nothing has crashed.
+
+Redis queue performance degradation is the silent killer of Laravel production systems. The failure mode isn't dramatic — no exceptions, no errors, no stack traces. Just a slow, steady bleed that compounds until customers notice.
+
+## What "Redis Queue Performance" Actually Means
+
+When we talk about queue performance, we're measuring three things:
+
+1. **Throughput** — jobs processed per second across all workers
+2. **Latency** — time from dispatch to completion for each job
+3. **Queue depth** — how many jobs are waiting at any moment
+
+On a healthy Redis queue, throughput is stable, latency is consistent (within a tight band), and queue depth stays low. When performance degrades, one or more of these metrics drifts — and the drift is often gradual enough to escape threshold-based alerts.
+
+## How Redis Queue Performance Degrades
+
+### Memory fragmentation
+
+Redis stores job payloads in memory. Over time, as jobs of varying sizes are pushed and popped, Redis memory becomes fragmented. The `INFO memory` output shows `mem_fragmentation_ratio` climbing above 1.5. When fragmentation is high, Redis spends more time managing memory than processing commands. Throughput drops. Latency increases.
+
+This doesn't trigger a memory alarm because the actual used memory hasn't changed — just the overhead around it.
+
+### Slow consumer blocking
+
+Laravel Horizon uses `BLPOP` (blocking pop) to wait for jobs. When a worker processes a slow job, its connection holds a blocking reference. If multiple workers block simultaneously, the effective concurrency drops. The queue appears healthy (workers are "busy") but throughput is halved because half the workers are stuck on one slow job.
+
+This is especially common with batch jobs or PDF generation that occasionally hit large payloads.
+
+### Network saturation
+
+Redis is single-threaded. Every command serializes through one execution thread. When queue traffic is high — dispatches, pops, acks, heartbeats all competing — the network buffer fills up. TCP retransmits. Latency spikes. Workers see intermittent `Connection lost` errors that they silently retry.
+
+The symptom: jobs that dispatch fine but take 2-3x longer to complete, with occasional timeout exceptions buried in logs.
+
+### Key expiry races
+
+Horizon uses Redis keys for supervisor state, worker tracking, and rate limiting. When keys expire during active operations, Horizon rebuilds state from scratch. During rebuild, the dashboard goes blank, workers pause, and queue depth spikes temporarily. If the rebuild happens frequently (short TTLs, high churn), the queue spends more time recovering than processing.
+
+## How to Detect It
+
+### Redis latency monitoring
+
+Enable Redis latency monitoring:
+
+```bash
+redis-cli CONFIG SET latency-monitor-threshold 5
+```
+
+This logs any command taking longer than 5ms. In production, you want this threshold at 2-5ms for queue workloads. The latency log shows you exactly which commands are slow and when.
+
+### Queue depth trend
+
+Don't just alert on absolute depth. A queue with 500 jobs and falling is healthy. A queue with 50 jobs and climbing is not. Track the rate of change:
+
+```php
+// In a scheduled command
+$depth = Queue::size('default');
+$previousDepth = Cache::get('queue_depth_previous', 0);
+$rate = $depth - $previousDepth;
+
+Cache::put('queue_depth_previous', $depth, 60);
+
+if ($rate > 0 && $depth > 100) {
+    // Queue is growing — potential performance issue
+    Log::warning('Queue depth increasing', [
+        'depth' => $depth,
+        'rate_per_minute' => $rate,
+    ]);
+}
+```
+
+### Worker throughput tracking
+
+Add a counter to each job's `handle()` method:
+
+```php
+public function handle()
+{
+    $start = microtime(true);
+    
+    // ... job logic ...
+    
+    $duration = microtime(true) - $start;
+    Cache::increment('queue_jobs_processed');
+    Cache::increment('queue_total_duration', $duration);
+}
+```
+
+Sample these counters every 60 seconds in a scheduled command. If `total_duration / jobs_processed` (average latency) is trending upward, something is degrading.
+
+### Redis `SLOWLOG`
+
+```bash
+redis-cli SLOWLOG GET 20
+```
+
+This shows the 20 slowest recent commands. For queue workloads, watch for `BLPOP`, `LPUSH`, and `ZRANGEBYSCORE` — these are the queue hot-path commands. If they appear in the slowlog, Redis is struggling.
+
+## Common Failure Modes
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| Throughput drops 50% overnight | Worker blocking on large payloads | Set `retryAfter` timeout, split large jobs |
+| Queue depth climbing steadily | Redis memory pressure or network saturation | Check `INFO memory`, scale Redis vertically |
+| Intermittent "Connection lost" | Network buffer overflow or Redis maxmemory | Increase `client-output-buffer-limit`, check maxmemory policy |
+| Latency spike every few hours | Key expiry triggering Horizon rebuild | Increase Horizon supervisor TTLs |
+| Jobs process but take 2-3x longer | Redis CPU saturation from non-queue traffic | Move cache traffic to a separate Redis instance |
+
+## What Crontinel Watches
+
+Crontinel monitors queue depth trends, worker throughput, and Redis connection health in one dashboard. Instead of polling `redis-cli` or guessing from Horizon's sparse metrics, you get:
+
+- **Queue depth rate-of-change alerts** — not just "depth > 100" but "depth increased 40% in the last 5 minutes"
+- **Worker throughput tracking** — jobs processed per minute across all supervisors
+- **Redis connection health** — pings, timeouts, and reconnection events correlated with queue behavior
+- **Historical trend lines** — compare this week's performance to last week's baseline
+
+The goal isn't to replace Redis monitoring. It's to connect Redis health to queue behavior so you see the impact, not just the metric.
+
+## The Bottom Line
+
+Redis queue performance issues are insidious because Redis rarely crashes — it just gets slower. Your workers keep running. Your jobs keep completing. But the time between dispatch and completion stretches from milliseconds to seconds, and the queue depth climbs quietly until the backlog becomes an incident.
+
+Monitor throughput, not just errors. Track latency trends, not just averages. And watch queue depth rate-of-change, not just absolute values. The earlier you catch the drift, the cheaper the fix.
