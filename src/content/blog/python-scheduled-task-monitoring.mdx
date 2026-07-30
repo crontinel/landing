@@ -1,0 +1,270 @@
+---
+title: "Python Scheduled Task Monitoring: Detect APScheduler, Celery Beat & Cron Failures"
+description: "How to monitor Python scheduled tasks — APScheduler, Celery Beat, system cron, and custom schedulers. Detect missed runs, silent failures, and queue backpressure before users notice."
+date: 2026-07-30
+draft: false
+---
+
+Python powers everything from data pipelines to background job processing. But unlike Laravel or Rails, Python doesn't have a single dominant scheduling framework — teams use APScheduler, Celery Beat, system cron, or custom scheduling logic. Each has different failure modes, and most teams discover problems when a pipeline stops producing reports or a data sync falls behind.
+
+This guide covers how to monitor Python scheduled tasks across every common setup, what to watch for beyond "did it run," and how to catch failures before they become customer-facing issues.
+
+## The Python Scheduling Landscape
+
+Unlike PHP frameworks with built-in schedulers, Python teams typically use one of these:
+
+| Tool | Typical Use | Scheduling Model |
+|------|-------------|-----------------|
+| **APScheduler** | In-process scheduled jobs | Cron-like triggers, interval, date-based |
+| **Celery Beat** | Distributed task scheduling | Crontab entries, periodic task registry |
+| **System cron** | Shell scripts, management commands | Traditional crontab entries |
+| **Custom schedulers** | Data pipelines, ETL | Database-driven or in-memory queues |
+| **AsyncIO tasks** | FastAPI/async services | asyncio.sleep loops, task queues |
+
+Each has different failure modes. A system cron job that silently fails produces no logs. A Celery Beat task that loses its schedule after a restart runs forever without anyone noticing. An APScheduler job stuck in a retry loop burns CPU without doing useful work.
+
+## What to Monitor
+
+### 1. Heartbeat — Did It Run?
+
+The foundation. Your task sends a signal when it starts or finishes. If the signal doesn't arrive within the expected window, something is wrong.
+
+**Without monitoring:** A Celery Beat task stops running at 2am. You discover it at 9am when the daily report doesn't arrive.
+
+**With monitoring:** Alert fires at 2:05am. You fix it before anyone notices.
+
+```python
+# APScheduler heartbeat example
+from apscheduler.schedulers.blocking import BlockingScheduler
+
+scheduler = BlockingScheduler()
+
+@scheduler.scheduled_job('cron', hour=2, minute=0)
+def daily_report():
+    # Signal that we're alive
+    crontinel.ping("daily-report")
+    
+    # Do the work
+    generate_report()
+    
+    # Signal completion
+    crontinel.complete("daily-report")
+```
+
+### 2. Duration — Is It Slow?
+
+A job that usually takes 30 seconds suddenly takes 10 minutes. It still "works," but something is wrong — database lock, API rate limit, memory pressure.
+
+**Watch for:**
+- Jobs taking 2x+ longer than their historical average
+- Gradual duration increase over days (resource leak)
+- Spike in duration correlating with traffic or data volume
+
+### 3. Exit Code — Did It Succeed?
+
+A job runs, finishes, but exits with code 1. In system cron, this produces no output unless you explicitly redirect stderr. In Celery, it raises an exception. In APScheduler, it might silently swallow the error.
+
+```python
+# Bad: exception is caught and forgotten
+try:
+    process_data()
+except Exception as e:
+    logger.error(f"Failed: {e}")  # Logged, but who's watching?
+
+# Good: signal failure to monitoring
+try:
+    process_data()
+    crontinel.complete("process-data")
+except Exception as e:
+    crontinel.fail("process-data", error=str(e))
+    raise
+```
+
+### 4. Queue Depth — Is Work Backing Up?
+
+If your scheduled tasks push jobs to a queue (Redis, RabbitMQ, database), monitor the queue depth. A growing queue means workers can't keep up.
+
+**Redis queue monitoring:**
+
+```python
+import redis
+
+r = redis.Redis()
+
+def check_queue_depth(queue_name="celery"):
+    depth = r.llen(queue_name)
+    if depth > 1000:
+        alert(f"Queue {queue_name} has {depth} pending jobs")
+    return depth
+```
+
+### 5. Schedule Drift — Is It Running on Time?
+
+A task scheduled for 2:00am starts running at 2:15am because the previous run took too long. Or timezone changes cause jobs to fire at the wrong time.
+
+**With APScheduler:**
+
+```python
+scheduler = BlockingScheduler()
+
+@scheduler.scheduled_job('cron', hour=2, minute=0, misfire_grace_time=300)
+def daily_sync():
+    # If this fires at 2:20am instead of 2:00am, something is wrong
+    crontinel.track("daily-sync", expected="02:00")
+    run_sync()
+```
+
+## Monitoring APScheduler
+
+APScheduler runs in-process, so if your application crashes, all scheduled jobs stop silently.
+
+### Setup
+
+```python
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MISSED
+
+scheduler = AsyncIOScheduler()
+
+def on_job_error(event):
+    crontinel.fail(f"job-{event.job_id}", error=str(event.exception))
+
+def on_job_missed(event):
+    crontinel.fail(f"job-{event.job_id}", error="Missed scheduled run")
+
+scheduler.add_listener(on_job_error, EVENT_JOB_ERROR)
+scheduler.add_listener(on_job_missed, EVENT_JOB_MISSED)
+
+# Add jobs with heartbeat
+@scheduler.scheduled_job('interval', minutes=5, id='health-check')
+def health_check():
+    crontinel.ping("health-check")
+    check_services()
+    crontinel.complete("health-check")
+
+scheduler.start()
+```
+
+### Common Failures
+
+1. **Scheduler stops after app restart** — No persistence configured. Jobs exist only in memory.
+2. **Job throws exception** — Without EVENT_JOB_ERROR listener, the error is logged but nobody sees it.
+3. **Job misses its window** — Without misfire_grace_time, APScheduler skips late jobs silently.
+
+## Monitoring Celery Beat
+
+Celery Beat is a separate process that enqueues tasks on schedule. If Beat stops, no new tasks are created. If workers stop, tasks pile up in the queue.
+
+### Setup
+
+```python
+# celery.py
+from celery import Celery
+from celery.signals import task_success, task_failure, task_prerun
+
+app = Celery('myapp')
+
+@task_prerun.connect
+def task_prerun(sender, task_id, **kwargs):
+    crontinel.ping(f"celery-{sender.name}")
+
+@task_success.connect
+def task_success(sender, result, **kwargs):
+    crontinel.complete(f"celery-{sender.name}")
+
+@task_failure.connect
+def task_failure(sender, task_id, exception, **kwargs):
+    crontinel.fail(f"celery-{sender.name}", error=str(exception))
+```
+
+### Watch for Beat Process Health
+
+```bash
+# Check if Beat is running
+ps aux | grep celery beat
+
+# Check Celery flower dashboard
+curl http://localhost:5555/api/workers
+```
+
+### Common Failures
+
+1. **Beat process dies** — No new tasks are scheduled. Everything else looks fine.
+2. **Worker pool exhausted** — All workers busy, new tasks queue up.
+3. **Task loses state after restart** — Database-backed scheduler needed for persistence.
+
+## Monitoring System Cron
+
+System cron is the simplest but least observable. Jobs run as shell commands. If they fail, you need explicit logging.
+
+### Setup
+
+```bash
+# crontab entry with logging
+0 2 * * * /usr/bin/python3 /app/manage.py daily_report >> /var/log/cron/daily_report.log 2>&1; \
+  [ $? -eq 0 ] && echo "$(date): SUCCESS" >> /var/log/cron/monitor.log || echo "$(date): FAILED" >> /var/log/cron/monitor.log
+```
+
+### Better: Use a wrapper script
+
+```bash
+#!/bin/bash
+# /usr/local/bin/cron-wrapper.sh
+JOB_NAME=$1
+shift
+
+crontinel ping "$JOB_NAME"
+"$@"
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+    crontinel complete "$JOB_NAME"
+else
+    crontinel fail "$JOB_NAME" --error "Exit code: $EXIT_CODE"
+fi
+
+exit $EXIT_CODE
+```
+
+```bash
+# crontab
+0 2 * * * cron-wrapper.sh daily-report python3 /app/manage.py daily_report
+```
+
+## Python SDK Installation
+
+Crontinel provides a Python SDK that works with any scheduler:
+
+```bash
+pip install crontinel
+```
+
+```python
+from crontinel import Crontinel
+
+crontinel = Crontinel(api_key="your-key")
+
+# Simple heartbeat
+crontinel.ping("my-task")
+# ... do work ...
+crontinel.complete("my-task")
+
+# With context
+crontinel.ping("my-task", metadata={"env": "production", "region": "us-east-1"})
+```
+
+## Quick Comparison
+
+| Feature | APScheduler | Celery Beat | System Cron | Crontinel |
+|---------|------------|-------------|-------------|-----------|
+| Missed run detection | ✅ (with listener) | ❌ | ❌ | ✅ |
+| Duration tracking | ❌ | ❌ | ❌ | ✅ |
+| Queue depth | N/A | ✅ (with Flower) | N/A | ✅ |
+| Auto-alerts | ❌ | ❌ | ❌ | ✅ |
+| Works with all schedulers | ✅ | ✅ | ✅ | ✅ |
+
+## What's Next
+
+- [Set up Crontinel in 5 minutes](https://docs.crontinel.com/quickstart) — One command to start monitoring your Python tasks
+- [Celery Beat deep dive](/blog/celery-beat-monitoring) — Detailed guide for Celery-specific monitoring
+- [Crontinel vs. Cronitor vs. Healthchecks.io](/vs/cronitor) — Feature comparison for Python teams
