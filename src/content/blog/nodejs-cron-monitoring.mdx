@@ -1,0 +1,301 @@
+---
+title: "Node.js Cron Monitoring: Detect Scheduled Task Failures Before Users Do"
+description: "Complete guide to monitoring Node.js cron jobs, scheduled tasks, and background workers. Detect missed runs, silent failures, and queue backpressure with node-cron, Bull, and custom schedulers."
+date: 2026-07-30
+draft: false
+---
+
+Node.js powers everything from API servers to real-time data pipelines. But unlike PHP frameworks with built-in schedulers, Node.js teams rely on a mix of libraries — node-cron, node-schedule, Bull/BullMQ, Agenda, or custom setTimeout/setInterval logic. Each has different failure modes, and most teams don't discover problems until a customer reports missing data.
+
+This guide covers how to monitor Node.js scheduled tasks across every common setup, what to watch for beyond "did it run," and how to catch failures before they become customer-facing issues.
+
+## The Node.js Scheduling Landscape
+
+| Tool | Typical Use | Scheduling Model |
+|------|-------------|-----------------|
+| **node-cron** | Simple cron syntax | Cron expressions |
+| **node-schedule** | Complex scheduling | Cron, interval, date |
+| **Bull / BullMQ** | Distributed job queues | Redis-backed, repeatable jobs |
+| **Agenda** | MongoDB-backed scheduling | Cron expressions, MongoDB persistence |
+| **Bull Board** | Job queue monitoring | Dashboard for Bull queues |
+| **Custom (setTimeout/setInterval)** | In-process timers | JavaScript timers |
+| **PM2 / systemd** | Process management | Restart policies, health checks |
+
+Each has different failure modes. A node-cron job that silently fails produces no output. A Bull queue that loses its Redis connection stops processing jobs without any error. An Agenda job stuck in a locked state never runs again.
+
+## What to Monitor
+
+### 1. Heartbeat — Did It Run?
+
+The foundation. Your task sends a signal when it starts or finishes. If the signal doesn't arrive within the expected window, something is wrong.
+
+**Without monitoring:** A Bull repeatable job stops running at 2am. You discover it at 9am when the daily report doesn't arrive.
+
+**With monitoring:** Alert fires at 2:05am. You fix it before anyone notices.
+
+```javascript
+const cron = require('node-cron');
+const Crontinel = require('@crontinel/node');
+
+const crontinel = new Crontinel({ apiKey: process.env.CRONTINEL_API_KEY });
+
+// Monitor a node-cron job
+cron.schedule('0 2 * * *', async () => {
+  await crontinel.ping('daily-report');
+  
+  try {
+    await generateReport();
+    await crontinel.complete('daily-report');
+  } catch (error) {
+    await crontinel.fail('daily-report', { error: error.message });
+    throw error;
+  }
+});
+```
+
+### 2. Duration — Is It Slow?
+
+A job that usually takes 30 seconds suddenly takes 10 minutes. It still "works," but something is wrong — database lock, API rate limit, memory pressure.
+
+**Watch for:**
+- Jobs taking 2x+ longer than their historical average
+- Gradual duration increase over days (memory leak)
+- Spike in duration correlating with traffic or data volume
+
+```javascript
+// Duration tracking with Crontinel
+const start = Date.now();
+await crontinel.ping('process-data');
+
+await processData();
+
+const duration = Date.now() - start;
+await crontinel.complete('process-data', { duration });
+```
+
+### 3. Exit Code — Did It Succeed?
+
+A job runs, finishes, but throws an error. In node-cron, uncaught exceptions crash the process. In Bull, failed jobs go to a failed set. In custom schedulers, errors might be silently swallowed.
+
+```javascript
+// Bad: exception is caught and forgotten
+try {
+  await processQueue();
+} catch (error) {
+  console.error('Failed:', error); // Logged, but who's watching?
+}
+
+// Good: signal failure to monitoring
+try {
+  await processQueue();
+  await crontinel.complete('process-queue');
+} catch (error) {
+  await crontinel.fail('process-queue', { error: error.message });
+  throw;
+}
+```
+
+### 4. Queue Depth — Is Work Backing Up?
+
+If your scheduled tasks push jobs to a queue (Redis, RabbitMQ), monitor the queue depth. A growing queue means workers can't keep up.
+
+```javascript
+const Bull = require('bull');
+
+const queue = new Bull('email-notifications');
+
+async function checkQueueDepth() {
+  const counts = await queue.getJobCounts('waiting', 'active', 'completed', 'failed');
+  
+  if (counts.waiting > 1000) {
+    await crontinel.fail('queue-depth', { 
+      error: `Queue has ${counts.waiting} waiting jobs`,
+      counts 
+    });
+  }
+  
+  return counts;
+}
+```
+
+### 5. Schedule Drift — Is It Running on Time?
+
+A task scheduled for 2:00am starts running at 2:15am because the previous run took too long. Or timezone changes cause jobs to fire at the wrong time.
+
+```javascript
+const cron = require('node-cron');
+
+// Track schedule drift
+const expectedTime = new Date();
+expectedTime.setHours(2, 0, 0, 0);
+
+cron.schedule('0 2 * * *', async () => {
+  const now = new Date();
+  const drift = now - expectedTime;
+  
+  await crontinel.ping('daily-sync', {
+    expected: expectedTime.toISOString(),
+    drift: drift
+  });
+  
+  await runSync();
+});
+```
+
+## Monitoring node-cron
+
+node-cron is the most common choice for simple scheduling. It runs in-process, so if your application crashes, all scheduled jobs stop silently.
+
+### Setup
+
+```javascript
+const cron = require('node-cron');
+const Crontinel = require('@crontinel/node');
+
+const crontinel = new Crontinel({ apiKey: process.env.CRONTINEL_API_KEY });
+
+// Monitor with error handling
+cron.schedule('*/5 * * * *', async () => {
+  await crontinel.ping('health-check');
+  
+  try {
+    await checkServices();
+    await crontinel.complete('health-check');
+  } catch (error) {
+    await crontinel.fail('health-check', { error: error.message });
+  }
+});
+```
+
+### Common Failures
+
+1. **Process crashes** — All cron jobs stop. No restart mechanism.
+2. **Unhandled promise rejection** — Job throws, process might crash.
+3. **Memory leak** — Long-running process gradually consumes more memory.
+
+## Monitoring Bull / BullMQ
+
+Bull is a Redis-backed job queue with repeatable jobs. It's more resilient than in-process scheduling but has its own failure modes.
+
+### Setup
+
+```javascript
+const Queue = require('bull');
+const Crontinel = require('@crontinel/node');
+
+const crontinel = new Crontinel({ apiKey: process.env.CRONTINEL_API_KEY });
+const emailQueue = new Queue('emails');
+
+// Add repeatable job
+await emailQueue.add('send-daily', {}, {
+  repeat: { cron: '0 2 * * *' },
+  removeOnComplete: 100,
+  removeOnFail: 50
+});
+
+// Monitor job processing
+emailQueue.process('send-daily', async (job) => {
+  await crontinel.ping('bull-send-daily');
+  
+  try {
+    await sendDailyEmails();
+    await crontinel.complete('bull-send-daily');
+  } catch (error) {
+    await crontinel.fail('bull-send-daily', { error: error.message });
+    throw error;
+  }
+});
+
+// Monitor queue health
+emailQueue.on('failed', async (job, error) => {
+  await crontinel.fail(`bull-job-${job.id}`, { error: error.message });
+});
+```
+
+### Watch for Redis Connection Issues
+
+```javascript
+emailQueue.on('error', async (error) => {
+  await crontinel.fail('bull-redis', { error: 'Redis connection lost' });
+});
+```
+
+### Common Failures
+
+1. **Redis connection lost** — All jobs stop processing.
+2. **Worker crashes mid-job** — Job stays in "active" state forever.
+3. **Repeatable job disappears** — After Redis restart, repeatable jobs need re-registration.
+
+## Monitoring PM2 Processes
+
+If you use PM2 to manage Node.js processes, monitor the process health alongside your cron jobs.
+
+```javascript
+// ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'cron-worker',
+    script: './cron-worker.js',
+    max_memory_restart: '256M',
+    watch: false,
+    env: {
+      NODE_ENV: 'production'
+    }
+  }]
+};
+```
+
+```bash
+# PM2 health check script
+#!/bin/bash
+# /usr/local/bin/pm2-health.sh
+
+STATUS=$(pm2 jlist | jq -r '.[0].pm2_env.status')
+
+if [ "$STATUS" != "online" ]; then
+    crontinel fail pm2-cron-worker --error "Process status: $STATUS"
+else
+    crontinel complete pm2-cron-worker
+fi
+```
+
+## Node.js SDK Installation
+
+Crontinel provides a Node.js SDK that works with any scheduler:
+
+```bash
+npm i @crontinel/node
+```
+
+```javascript
+const Crontinel = require('@crontinel/node');
+
+const crontinel = new Crontinel({ apiKey: 'your-key' });
+
+// Simple heartbeat
+await crontinel.ping('my-task');
+// ... do work ...
+await crontinel.complete('my-task');
+
+// With context
+await crontinel.ping('my-task', { 
+  metadata: { env: 'production', region: 'us-east-1' } 
+});
+```
+
+## Quick Comparison
+
+| Feature | node-cron | Bull/BullMQ | Agenda | Crontinel |
+|---------|-----------|-------------|--------|-----------|
+| Missed run detection | ❌ | ❌ | ❌ | ✅ |
+| Duration tracking | ❌ | ❌ | ❌ | ✅ |
+| Queue depth | N/A | ✅ | ✅ | ✅ |
+| Auto-alerts | ❌ | ❌ | ❌ | ✅ |
+| Works with all schedulers | ✅ | ✅ | ✅ | ✅ |
+| Redis connection monitoring | N/A | ✅ | ✅ | ✅ |
+
+## What's Next
+
+- [Set up Crontinel in 5 minutes](https://docs.crontinel.com/quickstart) — One command to start monitoring your Node.js tasks
+- [Bull Queue monitoring deep dive](/blog/bull-queue-monitoring) — Detailed guide for Bull-specific monitoring
+- [Crontinel vs. Cronitor vs. Healthchecks.io](/vs/cronitor) — Feature comparison for Node.js teams
