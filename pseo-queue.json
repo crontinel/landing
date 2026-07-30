@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "monitor-vapor-cron",
     "monitor-forge-cron-jobs",
     "laravel-cron-monitoring-multi-microservices"
   ],
@@ -89,7 +88,8 @@
     "queue-worker-memory-leak",
     "artisan-schedule-work-monitoring",
     "queue-priority-laravel",
-    "redis-queue-performance"
+    "redis-queue-performance",
+    "monitor-vapor-cron"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
