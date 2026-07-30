@@ -1,0 +1,250 @@
+---
+title: "Monitoring Laravel Cron Jobs Inside Docker Containers"
+description: "How to reliably monitor scheduled tasks when your Laravel app runs inside Docker — covering entrypoint scripts, zombie processes, and signal handling pitfalls."
+date: 2026-07-30
+tags: ["laravel", "docker", "cron", "monitoring"]
+---
+
+Docker makes deploying Laravel applications straightforward, but cron monitoring inside containers introduces a layer of complexity that catches teams off guard. The process manager inside your container behaves differently from a bare-metal server, and standard monitoring assumptions break down in subtle ways.
+
+## The Container Cron Problem
+
+On a traditional server, cron runs as PID 1 or under supervisord. You install cron, drop a crontab entry, and check `/var/log/cron` when something goes wrong. Inside Docker, the story is different.
+
+Most Dockerfiles for Laravel use one of these patterns:
+
+```dockerfile
+# Pattern 1: Supervisord manages both php-fpm and cron
+CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+# Pattern 2: Entrypoint script starts cron in background
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+CMD ["/entrypoint.sh"]
+
+# Pattern 3: schedule:work as a separate container
+# docker-compose.yml
+services:
+  scheduler:
+    command: php artisan schedule:work
+```
+
+Each pattern has different failure modes that traditional monitoring won't catch.
+
+## Pattern 1: Supervisord + Cron
+
+With supervisord, cron runs as a child process. If cron crashes, supervisord restarts it — but your scheduled tasks that were mid-execution are lost. There's no transaction log, no retry queue, just silence.
+
+```ini
+# /etc/supervisor/conf.d/supervisord.conf
+[program:cron]
+command=/usr/sbin/cron -f
+autostart=true
+autorestart=true
+stdout_logfile=/dev/stdout
+stdout_logfile_maxbytes=0
+stderr_logfile=/dev/stderr
+stderr_logfile_maxbytes=0
+```
+
+The `autorestart=true` looks reassuring, but it only restarts the cron daemon — not the tasks that were running when it died. A 30-minute report generation that was 25 minutes in? Gone.
+
+**What to monitor:** Watch for supervisord restart events. Add a health check that verifies cron is actually running:
+
+```bash
+#!/bin/bash
+# healthcheck.sh — add to Dockerfile HEALTHCHECK
+pgrep cron > /dev/null || exit 1
+```
+
+## Pattern 2: Entrypoint Script
+
+The entrypoint script pattern is common but has a dangerous assumption: that cron in the background won't become a zombie.
+
+```bash
+#!/bin/bash
+# entrypoint.sh
+set -e
+
+# Start cron in background
+cron
+
+# Run migrations
+php artisan migrate --force
+
+# Start php-fpm
+exec php-fpm8.2 --nodaemonize
+```
+
+The problem: `cron` is started, but when the container receives SIGTERM (during `docker stop`), the init process (PID 1) doesn't propagate signals to cron. Cron keeps running, tasks keep executing, and the container gets SIGKILL after the timeout — potentially mid-task.
+
+```bash
+# Better entrypoint with signal handling
+#!/bin/bash
+set -e
+
+cleanup() {
+    echo "Stopping cron..."
+    kill -TERM "$CRON_PID" 2>/dev/null
+    wait "$CRON_PID"
+    echo "Stopping php-fpm..."
+    kill -TERM "$FPM_PID" 2>/dev/null
+    wait "$FPM_PID"
+    exit 0
+}
+
+trap cleanup SIGTERM SIGINT
+
+cron &
+CRON_PID=$!
+
+php artisan migrate --force
+
+php-fpm8.2 --nodaemonize &
+FPM_PID=$!
+
+wait
+```
+
+Even with proper signal handling, monitoring scheduled tasks in this pattern requires checking the container's exit code and log output for missed runs.
+
+## Pattern 3: Separate Scheduler Container
+
+Docker Compose makes it easy to run `schedule:work` as its own container:
+
+```yaml
+services:
+  app:
+    build: .
+    # ... php-fpm config
+
+  scheduler:
+    build: .
+    command: php artisan schedule:work
+    depends_on:
+      - app
+```
+
+This is the cleanest pattern for monitoring because each concern is isolated. But it introduces a new failure mode: the scheduler container can silently stop scheduling while still running.
+
+If `schedule:work` encounters an exception in the scheduler loop (not in a specific task), it may exit the loop but keep the process alive. The container shows as "running" in `docker ps`, but no tasks are executing.
+
+**The silent failure pattern:**
+
+```
+[2026-07-30 10:00:01] Processing: App\Jobs\SyncInventory
+[2026-07-30 10:00:05] Processing: App\Jobs\SendDigest
+[2026-07-30 10:05:01] Processing: App\Jobs\CleanupExpired
+# ... and then nothing. The loop silently died.
+```
+
+To catch this, monitor the scheduler's output for the expected cadence of "Running scheduled command" lines. If the gap between log entries exceeds your longest scheduled interval, something is wrong.
+
+## The Zombie Process Trap
+
+When using `cron` in an entrypoint script without `exec`, zombie processes accumulate over time. Each scheduled task that completes becomes a zombie because PID 1 (the shell script) doesn't call `wait()` on its children.
+
+```bash
+# Check for zombies in a running container
+docker exec <container> ps aux | grep -c 'Z'
+```
+
+Zombies consume process table entries. On a container with limited PID namespace, this can prevent new tasks from starting. The symptoms look like cron "hanging" — tasks just stop appearing in logs.
+
+**Fix:** Use `exec` wherever possible, or use `tini` as PID 1:
+
+```dockerfile
+RUN apk add --no-cache tini
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["/entrypoint.sh"]
+```
+
+`tini` properly reaps zombie processes, preventing the accumulation that breaks cron.
+
+## Monitoring Strategies
+
+### 1. Heartbeat File
+
+Write a timestamp to a file on each successful run. A separate monitor checks if the file is older than expected:
+
+```php
+// In your base command class
+protected function heartbeat()
+{
+    file_put_contents(
+        storage_path('app/cron-heartbeat'),
+        now()->toIso8601String()
+    );
+}
+```
+
+```bash
+# Health check script
+HEARTBEAT_FILE="/var/www/html/storage/app/cron-heartbeat"
+MAX_AGE=900  # 15 minutes
+
+if [ ! -f "$HEARTBEAT_FILE" ]; then
+    echo "CRITICAL: No heartbeat file"
+    exit 2
+fi
+
+AGE=$(( $(date +%s) - $(date -r "$HEARTBEAT_FILE" +%s) ))
+if [ "$AGE" -gt "$MAX_AGE" ]; then
+    echo "CRITICAL: Heartbeat is ${AGE}s old (max ${MAX_AGE}s)"
+    exit 2
+fi
+
+echo "OK: Heartbeat is ${AGE}s old"
+exit 0
+```
+
+### 2. Docker Health Check
+
+Add a health check to your Dockerfile that verifies cron is running and the heartbeat is fresh:
+
+```dockerfile
+HEALTHCHECK --interval=60s --timeout=10s --retries=3 \
+  CMD /bin/bash -c 'pgrep cron > /dev/null && test -f /var/www/html/storage/app/cron-heartbeat && test $(($(date +%s) - $(date -r /var/www/html/storage/app/cron-heartbeat +%s))) -lt 900'
+```
+
+Docker reports the container as unhealthy when the check fails. If you're running on ECS, EKS, or another orchestrator, this triggers replacement.
+
+### 3. External Monitoring with Crontinel
+
+The most reliable approach is external monitoring that doesn't depend on anything inside the container:
+
+```bash
+# Crontinel monitors your cron from outside
+# It pings when expected, alerts when silent
+crontinel monitor --name "inventory-sync" --every 15m
+```
+
+External monitoring catches the failures that internal checks miss — when the container itself goes down, when Docker restarts it, or when the health check process is the thing that crashed.
+
+## Common Docker-Specific Cron Pitfalls
+
+| Pitfall | Symptom | Fix |
+|---|---|---|
+| Missing `cron` package | `exec: cron: not found` | Install `cron` in Dockerfile |
+| Wrong `/etc/crontabs` path | Tasks never run | Use `/var/spool/cron/crontabs/` on Alpine |
+| Timezone not set | Tasks run at wrong time | Set `TZ` env var or mount `/etc/localtime` |
+| Read-only filesystem | Cron can't write PID file | Use `cron -f` (foreground mode) |
+| Memory limits too low | OOM kills mid-task | Increase memory or split heavy tasks |
+
+### Timezone Configuration
+
+Docker containers default to UTC. If your Laravel scheduler uses `timezone()` in `Console/Kernel.php`, the container's system timezone still affects cron:
+
+```dockerfile
+# Set timezone in Dockerfile
+ENV TZ=Asia/Dhaka
+RUN apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
+```
+
+Without this, `cron` runs tasks at UTC times while Laravel's scheduler thinks it's operating in your configured timezone. The result: tasks fire at different times than expected, and debugging why takes hours.
+
+## Key Takeaway
+
+Docker cron monitoring requires thinking beyond "is the process running?" You need to verify that tasks are actually executing on schedule, that the scheduler loop hasn't silently died, and that zombie processes aren't accumulating. External monitoring tools like Crontinel give you visibility from outside the container — the only perspective that's truly reliable when everything inside is potentially broken.

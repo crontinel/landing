@@ -1,6 +1,10 @@
 {
   "in_progress": [],
-  "pending": [],
+  "pending": [
+    "monitor-vapor-cron",
+    "monitor-forge-cron-jobs",
+    "laravel-cron-monitoring-multi-microservices"
+  ],
   "completed": [
     "about",
     "backup-clean",
