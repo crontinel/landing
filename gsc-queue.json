@@ -1,6 +1,6 @@
 {
   "pending": [
-    "https://crontinel.com/blog/docker-laravel-cron-monitoring/"
+    "https://crontinel.com/use-cases/monitor-forge-cron-jobs/"
   ],
   "submitted": [
     "https://crontinel.com/vs/crontinel-vs-thenping",
@@ -163,7 +163,12 @@
     "https://crontinel.com/use-cases/prometheus-laravel-integration",
     "https://crontinel.com/blog/cron-scheduler-alternatives/",
     "https://crontinel.com/blog/laravel-queue-priority-laravel/",
-    "https://crontinel.com/use-cases/monitor-redis-queue-performance/"
+    "https://crontinel.com/use-cases/monitor-redis-queue-performance/",
+    "https://crontinel.com/blog/docker-laravel-cron-monitoring/",
+    "https://crontinel.com/blog/detecting-slow-laravel-jobs/",
+    "https://crontinel.com/blog/nodejs-cron-monitoring/",
+    "https://crontinel.com/blog/python-scheduled-task-monitoring/",
+    "https://crontinel.com/use-cases/monitor-vapor-cron/"
   ],
-  "last_push": "2026-07-30"
+  "last_push": "2026-07-31"
 }
