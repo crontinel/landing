@@ -1,5 +1,87 @@
 # SEO Growth Tracker
 
+## Week of 2026-07-28 to 2026-07-31 (Friday review)
+
+### Content Published
+| Date | Type | Title | slug |
+|------|------|-------|------|
+| 2026-07-30 | Blog | Detecting Slow Laravel Jobs | /blog/detecting-slow-laravel-jobs/ |
+| 2026-07-30 | Blog | Node.js Cron Monitoring | /blog/nodejs-cron-monitoring/ |
+| 2026-07-30 | Blog | Python Scheduled Task Monitoring | /blog/python-scheduled-task-monitoring/ |
+| 2026-07-30 | Blog | Docker Laravel Cron Monitoring | /blog/docker-laravel-cron-monitoring/ |
+| 2026-07-30 | Use-case | Monitoring Laravel Vapor Cron Jobs | /use-cases/monitor-vapor-cron/ |
+| 2026-07-31 | Use-case | Monitoring Laravel Forge Cron Jobs | /use-cases/monitor-forge-cron-jobs/ |
+
+### GSC 28-Day Performance (Jul 2-30)
+| Metric | Value | Trend |
+|--------|-------|-------|
+| Total clicks | 14 | flat (7 to 7 half-split) |
+| Total impressions | 5,041 | 2,781 to 2,260 down second half |
+| Overall CTR | 0.28% | still early-stage |
+| Avg position | 14.7 | |
+
+### GSC Last 7 Days
+| Metric | Value |
+|--------|-------|
+| Total clicks | 2 |
+| Total impressions | about 1,166 |
+| Overall CTR | about 0.17% |
+| Avg position | about 17 |
+
+Daily impr climbed 143 to 248 while clicks stayed thin (CTR crisis pattern).
+
+### Top Gainers (28d)
+1. /use-cases/monitor-reverb-server/ — 3 clicks, 54 impr, 5.6% CTR
+2. /blog/laravel-schedule-withoutoverlapping-explained/ — 2 clicks, 357 impr
+3. /integrations/pagerduty/ — 1 click, 6 impr, 16.7% CTR
+
+### Top Attention (high impr, low CTR / noise)
+1. Homepage — 359 impr, 1 click, 0.3% CTR, pos 4.8 — meta rewrite still number-one lever
+2. /about/ — 104 impr, 0 clicks, pos 5.7
+3. /blog/ index — 145 impr, 0 clicks
+4. Technical noise: bootstrap/cache/routes-v7.php laravel — 14 impr, pos 6.0
+5. Competitor query: cronradar — 31 impr, pos 5.2
+
+### App subdomain
+app.crontinel.com/ — Excluded by noindex (working). Still receives some impressions via referring URLs; noindex is correct.
+
+### GSC Queue Status
+- Sitemaps: landing 2026-07-21 (166 URLs), docs 2026-07-07 (35 URLs) — both OK
+- Tracked: 166 submitted, 1 pending (forge page until deploy)
+- Spot-checks: homepage PASS, withoutoverlapping PASS, reverb PASS, cron-job-not-running PASS, app noindex expected
+
+### Content Collections (filesystem 2026-07-31)
+| Collection | Count |
+|------------|-------|
+| Blog | 57 |
+| Use-cases | 75 |
+| Vs | 14 |
+| Integrations | 7 |
+| Total | 153 |
+
+### Friday Observations
+1. Impression volume healthy vs May baseline; last 7d daily impr climbing while clicks stayed thin.
+2. monitor-reverb-server remains the CTR proof point (5%+); replicate title/description style on homepage and about.
+3. New polyglot posts (Node/Python/Docker) discovered not indexed yet — crawl lag 24-48h.
+4. Open PR number 214 (docker + queue updates) still needs Harun merge — CI green, MERGEABLE.
+5. pseo-queue down to 1 topic: laravel-cron-monitoring-multi-microservices.
+
+### Tasks Completed This Run
+1. Stale SEO PR check — number 214 open, CI pass, left for manual merge (PR-only mode)
+2. GSC health + queue — 5 URLs submitted/inspected, queue synced
+3. Daily content — Forge cron monitoring use-case
+4. Friday performance review — this section
+5. pseo-queue cleanup — vapor + forge moved to completed
+
+### Blockers and Action Items
+1. Merge PR number 214 — seo/daily-2026-07-30 (docker blog + queue files)
+2. Homepage CTR — 359 impr / 0.3% CTR at pos about 4.8; rewrite title/description
+3. about page CTR — 104 impr / 0 clicks
+4. Stock pseo-queue — only multi-microservices left; Monday keyword research needed
+5. Docs sitemap last submitted 2026-07-07 — still under 30d but approaching; resubmit next week if not refreshed
+
+---
+
 ## Week of 2026-07-28 to 2026-07-29
 
 ### Content Published
