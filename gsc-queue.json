@@ -1,7 +1,5 @@
 {
-  "pending": [
-    "https://crontinel.com/use-cases/monitor-forge-cron-jobs/"
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/vs/crontinel-vs-thenping",
     "https://crontinel.com/blog/laravel-cron-job-not-running",
@@ -168,7 +166,8 @@
     "https://crontinel.com/blog/detecting-slow-laravel-jobs/",
     "https://crontinel.com/blog/nodejs-cron-monitoring/",
     "https://crontinel.com/blog/python-scheduled-task-monitoring/",
-    "https://crontinel.com/use-cases/monitor-vapor-cron/"
+    "https://crontinel.com/use-cases/monitor-vapor-cron/",
+    "https://crontinel.com/use-cases/monitor-forge-cron-jobs/"
   ],
   "last_push": "2026-07-31"
 }
