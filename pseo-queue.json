@@ -1,8 +1,6 @@
 {
   "in_progress": [],
-  "pending": [
-    "laravel-cron-monitoring-multi-microservices"
-  ],
+  "pending": [],
   "completed": [
     "about",
     "backup-clean",
@@ -89,7 +87,8 @@
     "queue-priority-laravel",
     "redis-queue-performance",
     "monitor-vapor-cron",
-    "monitor-forge-cron-jobs"
+    "monitor-forge-cron-jobs",
+    "laravel-cron-monitoring-multi-microservices"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
