@@ -1,0 +1,153 @@
+---
+title: "Monitoring Laravel Vapor Cron Jobs in Production"
+description: "Laravel Vapor runs scheduled tasks through Lambda, not traditional cron. Here's how to monitor them, catch silent failures, and avoid the gaps that Vapor's architecture creates."
+date: 2026-07-30
+---
+
+Your Vapor scheduler shows green. Your Laravel schedule:run is configured. But yesterday's email digest never sent, and nobody noticed until a customer complained. Vapor's Lambda-based scheduling is reliable, but it fails silently in ways traditional cron doesn't, and the monitoring strategies that work on a VPS don't translate directly.
+
+## How Vapor Scheduling Actually Works
+
+On a traditional server, `schedule:run` executes every minute via a real cron entry. You can tail the cron log, check `/var/log/syslog`, or write a heartbeat file. Vapor replaces all of that with a Lambda function that triggers on a schedule, runs your artisan schedule:run inside a container, and exits.
+
+The key difference: there's no cron daemon to crash, no process to go zombie, no log file to rotate. Vapor's scheduler is an event. It either fires or it doesn't. When it doesn't, you get no error, no notification, nothing. The schedule just... stops.
+
+Vapor uses two mechanisms:
+
+- **The Vapor Scheduler** (a Lambda that runs `php artisan schedule:run` on a cron-like interval, typically every minute)
+- **Per-task Lambda invocations** (each scheduled command can run as its own Lambda, isolated from other tasks)
+
+This means a single failed invocation doesn't necessarily kill other tasks. But it also means you can't rely on "the server is up" as evidence that your schedules are running.
+
+## Common Failure Modes
+
+### The scheduler Lambda itself stops firing
+
+Vapor's scheduler is a Lambda function tied to an EventBridge rule. If the rule gets disabled, the Lambda times out repeatedly, or AWS throttles the invocation, your entire schedule goes dark. You won't get an error. The Lambda just stops appearing in CloudWatch.
+
+This happens most often after a `vapor deploy` that changes environment variables, or when AWS service limits kick in during traffic spikes.
+
+### Individual commands timeout silently
+
+Each scheduled task runs with a 15-minute Lambda timeout by default. If a command takes longer (a large `scout:import`, a `db:backup` to S3, a cache rebuild), the Lambda kills it mid-execution. Vapor logs the timeout to CloudWatch, but if you're not watching CloudWatch, the failure vanishes.
+
+The tricky part: the next invocation fires on schedule, starts the same command, and times out again. You get a steady rhythm of silent failures that look like success from the outside.
+
+### Environment mismatches after deploy
+
+Vapor's `.vapor/environment.yml` controls which env vars are available to scheduled tasks. If a command needs `REDIS_URL` but the Vapor environment file only sets it for the `web` runtime, the scheduler Lambda runs with a missing variable. The command may silently fall back to defaults, skip the work entirely, or throw an error that Vapor swallows.
+
+This is especially common when teams add new scheduled tasks and forget to update the Vapor environment config.
+
+### Timezone drift in Lambda
+
+Vapor's scheduler respects `APP_TIMEZONE` from your `.env`, but Lambda runs in UTC by default. If your `schedule:run` uses `->timezone('Asia/Dhaka')` in the kernel but the Vapor environment doesn't set `APP_TIMEZONE`, tasks can fire at unexpected times, or not fire at all if the cron expression doesn't match the UTC offset you expect.
+
+## How to Monitor Vapor Schedules
+
+### 1. Add a heartbeat check
+
+The simplest monitoring: write a scheduled task that pings an external service every few minutes. If the ping stops, something is wrong.
+
+```php
+// app/Console/Commands/VaporHeartbeat.php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
+
+class VaporHeartbeat extends Command
+{
+    protected $signature = 'vapor:heartbeat';
+
+    public function handle()
+    {
+        $url = config('services.heartbeat.url');
+
+        $response = Http::timeout(5)->post($url, [
+            'service' => 'vapor-scheduler',
+            'status' => 'ok',
+            'timestamp' => now()->toISOString(),
+        ]);
+
+        if ($response->failed()) {
+            $this->error('Heartbeat ping failed');
+            return 1;
+        }
+
+        $this->info('Heartbeat sent');
+        return 0;
+    }
+}
+```
+
+Register it in `Console/Kernel.php`:
+
+```php
+$schedule->command('vapor:heartbeat')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->runInBackground();
+```
+
+Then configure Crontinel (or a similar service) to alert if the heartbeat doesn't arrive within 3 minutes.
+
+### 2. Log task completion to an external store
+
+Don't rely on CloudWatch alone. After each important scheduled task completes, push a marker to an external service (a database row, a Redis key, or an HTTP endpoint). If the marker stops appearing, you know the task is failing.
+
+```php
+// In your scheduled task closure
+$schedule->command('send:digest')
+    ->dailyAt('08:00')
+    ->after(function () {
+        \Cache::put('last_digest_run', now()->timestamp, now()->addHours(25));
+    });
+```
+
+Then monitor the `last_digest_run` key. If it's older than 25 hours (giving a 1-hour grace), something is wrong.
+
+### 3. Check CloudWatch for Lambda errors
+
+Vapor logs Lambda invocations to CloudWatch under the `/aws/lambda/` prefix. Set up a CloudWatch alarm for:
+
+- `Errors` metric > 0 in a 5-minute period
+- `Throttles` metric > 0 (AWS hitting you with rate limits)
+- `Duration` approaching the 15-minute timeout
+
+This catches the failures you can't see from the application layer.
+
+### 4. Use Vapor's built-in task logging
+
+Vapor 4+ logs each scheduled task invocation to its task log. Check it with:
+
+```bash
+vapor tasks
+```
+
+This shows recent task executions and their status. If a task is missing from the list entirely, it's not running.
+
+## Quick Setup with Crontinel
+
+Crontinel monitors Vapor schedules the same way it monitors any Laravel app: via a heartbeat. The key difference is that Vapor doesn't have a persistent process to check, so you monitor the _output_ of scheduled tasks rather than the scheduler itself.
+
+1. Add the heartbeat command above to your Laravel app
+2. Register it in your Kernel as an every-minute schedule
+3. Deploy to Vapor
+4. Configure Crontinel to expect a heartbeat every 2 minutes with a 1-minute grace period
+5. Set up Telegram/Slack/PagerDuty alerts for missed heartbeats
+
+The heartbeat approach works for Vapor because it doesn't depend on the scheduler being alive. It depends on the scheduled task actually completing. If the scheduler dies, the heartbeat stops. If a specific task fails, you can add a per-task heartbeat for fine-grained monitoring.
+
+## What to Watch For
+
+Monitor these signals to catch Vapor schedule problems before your users do:
+
+- Heartbeat gaps are the most direct signal that something stopped
+- CloudWatch Lambda errors catch timeouts, crashes, and throttling
+- Vapor task logs show individual task execution status
+- Cache staleness (a "last run" cache key older than expected) means the task isn't completing
+- Customer reports are the last resort; if users are reporting missing emails or stale data, check your schedule first
+
+The goal is catching failures within minutes, not hours. On Vapor, a missed schedule doesn't throw an exception. It just doesn't happen. External monitoring turns that silence into an alert.

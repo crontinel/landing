@@ -1,0 +1,148 @@
+---
+title: "Monitoring Laravel Forge Cron Jobs in Production"
+description: "Laravel Forge schedules your cron entries and restarts daemons, but silent schedule failures still slip through. Here's how to monitor Forge cron jobs, catch missed runs, and alert before customers notice."
+date: 2026-07-31
+---
+
+Forge shows a green check next to your server. The daemon list looks healthy. The scheduled jobs page still has the same `* * * * * php /home/forge/app.com/artisan schedule:run` entry you added two years ago. And yet last night's invoice export never ran, the queue depth climbed overnight, and nobody knew until support tickets started landing at 9am.
+
+Forge is excellent at provisioning cron and keeping supervisor processes alive. It is not a job-level monitor. If `schedule:run` exits 0 while individual tasks fail, stall, or never fire, Forge has nothing to show you.
+
+## How Forge Cron Actually Works
+
+On a Forge-managed server, scheduling is two layers:
+
+1. **System cron** — Forge writes a real crontab entry (usually as the `forge` user) that runs every minute.
+2. **Laravel's scheduler** — `php artisan schedule:run` evaluates your `routes/console.php` or `app/Console/Kernel.php` definitions and decides which tasks are due.
+
+Forge also manages **daemons** (queue workers, Horizon, Reverb) through Supervisor. Those are long-running processes, not cron. Mixing the two in your mental model is how teams miss failures: a healthy daemon does not prove scheduled tasks ran.
+
+What Forge can tell you:
+
+- The server is reachable
+- The daemon process is up (or was restarted)
+- The crontab entry still exists
+
+What Forge cannot tell you:
+
+- Whether `schedule:run` actually executed this minute
+- Whether a due task was skipped by `withoutOverlapping` forever
+- Whether a command exited non-zero after the scheduler already logged "Running scheduled command"
+- Whether a multi-server setup double-ran or under-ran a job
+
+## Common Failure Modes on Forge
+
+### The crontab entry disappears or points at the wrong path
+
+After a site rename, PHP version change, or manual server surgery, the Forge cron line can still point at an old release path or a removed PHP binary. Cron fails every minute. Forge UI still shows the old entry as if it were fine. You only notice when daily jobs stop.
+
+Check the live crontab on the box:
+
+```bash
+sudo -u forge crontab -l
+# expect something like:
+# * * * * * cd /home/forge/app.com/current && php artisan schedule:run >> /dev/null 2>&1
+```
+
+If the path is wrong, fix it in the Forge UI (Scheduled Jobs) and redeploy confidence with a heartbeat (below).
+
+### `schedule:run` succeeds while tasks silently skip
+
+Laravel's scheduler can skip work without failing the process:
+
+- `withoutOverlapping()` left a stale mutex in cache/Redis after a killed deploy
+- `onOneServer()` lost the cache lock backend mid-run
+- `environments(['production'])` does not match `APP_ENV` on a staging-like Forge site
+- Timezone mismatch between server clock, `APP_TIMEZONE`, and the cron expression
+
+From Forge's perspective the cron job "ran." From the business's perspective the digest never sent.
+
+### Daemon up, scheduler down
+
+Teams monitor Horizon via Forge daemons and assume "background work is covered." Cron is a separate pipeline. You can have healthy workers draining an empty queue while nightly `model:prune`, `backup:run`, and billing reconciliation never fire.
+
+### Multi-site / multi-server double-scheduling
+
+Forge makes it easy to clone sites. Clone the server recipe and you often clone the same crontab onto two machines without `onOneServer()`. Jobs run twice — or, if they fight over locks, appear to run nowhere reliably.
+
+### Output discarded to `/dev/null`
+
+The default Forge recipe often appends `>> /dev/null 2>&1`. Failures leave no local trail. By the time you SSH in, there is nothing to `tail`.
+
+## How to Monitor Forge Cron Jobs
+
+### 1. Heartbeat the scheduler itself
+
+Treat "did `schedule:run` fire this minute?" as a first-class signal. Add a lightweight scheduled task that pings an external monitor every minute (or every five, with a matching grace window).
+
+```php
+// routes/console.php
+use Illuminate\Support\Facades\Schedule;
+use Illuminate\Support\Facades\Http;
+
+Schedule::call(function () {
+    $url = config('services.crontinel.scheduler_ping_url');
+
+    Http::timeout(5)->get($url);
+})->everyMinute()->name('scheduler-heartbeat')->withoutOverlapping();
+```
+
+Configure the monitor to expect a ping within ~3 minutes. If Forge's crontab dies, PHP breaks after a version bump, or the release path is wrong, the heartbeat stops first — before the weekly report is late.
+
+With Crontinel you create a job for that ping URL, set the expected cadence, and alert Slack/PagerDuty when the window is missed.
+
+### 2. Wrap critical artisan commands with start/finish pings
+
+Heartbeats prove the scheduler is alive. They do not prove `backup:run` finished. For high-value commands, ping on start and success (and optionally on failure):
+
+```php
+Schedule::command('backup:run')
+    ->dailyAt('02:00')
+    ->onOneServer()
+    ->withoutOverlapping()
+    ->before(function () {
+        Http::timeout(5)->get(config('services.crontinel.backup_start_url'));
+    })
+    ->onSuccess(function () {
+        Http::timeout(5)->get(config('services.crontinel.backup_success_url'));
+    })
+    ->onFailure(function () {
+        Http::timeout(5)->get(config('services.crontinel.backup_fail_url'));
+    });
+```
+
+If start arrives and success never does, you get a hung-or-failed alert even when the process exit code was swallowed somewhere upstream.
+
+### 3. Do not rely on Forge Heartbeats alone for Laravel schedules
+
+Forge Heartbeats are useful for simple "did this URL get hit?" checks. Laravel schedules have richer failure modes: partial runs, mutex deadlocks, environment gates, and multi-server races. A single generic heartbeat is necessary but not sufficient for production billing, backups, and prune jobs.
+
+Use Forge for server and daemon lifecycle. Use job-aware monitoring for schedule semantics.
+
+### 4. Keep daemon and cron alerts separate
+
+In Forge:
+
+- Daemons → Supervisor process must stay up (Horizon, `queue:work`, Reverb)
+- Scheduled Jobs → crontab must fire `schedule:run`
+
+In your external monitor:
+
+- One check for scheduler heartbeat
+- Separate checks for each business-critical command cadence
+- Separate checks for queue depth / failed jobs (workers can be "up" while the backlog is on fire)
+
+## Practical Forge Checklist
+
+1. SSH in and confirm `crontab -l` path matches the current release directory after zero-downtime deploys.
+2. Confirm `php -v` on the cron line matches the site's PHP version in Forge.
+3. Log scheduler output somewhere durable during incidents (temporary file or papertrail) instead of only `/dev/null`.
+4. After every major deploy, wait two minutes and confirm the external heartbeat still arrives.
+5. For multi-server apps, require `onOneServer()` plus a shared cache/Redis the lock can actually use.
+6. Alert on missed runs, not only on exceptions — most Forge cron pain is absence, not stack traces.
+
+## Where Crontinel Fits
+
+Crontinel is built for the gap Forge leaves open: expected cadence, missed-run detection, and quiet failures inside Laravel's scheduler. Point scheduled tasks (or the official Laravel SDK) at Crontinel, keep Forge managing servers and daemons, and you get paged when the job did not happen — not when the VM happens to be offline.
+
+Install the Laravel package, attach monitors to `schedule:run` and your critical commands, and route alerts to the same Slack or PagerDuty channel your on-call already watches. Forge keeps the box alive. Crontinel watches the work.

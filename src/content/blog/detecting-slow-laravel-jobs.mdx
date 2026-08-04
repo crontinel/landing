@@ -1,0 +1,288 @@
+---
+title: "Detecting Slow Laravel Queue Jobs Before They Crash Your App"
+description: "How to detect slow Laravel queue jobs, monitor Horizon performance, and catch degraded workers before they impact users. Includes setup for Horizon monitoring, queue depth alerts, and job duration tracking."
+date: 2026-07-30
+draft: false
+---
+
+Your Laravel queue workers are alive. Jobs are completing. But something feels off — responses are slower, memory usage creeps up, and occasionally a customer reports that an email took 10 minutes to arrive. By the time you notice, the damage is done.
+
+Slow queue jobs are the silent killer of Laravel applications. They don't throw errors. They don't crash workers. They just... take longer. And when enough jobs slow down simultaneously, your entire queue backs up, users wait, and the cascading effects reach your API, your cache, and your database.
+
+This guide covers how to detect slow Laravel queue jobs before they crash your app, what metrics matter beyond "is the worker running," and how to set up proactive monitoring with Horizon.
+
+## Why Slow Jobs Are Worse Than Failed Jobs
+
+A failed job is visible. Laravel logs it, marks it in the `failed_jobs` table, and you can retry it. A slow job is invisible — it still completes, still returns success, but takes 10x longer than expected.
+
+**The cascade effect:**
+
+1. Job A takes 5 minutes instead of 30 seconds
+2. Job B and C queue behind it
+3. Queue depth grows
+4. New jobs wait longer to start
+5. User-facing operations (emails, notifications, reports) are delayed
+6. Customers notice, support tickets arrive
+
+By the time you see the queue depth alert, you're already behind.
+
+## What Makes Laravel Jobs Slow
+
+### 1. Database Contention
+
+Jobs that read/write to the same tables as your web requests compete for connections and locks.
+
+```php
+// Slow: competing with web requests for database connections
+class ProcessOrder implements ShouldQueue
+{
+    public function handle()
+    {
+        // This query locks rows that web requests also need
+        $order = Order::withLocked()->find($this->orderId);
+        $order->update(['status' => 'processing']);
+        
+        // Long-running query that holds connection
+        $items = DB::select('SELECT * FROM order_items WHERE order_id = ?', [$this->orderId]);
+        
+        // ... processing ...
+    }
+}
+```
+
+**Solution:** Use a separate database connection for queue workers.
+
+```php
+// config/database.php
+'connections' => [
+    'queue' => [
+        'driver' => 'mysql',
+        'host' => env('DB_QUEUE_HOST', '127.0.0.1'),
+        // ... separate connection for queue workers
+    ],
+],
+```
+
+### 2. Memory Leaks
+
+Jobs that accumulate memory over time. The worker process grows until it hits the memory limit or causes swapping.
+
+```php
+// Slow: memory leak in loop
+class SyncProducts implements ShouldQueue
+{
+    public function handle()
+    {
+        $products = Product::cursor();
+        
+        foreach ($products as $product) {
+            // Each iteration adds to memory
+            $this->syncProduct($product);
+            // Missing: $this->forgetModel($product);
+        }
+    }
+}
+```
+
+**Detection:** Monitor worker memory usage over time.
+
+```bash
+# Check worker memory
+ps aux | grep "queue:work" | awk '{print $6/1024 " MB"}'
+
+# Track memory growth
+while true; do
+    echo "$(date): $(ps aux | grep 'queue:work' | awk '{print $6}')" >> /var/log/worker-memory.log
+    sleep 60
+done
+```
+
+### 3. External API Calls Without Timeouts
+
+Jobs that call third-party APIs without timeouts can hang indefinitely.
+
+```php
+// Slow: no timeout on external call
+class SendWebhook implements ShouldQueue
+{
+    public function handle()
+    {
+        // This could hang for minutes if the API is slow
+        Http::post('https://external-api.com/webhook', $this->payload);
+    }
+}
+```
+
+**Solution:** Always set timeouts.
+
+```php
+// Good: explicit timeout
+Http::timeout(10)->post('https://external-api.com/webhook', $this->payload);
+```
+
+### 4. Lock Contention
+
+Jobs that use `Cache::lock()` or database locks can deadlock or wait indefinitely.
+
+```php
+// Risky: lock might never be acquired
+class ProcessSync implements ShouldQueue
+{
+    public function handle()
+    {
+        $lock = Cache::lock('sync-process', 60);
+        
+        if ($lock->get()) {
+            try {
+                $this->process();
+            } finally {
+                $lock->release();
+            }
+        }
+        // What if lock is never acquired? Job silently completes.
+    }
+}
+```
+
+## Monitoring Horizon
+
+Laravel Horizon provides queue metrics, but it doesn't alert you when things go wrong. You need to actively monitor its data.
+
+### Key Metrics to Track
+
+```php
+// Check Horizon metrics via API
+$metrics = app(Horizon::class)->metrics();
+
+// Workers: how many are running?
+$workerCount = $metrics['workers'];
+
+// Wait time: how long are jobs waiting?
+$waitTime = $metrics['wait'];
+
+// Throughput: jobs per minute
+$throughput = $metrics['throughput'];
+```
+
+### Set Up Alerts
+
+```php
+// app/Console/Commands/CheckHorizon.php
+class CheckHorizon extends Command
+{
+    protected $signature = 'horizon:check';
+    
+    public function handle()
+    {
+        $metrics = app(Horizon::class)->metrics();
+        
+        // Alert if wait time > 5 minutes
+        if ($metrics['wait'] > 300) {
+            $this->alertCrontinel('horizon-wait', [
+                'wait' => $metrics['wait'],
+                'workers' => $metrics['workers'],
+            ]);
+        }
+        
+        // Alert if throughput drops below 10 jobs/min
+        if ($metrics['throughput'] < 10) {
+            $this->alertCrontinel('horizon-throughput', [
+                'throughput' => $metrics['throughput'],
+            ]);
+        }
+        
+        // Alert if no workers are running
+        if ($metrics['workers'] === 0) {
+            $this->alertCrontinel('horizon-no-workers', [
+                'error' => 'No Horizon workers running',
+            ]);
+        }
+    }
+}
+```
+
+### Schedule the Check
+
+```php
+// app/Console/Kernel.php
+$schedule->command('horizon:check')->everyFiveMinutes();
+```
+
+## Detecting Slow Jobs with Crontinel
+
+Crontinel monitors Horizon internals, queue depth, and job duration — things generic uptime tools can't see.
+
+### Setup
+
+```php
+// Install
+composer require crontinel/laravel
+php artisan crontinel:install
+
+// config/crontinel.php
+return [
+    'horizon' => [
+        'enabled' => true,
+        'supervisor_alert_after_seconds' => 60,
+        'failed_jobs_per_minute_threshold' => 5,
+    ],
+    'queues' => [
+        'enabled' => true,
+        'depth_alert_threshold' => 1000,
+        'wait_time_alert_seconds' => 300,
+    ],
+];
+```
+
+### What Crontinel Monitors
+
+| Metric | What It Catches | Alert Threshold |
+|--------|-----------------|-----------------|
+| Horizon supervisor status | Supervisor paused or stopped | 60 seconds |
+| Queue depth | Jobs backing up | 1000 jobs |
+| Oldest job age | Jobs stuck in queue | 300 seconds |
+| Failed jobs/min | Rate of failures | 5 failures/min |
+| Worker heartbeat | Worker stopped processing | 60 seconds |
+
+### CLI Health Check
+
+```bash
+# Table output
+php artisan crontinel:check
+
+# JSON output for CI/CD
+php artisan crontinel:check --format=json
+
+# Check without firing alerts
+php artisan crontinel:check --no-alerts
+```
+
+Exit code `0` when healthy, `1` if any alert is active.
+
+## Quick Diagnostic Checklist
+
+When jobs feel slow, check these in order:
+
+1. **Worker memory:** `ps aux | grep queue:work` — is memory growing?
+2. **Queue depth:** `redis-cli LLEN queues:default` — is it growing?
+3. **Horizon dashboard:** Are supervisors active? Any failed jobs?
+4. **Database connections:** `SHOW PROCESSLIST` — are queue workers holding connections?
+5. **External APIs:** Are HTTP calls timing out? Check `failed_jobs` table.
+6. **Locks:** `SHOW ENGINE INNODB STATUS` — any deadlocks?
+
+## Quick Comparison
+
+| Feature | Horizon Dashboard | Laravel Telescope | Crontinel |
+|---------|-------------------|-------------------|-----------|
+| Queue depth monitoring | ✅ | ✅ | ✅ |
+| Slow job detection | ❌ | ❌ | ✅ |
+| Supervisor status | ✅ | ❌ | ✅ |
+| Auto-alerts (Slack/email) | ❌ | ❌ | ✅ |
+| CLI health check | ❌ | ❌ | ✅ |
+| Historical metrics | ✅ | ✅ | ✅ |
+
+## What's Next
+
+- [Set up Crontinel in 5 minutes](https://docs.crontinel.com/quickstart) — One command to start monitoring your Laravel queues
+- [Horizon monitoring deep dive](/blog/horizon-monitoring) — Detailed guide for Horizon-specific monitoring
+- [Crontinel vs. Horizon Dashboard](/vs/horizon) — Feature comparison for Laravel teams
