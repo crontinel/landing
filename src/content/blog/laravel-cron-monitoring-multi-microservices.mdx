@@ -1,0 +1,126 @@
+---
+title: "Laravel Cron Monitoring Across Multiple Microservices"
+description: "How to monitor scheduled tasks across distributed Laravel services without losing visibility. Covers unified dashboards, cross-service heartbeats, and single points of failure."
+date: 2026-08-04
+tags: ["laravel", "microservices", "cron", "monitoring"]
+---
+
+When your Laravel application lives in a single repo, cron monitoring is straightforward: one scheduler, one heartbeat, one dashboard. But the moment you split into multiple services—billing, notifications, analytics, auth—each with its own `schedule:run`, the picture fragments. You end up with five dashboards, five alert channels, and a growing blind spot between them.
+
+This is the microservice cron monitoring problem. And it's more common than you'd think.
+
+## The Problem: Five Schedulers, Zero Visibility
+
+A typical Laravel microservice setup might look like:
+
+- **App service** — user-facing, handles auth, profile, core logic
+- **Billing service** — subscription renewals, invoice generation, payment retries
+- **Notification service** — email dispatch, push notifications, SMS
+- **Analytics service** — event processing, report generation, data aggregation
+- **Admin service** — background maintenance, cleanup jobs, health checks
+
+Each service runs its own `php artisan schedule:run` on its own cron schedule. Each sends its own heartbeats to a different monitoring endpoint. Or worse—some send heartbeats and some don't.
+
+The result: you know when the billing scheduler stops, but you don't know that the notification scheduler has been silently dead for three days. You get an alert that analytics is slow, but you can't tell if it's because the app service stopped pushing events.
+
+## Why Standard Cron Monitors Fall Short
+
+Traditional cron monitoring tools were built for single-server, single-app architectures. They answer one question: "Did this specific cron job run on time?" They don't answer the question that actually matters in a microservice setup: "Are all my services healthy, and are they talking to each other?"
+
+Here's where standard monitoring breaks down:
+
+**1. No cross-service correlation.** If billing stops generating invoices, is it because the billing scheduler died, or because the app service stopped sending the webhook that triggers invoice creation? A single-service monitor can't tell you.
+
+**2. Alert fatigue scales with services.** Five services, each with 5-10 scheduled tasks, means 25-50 individual heartbeats. Each one generates its own alert. When a network partition hits, you get 30 alerts in 2 minutes. None of them tell you the root cause.
+
+**3. Missing the gaps between services.** The scheduler running is necessary but not sufficient. The real failure mode is: scheduler runs, job dispatches, but the downstream service is down. The job sits in a Redis queue forever. Your monitor says "scheduler healthy" while users see nothing.
+
+**4. No unified health picture.** When something breaks at 3 AM, you don't want to check five dashboards. You want one view that shows "services A, B, and C are healthy; service D scheduler stopped 2 hours ago; service E has queue backlog growing."
+
+## A Better Approach: Centralized Cross-Service Monitoring
+
+The fix isn't more dashboards. It's a monitoring layer that understands the relationships between your services.
+
+### Unified Scheduler Heartbeats
+
+Instead of each service reporting independently, route all scheduler heartbeats to a single monitoring endpoint. Each heartbeat carries a service identifier:
+
+```php
+// In each service's Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    $schedule->call(function () {
+        // Send heartbeat with service identity
+        Http::withoutVerifying()->post('https://your-monitor.com/heartbeat', [
+            'service' => env('SERVICE_NAME'), // e.g. 'billing'
+            'schedule' => 'every-minute',
+            'jobs_run' => $this->jobsRan,
+            'timestamp' => now()->toIso8601String(),
+        ]);
+    })->everyMinute();
+}
+```
+
+The monitoring endpoint receives heartbeats from all services and correlates them. If billing stops sending heartbeats but app and notification are still alive, you know the issue is isolated to billing—not a network-wide problem.
+
+### Dependency-Aware Alerting
+
+The real power comes from defining service dependencies. If notification depends on app (for user data), and billing depends on app (for subscription status), then app going down should trigger a single alert: "App service down — cascading to billing and notification." Not three separate alerts.
+
+Model this in your monitoring config:
+
+```yaml
+# monitoring-config.yaml
+services:
+  app:
+    schedule: "*/1 * * * *"
+    depends_on: []
+  billing:
+    schedule: "*/5 * * * *"
+    depends_on: [app]
+  notification:
+    schedule: "*/1 * * * *"
+    depends_on: [app]
+  analytics:
+    schedule: "0 * * * *"
+    depends_on: [app]
+```
+
+When app misses a heartbeat, the monitoring system knows billing and notification are also at risk—without waiting for their individual heartbeats to fail.
+
+### Queue Depth as a Health Signal
+
+Scheduler health is necessary but not sufficient. Monitor queue depth across services to catch the silent failures:
+
+```php
+// In your monitoring job
+$queueDepth = Redis::connection('default')
+    ->llen('jobs');
+
+if ($queueDepth > 1000) {
+    // Alert: queue backlog growing
+    // This catches the case where scheduler runs but jobs aren't being processed
+}
+```
+
+Cross-service queue monitoring catches scenarios like: app service is healthy, billing scheduler is healthy, but the payment processing worker crashed three hours ago and invoices are piling up in the queue.
+
+## What This Looks Like in Practice
+
+A real-world monitoring setup for five Laravel microservices:
+
+1. **One dashboard** showing all services' scheduler status, last heartbeat time, and queue depth
+2. **Correlated alerts** that understand service dependencies—app down triggers a single "cascading failure" alert, not five separate ones
+3. **Queue depth trends** that catch silent worker failures before they become user-facing
+4. **Cross-service tracing** that shows you the full lifecycle: scheduler ran, job dispatched, worker picked up, job completed
+
+When something breaks at 3 AM, you open one page. You see which service is unhealthy, which services depend on it, and whether queues are backing up. You don't need to SSH into five servers to figure out what happened.
+
+## Getting Started
+
+If you're running multiple Laravel services and your monitoring is still per-service, start with two steps:
+
+1. **Centralize heartbeats.** Route all scheduler heartbeats to one endpoint. This alone gives you a unified view.
+2. **Map service dependencies.** Write down which services depend on which. Use that to reduce alert noise and speed up root cause analysis.
+
+For a complete cross-service monitoring setup with dependency-aware alerting, queue depth tracking, and a single unified dashboard, [Crontinel](/) handles all of this out of the box. One config, one dashboard, all your services.
