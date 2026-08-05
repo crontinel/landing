@@ -1,0 +1,114 @@
+---
+title: "Monitoring Cron Jobs with Datadog: Setup, Limitations & Better Alternatives"
+description: "How to set up Datadog cron monitoring with dogwrap or DogStatsD, where it falls short for Laravel and Horizon, and when a purpose-built tool like Crontinel is the better fit."
+date: 2026-08-05
+tags: ["datadog", "cron monitoring", "laravel", "comparison"]
+keywords: ["datadog cron monitoring", "monitor cron jobs datadog", "datadog laravel scheduler"]
+---
+
+Datadog cron monitoring works by wrapping your scheduled command in the Datadog Agent's `dogwrap` tool, or by emitting a custom metric through DogStatsD, and then building a monitor that alerts when the expected service check, event, or metric doesn't show up on time. It's a workable approach if you're already running Datadog for infrastructure and APM, but Datadog wasn't built around the idea of a scheduled job. That shows up quickly once you look at Laravel schedules, Horizon queues, and the monthly bill.
+
+> **Quick summary:** Datadog has no native concept of a cron job. You monitor one by wrapping the command with `dogwrap` or a custom DogStatsD metric, then creating a "no data" monitor on top of it, one job at a time. It has no Laravel scheduler awareness, no Horizon supervisor or queue depth tracking, and cron monitoring isn't billed separately, it rides on your existing per-host and per-metric Datadog costs. Crontinel is a purpose-built alternative: install a Composer package and it automatically tracks every scheduled command, Horizon supervisor status, and queue depth, on a flat per-app price instead of per-host billing.
+
+## How to set up Datadog for cron monitoring
+
+Datadog doesn't have a "cron monitor" resource type the way a dedicated tool does. You build one out of three pieces: the Agent, a wrapper or custom metric, and a monitor.
+
+### Option 1: `dogwrap`
+
+The Datadog Agent ships with `dogwrap`, a command-line wrapper made specifically for instrumenting scripts and cron jobs. It runs your command, captures the exit code and duration, and reports a service check and event back to Datadog.
+
+```bash
+pip install datadog
+export DATADOG_API_KEY=your_api_key
+
+dogwrap -n "nightly_billing" -k $DATADOG_API_KEY --submit_mode all -- php artisan billing:run
+```
+
+Every run posts a service check named after the job. From there, you create a Service Check Monitor in Datadog with an alert condition along the lines of "this check has not reported in the last 10 minutes," which is the closest thing Datadog has to a native heartbeat.
+
+### Option 2: DogStatsD custom metric
+
+If you'd rather not wrap the command, you can emit a counter metric at the end of a successful run and alert on "no data" instead:
+
+```bash
+* * * * * php artisan schedule:run && echo "laravel.schedule.heartbeat:1|c" | nc -u -w0 127.0.0.1 8125
+```
+
+Then build a metric monitor set to trigger when that metric stops reporting for longer than your job's expected interval.
+
+Either path takes real setup time, usually 20 to 40 minutes per job once the Agent is already running on the host: install or confirm the Agent, choose a wrapper or metric name, write the monitor, and tune the "no data" window so it doesn't fire on every deploy. Multiply that by every scheduled command in a typical Laravel app and the setup cost adds up well before you've caught a single failure.
+
+## What Datadog misses for cron and Laravel
+
+Datadog is a strong platform for infrastructure, APM, and logs. Cron monitoring is not what it's built around, and the gaps line up with what Laravel teams actually need to watch.
+
+**No native concept of a scheduled job.** Every job needs its own wrapper, metric, and monitor. There's no dashboard that lists your scheduled tasks, their expected intervals, or their last run time out of the box.
+
+**No Laravel scheduler awareness.** Datadog doesn't know what `schedule:run` is, doesn't parse your `Kernel::schedule()` (or `routes/console.php` in Laravel 11 and 12), and can't tell you which of your ten scheduled commands is the one that stopped running. You get one generic signal per job you've manually instrumented, not a per-command breakdown.
+
+**No Horizon awareness.** If a Horizon supervisor is paused, or a process count silently drops to zero, Datadog has no built-in way to know. You'd need to write and maintain a custom check that reads Horizon's internal state and submits it as a metric yourself, then keep it working across Horizon upgrades.
+
+**No queue depth or oldest job age tracking.** A queue backing up to 500 pending jobs, or a job sitting unprocessed for an hour, is exactly the kind of failure that looks fine to an APM tool, because nothing throws an exception. Nobody dispatched an error. The job is just waiting. Catching that in Datadog means writing custom metrics submission code inside your application to report queue size and oldest-job-age on a timer.
+
+**Agent overhead for teams that don't already run Datadog.** If cron monitoring is the only reason you'd install Datadog, you're taking on an infrastructure agent, API key management, and a second dashboard for a problem that a single Composer package can solve.
+
+**Cost that scales with your whole Datadog footprint, not your cron jobs.** Cron monitoring isn't a separate line item. It inherits whatever you already pay for hosts, custom metrics, and synthetic checks. A team with ten scheduled tasks and a modest infrastructure footprint can end up paying for Datadog's broader platform just to get visibility into jobs that a $19/month tool would cover directly.
+
+## How Crontinel fills the gaps
+
+Crontinel is built around the exact shape of this problem: Laravel schedules, Horizon queues, and the space between "the cron entry fired" and "the work actually got done."
+
+Setup is one Composer package and one Artisan command:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+There's no agent to run and no per-job wrapper to write. From there:
+
+- **Automatic schedule tracking.** Crontinel hooks into Laravel's `ScheduledTaskStarting` and `ScheduledTaskFinished` events, so every command in your schedule is tracked the moment it registers, with exit code, duration, and last-run timestamp per command, not one generic heartbeat for the whole cron entry.
+- **Horizon supervisor monitoring.** Crontinel reads Horizon's own internals directly, so a paused supervisor or a process count drop shows up as a specific alert instead of a silent gap in a generic dashboard.
+- **Queue depth and oldest job age.** Each queue's current depth and oldest pending job age are tracked automatically, so a stalled worker or a backed-up payments queue surfaces before customers notice, without you writing custom metrics code.
+- **Cron Command Summary and history.** A per-command breakdown of runs, exit codes, and durations over time, so you can see which scheduled task is flaky without grepping logs.
+- **Flat, predictable pricing.** Free for one app, $19/month for the Pro plan (multiple apps, longer retention, Slack/email/PagerDuty/webhook alerts), and $49/month for Team (unlimited apps, team seats). No per-host billing, no custom metric line items, no synthetic test credits to track.
+
+## Datadog vs Crontinel for cron monitoring
+
+| | Datadog | Crontinel |
+|---|---|---|
+| Setup per job | Agent + `dogwrap` or DogStatsD + monitor, roughly 20-40 min per job | `composer require` + one install command, covers every scheduled job |
+| Laravel scheduler awareness | None; manual wrapper per command | Native, tracks `schedule:run` automatically |
+| Horizon supervisor monitoring | Custom check you build and maintain | Built in |
+| Queue depth / oldest job age | Custom metrics you write yourself | Built in |
+| Pricing model | Per host, per custom metric, per synthetic test | Flat per-app tier |
+| Best for | Teams already running Datadog broadly for infra, APM, and logs | Laravel teams that want scheduler and queue visibility without adopting a full observability platform |
+
+## When Datadog still makes sense
+
+If your team already runs Datadog for APM, infrastructure, and log management, adding a monitor for one or two cron jobs is close to free marginal cost, and there's a real case for not wanting a second vendor's dashboard for a narrow slice of monitoring. Datadog and Crontinel aren't strictly exclusive either. Some teams keep Datadog for the rest of their stack while using Crontinel specifically for Laravel scheduler and Horizon detail that Datadog doesn't track natively. See the full [Crontinel vs Datadog](/vs/crontinel-vs-datadog/) comparison for the broader platform-level tradeoffs, and [why APM tools miss silent job failures](/blog/laravel-cron-queue-monitoring-tools/) for more on why "no exception thrown" and "the job actually ran" are different questions.
+
+## FAQ
+
+### Does Datadog monitor cron jobs natively?
+No. Datadog has no built-in cron job concept. You wrap the command with the Agent's `dogwrap` tool, or submit a custom metric through DogStatsD, and build a monitor on top of that signal yourself.
+
+### How much does Datadog cron monitoring cost?
+There's no separate cron monitoring price. The cost is folded into whatever Agent hosts, custom metrics, and synthetic tests you already report, so it scales with your overall Datadog usage rather than the number of cron jobs you're watching.
+
+### Can Datadog monitor Laravel Horizon queues?
+Not out of the box. You would need to write custom instrumentation that reads Horizon's supervisor and queue state and submits it to Datadog yourself, then keep that code working across Horizon upgrades.
+
+### What's the easiest way to monitor cron jobs without Datadog?
+`composer require crontinel/laravel` followed by `php artisan crontinel:install` gives you scheduler run tracking, Horizon supervisor status, and queue depth automatically, without running an agent.
+
+### Is Crontinel cheaper than Datadog for cron monitoring?
+Usually yes for teams that only need scheduler and queue visibility, since Crontinel has a flat per-app price starting free, instead of per-host and per-metric billing that scales with your wider Datadog footprint.
+
+### Can I use Crontinel and Datadog together?
+Yes. Some teams keep Datadog for APM, infrastructure, and logs while using Crontinel for Laravel scheduler and Horizon detail specifically. Neither setup requires removing the other.
+
+---
+
+Crontinel tracks your Laravel scheduler, Horizon supervisors, and queue depth automatically, no agent, no custom metrics to write. [Try it free](https://app.crontinel.com/register).
