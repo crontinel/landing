@@ -1,0 +1,128 @@
+---
+title: "Laravel Scheduler Timezone Pitfalls: Why Your Cron Runs at the Wrong Time"
+description: "Why Laravel scheduled tasks fire at the wrong hour: how APP_TIMEZONE, schedule_timezone, server TZ, and CRON_TZ interact, the DST trap, and a fix checklist."
+date: 2026-08-05
+tags: ["laravel", "scheduler", "timezone", "cron"]
+keywords: ["laravel scheduler timezone", "laravel schedule timezone wrong", "laravel cron wrong time"]
+---
+
+Laravel scheduled tasks run at the wrong time almost always because one of four separate timezone settings disagrees with the others: your app's `timezone` config, the newer `schedule_timezone` option, a per-task `->timezone()` call, and the server's own system clock that the OS cron daemon actually reads. Laravel only controls the first three. The moment `schedule:run` fires is decided entirely by the server, in whatever timezone the server's `date` command reports, regardless of what your `.env` says.
+
+> **Quick summary:** A task defined with `->dailyAt('09:00')` and no explicit timezone runs at 9:00 in whatever timezone `config('app.timezone')` (or the newer `schedule_timezone` option) resolves to, evaluated against the server's system clock at the moment `schedule:run` executes. If the server clock, the app timezone, and any per-task `->timezone()` call don't all agree, the task fires at the wrong hour with no error, no log entry, and no failed job, because from Laravel's perspective nothing failed. Twice a year, daylight saving transitions can make an explicitly timezoned task skip an hour or run twice, which is why Laravel's own docs recommend avoiding timezone scheduling when you can. Crontinel catches the symptom either way: a task that's late or silent still shows up as a missed expected run.
+
+## The question every Laravel developer eventually asks
+
+There's a recurring shape to this problem that shows up constantly in Laravel discussion forums and support channels: a task is scheduled with an explicit timezone, say `->timezone('Asia/Dubai')->dailyAt('07:00')`, and it appears to be completely ignored. The emails go out at midnight instead of 7am. The developer double-checks the code, confirms the timezone string is valid, confirms the cron entry is running every minute, and still can't explain it. The answer is almost never that `->timezone()` is broken. It's that something upstream of the task definition, usually the server's system timezone or a mismatched `config('app.timezone')`, is silently overriding what the developer assumed was the only timezone in play. The task did fire, in the wrong reference frame.
+
+That gap between "the code looks right" and "the schedule is still wrong" is exactly why timezone bugs are so persistent. Nothing throws. Nothing logs an error. The scheduler evaluates `isDue()`, decides the current time doesn't match, and does nothing, which looks identical to a correctly-behaving scheduler that's just waiting for its next run.
+
+## How APP_TIMEZONE, schedule_timezone, and server TZ actually interact
+
+There are more moving parts here than most Laravel apps account for. In order of what actually gets evaluated:
+
+**1. The server's system clock.** `schedule:run` is invoked by the OS cron daemon (or `schedule:work` in a long-running process) once a minute. The instant that invocation happens is determined entirely by the server's system timezone, whatever `timedatectl` or `/etc/timezone` says. Laravel has no say in this. If the server is set to UTC and you assumed it was set to your local timezone, every scheduled evaluation already starts from the wrong instant.
+
+**2. `config('app.timezone')`.** This is the timezone Laravel uses to interpret "now" throughout the framework, including, by default, the scheduler. Setting `APP_TIMEZONE` in `.env` changes this. Most tutorials stop here, which is part of the problem: this setting affects far more than the scheduler (it also affects `now()`, Carbon defaults, and timestamps throughout your app), so changing it purely to fix a cron timing issue can shift behavior you didn't intend to touch.
+
+**3. `schedule_timezone`.** Newer Laravel versions add a dedicated `schedule_timezone` option in `config/app.php`, specifically so you can set the scheduler's default timezone without changing `app.timezone` and everything else that depends on it:
+
+```php
+// config/app.php
+'timezone' => 'UTC',
+
+'schedule_timezone' => 'America/Chicago',
+```
+
+If `schedule_timezone` is set, it takes priority over `app.timezone` for scheduling purposes only. If it isn't set, the scheduler falls back to `app.timezone`. A lot of timezone confusion in older codebases traces back to not knowing this option exists and fighting `app.timezone` instead.
+
+**4. Per-task `->timezone()`.** Any individual task can override both of the above:
+
+```php
+// routes/console.php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('reports:nightly')
+    ->timezone('America/New_York')
+    ->dailyAt('02:00');
+```
+
+This is evaluated last and wins over everything else for that one task. It's also the setting people reach for first when a schedule looks wrong, and the one place a bug usually isn't, since it's the most explicit and visible layer.
+
+**5. `CRON_TZ` in the crontab itself.** This is a separate axis entirely, a variable some cron implementations support that changes the timezone the cron daemon uses to evaluate the crontab's own entries, independent of both the server's default system timezone and anything Laravel knows about:
+
+```
+CRON_TZ=UTC
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+If `CRON_TZ` is set to something different from what you assume the server runs in, `schedule:run` itself gets invoked at a different real-world moment than you expect, before any of Laravel's own timezone config even enters the picture.
+
+The failure mode almost never comes from one of these being wrong in isolation. It comes from two of them disagreeing: the server is UTC but `app.timezone` is `America/Chicago`, or `schedule_timezone` was added by one developer without anyone checking whether `CRON_TZ` was also set, or a task's explicit `->timezone()` was copied from another project without checking what the app-level default already was.
+
+## The hidden gotcha: daylight saving transitions
+
+Even when every layer above agrees, timezone scheduling has one more failure mode that has nothing to do with misconfiguration: daylight saving time itself. Laravel's own documentation is direct about this:
+
+> "Remember that some timezones utilize daylight saving time. When daylight saving time changes occur, your scheduled task may run twice or even not run at all. For this reason, we recommend avoiding timezone scheduling when possible."
+
+Concretely, twice a year, tasks scheduled against a DST-observing timezone hit one of two problems:
+
+- **Spring forward:** the clock jumps from 1:59am directly to 3:00am. A task scheduled at `dailyAt('02:30')` never sees that instant occur at all that day. It simply doesn't run.
+- **Fall back:** the clock repeats the 1:00am-2:00am hour. A task scheduled inside that hour can have its trigger window evaluated twice, and depending on how the scheduler and any overlap protection are configured, it can fire twice in one calendar day.
+
+This is exactly why Laravel recommends UTC for scheduling wherever the task's timing doesn't need to track a specific region's local business hours. A payroll job that has to run at "9am Eastern for Eastern Time employees" genuinely needs a timezone. A nightly cleanup job that just needs to run once every 24 hours doesn't, and scheduling it in UTC sidesteps the DST skip/repeat problem entirely.
+
+## How Crontinel detects late or missed runs regardless of the cause
+
+Timezone bugs are unusually hard to catch with logging alone, because the scheduler isn't failing, it's just evaluating a different time than you expect. There's no exception to catch and no non-zero exit code to alert on. The only reliable signal is: did this task run when it was supposed to, according to an observer outside the app that isn't relying on the same, possibly-wrong, timezone assumptions.
+
+That's the layer Crontinel adds. After installing it:
+
+```bash
+composer require crontinel/laravel
+php artisan crontinel:install
+```
+
+Crontinel hooks into Laravel's `ScheduledTaskStarting` and `ScheduledTaskFinished` events and records when each scheduled command actually executes, independent of what timezone your app or server thinks it's in. You set the expected interval for a task once; if the run doesn't land inside that window, whether it's late by an hour because of a DST shift, silent because a `CRON_TZ` mismatch pushed it a day off, or firing at 2am instead of 9am because `app.timezone` and the server clock disagree, Crontinel flags it as missed or late. It doesn't need to know why the timing drifted. It only needs to know the run didn't happen when it should have, which is exactly the signal a timezone misconfiguration otherwise hides.
+
+For a deeper technical walkthrough of the scheduler's internal `isDue()` timezone evaluation and more DST examples, see [Laravel Cron Timezone Issues](/blog/laravel-cron-timezone-issues/).
+
+## Fix checklist
+
+Work through these in order when a Laravel scheduled task is firing at the wrong time:
+
+1. **Check the server's actual system timezone.** Run `timedatectl` (or `cat /etc/timezone`) on the server itself. Don't assume; confirm.
+2. **Check `CRON_TZ` in the crontab.** If it's set, it overrides the server's default timezone for evaluating the crontab entries, before Laravel even runs.
+3. **Check `config('app.timezone')`.** Run `php artisan tinker --execute="echo config('app.timezone');"` and compare it against what you expect.
+4. **Check for a `schedule_timezone` override.** If it's set in `config/app.php`, it wins over `app.timezone` for scheduling specifically, and it's easy to forget it exists.
+5. **Check for a per-task `->timezone()` call.** Grep `routes/console.php` (or `app/Console/Kernel.php` on older apps) for `->timezone(`. Any task with an explicit call ignores the app-level defaults entirely.
+6. **Decide whether the task needs a timezone at all.** If the only requirement is "run once every 24 hours," schedule it in UTC and skip the DST failure mode completely. Reserve explicit timezones for tasks that genuinely need to track a region's local time.
+7. **Confirm with `php artisan schedule:list`.** It prints each task's next scheduled run time using its resolved timezone, which is the fastest way to see the actual outcome of every setting above without waiting for the next cron tick.
+8. **Add an external monitor.** Once the configuration is correct, set an expected-interval monitor on the task so the next drift, whether from a redeploy resetting `CRON_TZ`, a server migration changing the system timezone, or a DST transition, gets caught automatically instead of discovered from a missing report.
+
+## FAQ
+
+### Why does my Laravel scheduled task run at the wrong time even though the code looks correct?
+The task itself is almost never the bug. The scheduler evaluates the current time against a chain of settings, the server's system clock, `config('app.timezone')`, an optional `schedule_timezone` override, and any per-task `->timezone()` call, and a mismatch anywhere in that chain produces a task that fires at an unexpected hour with no error or log entry.
+
+### What's the difference between `app.timezone` and `schedule_timezone`?
+`app.timezone` affects `now()`, Carbon defaults, and timestamps across the entire application, in addition to the scheduler. `schedule_timezone` (available in newer Laravel versions) only affects how the scheduler resolves "now" for tasks that don't set their own `->timezone()`, so you can adjust scheduling without changing timezone behavior everywhere else in the app.
+
+### Does `->timezone()` on an individual task override the app-level config?
+Yes. A task's own `->timezone()` call takes priority over both `schedule_timezone` and `app.timezone` for that task specifically. Other tasks without an explicit call still fall back to the app-level defaults.
+
+### Can daylight saving time really make a scheduled task skip a day?
+Yes. If a task is scheduled inside the hour a DST transition skips (for example, 2:30am on a spring-forward day in a timezone that jumps from 1:59am to 3:00am), that specific run simply doesn't occur, because the clock never shows that time on that date.
+
+### Does the server's system timezone matter if my app config is correct?
+Yes, and it's the most commonly missed layer. The OS cron daemon invokes `schedule:run` based on the server's own system clock, not Laravel's configuration. If the server thinks it's UTC and your app config assumes local time, every scheduled evaluation starts from a different instant than you expect, no matter how correctly `app.timezone` is set.
+
+### How can I check what timezone my scheduled tasks will actually run in?
+Run `php artisan schedule:list`, which shows each task alongside its resolved next-run time after all timezone settings, app-level and per-task, have been applied. It's the fastest way to confirm the real outcome without waiting for a live cron tick.
+
+### Can Crontinel tell me if a task ran late because of a timezone issue?
+Crontinel doesn't diagnose the specific cause, but it detects the symptom: a task that runs later than its expected window, or doesn't run at all, gets flagged regardless of whether the root cause was a `CRON_TZ` mismatch, a DST transition, or a config change. That's usually enough to know where to start looking.
+
+---
+
+Crontinel tracks when your Laravel scheduled tasks actually run and flags anything late or missing, no matter which timezone setting caused the drift. [Try it free](https://app.crontinel.com/register).
