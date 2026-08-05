@@ -1,0 +1,163 @@
+---
+title: "Monitoring AWS EventBridge Scheduled Rules: Catch Silent Failures Before They Cost You"
+description: "How AWS EventBridge cron monitoring works, why scheduled rules fail silently (missed triggers, IAM permissions, DLQ backlogs), and how to catch it with CloudWatch or Crontinel."
+date: 2026-08-05
+tags: ["aws", "eventbridge", "cron monitoring", "cloudwatch"]
+keywords: ["aws eventbridge cron monitoring", "eventbridge scheduled rules", "eventbridge cron expression"]
+---
+
+AWS EventBridge cron monitoring means watching three separate things: whether the scheduled rule actually fired, whether its target (usually a Lambda function) accepted the invocation, and whether anything that failed ended up somewhere you'll notice, like a dead-letter queue. EventBridge itself doesn't alert you to any of these by default. It fires the rule, tries the target, retries on failure, and moves on. Catching a problem means wiring up CloudWatch alarms yourself, or pointing an external heartbeat monitor at the job.
+
+> **Quick summary:** EventBridge scheduled rules use `cron()` or `rate()` expressions to invoke a target on a schedule. They fail silently in three common ways: the rule gets disabled or its cron expression never matches, the target invocation fails on an IAM permissions error that EventBridge swallows, or failed events pile up in a dead-letter queue nobody is watching. CloudWatch can catch all three, but only if you build the alarms yourself, including the easy-to-miss "treat missing data as breaching" setting needed to detect a rule that stopped firing entirely. Crontinel takes a heartbeat-first approach instead: the target pings Crontinel when it runs, and a missing ping is the alert condition by default.
+
+## How EventBridge scheduled rules actually work
+
+An EventBridge scheduled rule is a rule on an event bus with a `ScheduleExpression` instead of an event pattern. When the expression matches the current time, EventBridge invokes every target attached to the rule, usually a Lambda function, but it can also be an SQS queue, SNS topic, Step Functions state machine, or ECS task.
+
+Two expression formats are supported:
+
+- **`rate(value unit)`** for fixed intervals: `rate(5 minutes)`, `rate(1 hour)`, `rate(1 day)`. The unit must be singular when the value is 1 and plural otherwise; `rate(1 hours)` is invalid.
+- **`cron(minutes hours day-of-month month day-of-week year)`** for calendar-based schedules, six fields instead of the five you'd use in a Unix crontab. `cron(0 12 * * ? *)` runs at noon UTC every day. The extra field trips people up in a specific way: day-of-month and day-of-week can't both be `*`. Exactly one of them has to be `?`. `cron(0 12 * * * *)` is rejected outright; `cron(0 12 * * ? *)` (fixed day-of-month, any day-of-week) is what you want.
+
+Classic EventBridge scheduled rules also run strictly in UTC. There's no per-rule timezone setting. If you need a schedule expressed in local time, you either convert it to UTC yourself and handle daylight saving drift twice a year, or use the newer EventBridge Scheduler service, a separate feature from EventBridge Rules that supports an explicit `ScheduleExpressionTimezone`.
+
+Once a rule fires, the target invocation for a Lambda function is asynchronous. EventBridge doesn't wait for the function to finish. It hands off the event, and Lambda retries automatically on failure, twice by default, over a window of a few hours. If every retry fails and you've configured a dead-letter queue on the target, the event lands there. If you haven't, it's dropped, with only a CloudWatch metric to show it ever happened.
+
+## Common failure modes
+
+### Missed triggers
+
+A rule can stop firing without anyone touching your application code. The usual causes: someone (or some IaC drift) disables the rule, the cron expression has a typo that makes it match far less often than intended, or the rule lives on a custom event bus that a deploy accidentally pointed a different account or region at. None of these produce an error. The schedule just stops, and the first sign is usually a missing report or a stale dataset, not an alert.
+
+### IAM permission issues
+
+For EventBridge to invoke a target, the target needs to explicitly allow it. For Lambda, that's a resource-based policy statement granting `lambda:InvokeFunction` to `events.amazonaws.com`, scoped to the specific rule's ARN as the source. Recreate the function, redeploy it through a tool that doesn't preserve resource policies, or scope a permissions boundary too tightly, and the permission silently disappears. The next scheduled invocation fails with an `AccessDeniedException` on AWS's side, not yours. Your application logs show nothing, because your application never ran.
+
+### The dead-letter queue silently filling up
+
+Configuring a DLQ on an EventBridge target is good practice, and plenty of teams do it. Far fewer teams alert on it. Once a DLQ is in place, failed invocations stop disappearing entirely, they queue up in SQS instead. That's strictly better than losing them, but a queue depth chart nobody looks at is just a slower version of the same problem: failures accumulating in a place where they don't interrupt anyone's day until someone finally asks why last month's exports never went out.
+
+## Monitoring with CloudWatch vs Crontinel
+
+### The CloudWatch approach
+
+CloudWatch gives you the raw material to catch all three failure modes, but none of it is wired up automatically:
+
+- **`Invocations`** on the rule tells you it fired. **`FailedInvocations`** tells you the target invocation itself failed at the EventBridge layer (the IAM case above).
+- **`Errors`, `Throttles`, and `Duration`** on the target Lambda function catch failures once the invocation succeeded but the function itself misbehaved.
+- **`ApproximateNumberOfMessagesVisible`** and **`ApproximateAgeOfOldestMessage`** on the DLQ catch the backlog case, if you remembered to point an alarm at it.
+
+The gap most teams miss: a disabled rule or a cron expression that stops matching produces no `Invocations` data point at all, and a standard CloudWatch alarm treats missing data as not breaching unless you explicitly set "treat missing data as breaching" on that alarm. Skip that one setting and your alarm can sit green forever while the rule underneath it has been silent for weeks.
+
+### The Crontinel approach
+
+Crontinel flips the default: instead of alarming on the absence of a metric, you send a heartbeat, and the absence of that heartbeat is the alert. The target (typically the Lambda function the rule invokes) pings Crontinel once it completes its work, using the Node, Python, or plain HTTP client, whichever matches the Lambda runtime:
+
+```bash
+npm i @crontinel/node
+pip install crontinel
+```
+
+Crontinel expects a ping roughly matching the rule's own schedule. Configure the expected interval to line up with your `rate()` or `cron()` expression, and a missing invocation, whether caused by a disabled rule, a bad cron pattern, or an IAM failure that never reached your code, shows up as a missed heartbeat within minutes, without needing a correctly configured CloudWatch alarm on the AWS side first.
+
+## Code examples for EventBridge rule health checks
+
+**Terraform: scheduled rule with a DLQ and alarms that actually fire on silence**
+
+```hcl
+resource "aws_cloudwatch_event_rule" "nightly_export" {
+  name                = "nightly-export"
+  schedule_expression = "cron(0 3 * * ? *)"
+}
+
+resource "aws_cloudwatch_event_target" "nightly_export_lambda" {
+  rule = aws_cloudwatch_event_rule.nightly_export.name
+  arn  = aws_lambda_function.nightly_export.arn
+
+  dead_letter_config {
+    arn = aws_sqs_queue.nightly_export_dlq.arn
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "rule_stopped_firing" {
+  alarm_name          = "nightly-export-no-invocations"
+  namespace           = "AWS/Events"
+  metric_name         = "Invocations"
+  dimensions          = { RuleName = aws_cloudwatch_event_rule.nightly_export.name }
+  statistic           = "Sum"
+  period              = 86400
+  evaluation_periods  = 1
+  comparison_operator = "LessThanThreshold"
+  threshold           = 1
+  treat_missing_data  = "breaching"
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+}
+
+resource "aws_cloudwatch_metric_alarm" "dlq_has_messages" {
+  alarm_name          = "nightly-export-dlq-backlog"
+  namespace           = "AWS/SQS"
+  metric_name         = "ApproximateNumberOfMessagesVisible"
+  dimensions          = { QueueName = aws_sqs_queue.nightly_export_dlq.name }
+  statistic           = "Maximum"
+  period              = 300
+  evaluation_periods  = 1
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = 0
+  alarm_actions       = [aws_sns_topic.alerts.arn]
+}
+```
+
+**Lambda target: ping Crontinel on completion (Python)**
+
+```python
+import crontinel
+
+def handler(event, context):
+    run_nightly_export()
+    crontinel.ping("nightly-export")
+```
+
+**Lambda target: generic HTTP ping (any runtime, including Node)**
+
+```javascript
+exports.handler = async (event) => {
+  await runNightlyExport();
+  await fetch(process.env.CRONTINEL_PING_URL, { method: "POST" });
+};
+```
+
+## CloudWatch vs Crontinel for EventBridge rules
+
+| | CloudWatch | Crontinel |
+|---|---|---|
+| Detects a rule that stopped firing | Only with a manually configured "no data" alarm set to treat missing data as breaching | Default behavior; a missing ping is the alert |
+| Detects IAM invocation failures | `FailedInvocations` metric, alarm required | Indirect (the target never pings, so the missed heartbeat still fires) |
+| Detects a filling DLQ | `ApproximateNumberOfMessagesVisible` alarm, if configured | Not DLQ-specific; complements a DLQ alarm rather than replacing it |
+| Setup per rule | Several alarms and dimensions per rule | One ping call added to the target's handler |
+| Best for | Teams already standardized on CloudWatch alarms and dashboards | Teams that want a single missed-heartbeat alert without building AWS-native alarms for every rule |
+
+CloudWatch and Crontinel aren't an either/or. A DLQ with a CloudWatch alarm is still the right way to catch failures after they happen; a Crontinel heartbeat is the fastest way to catch a rule that never ran at all, including cases (disabled rule, silent IAM error) that never generate the metric a CloudWatch alarm would need in the first place.
+
+## FAQ
+
+### Why didn't my EventBridge cron rule trigger?
+The most common causes are the rule being disabled, a `cron()` expression where day-of-month and day-of-week are both `*` instead of one being `?`, or the rule and its target living in different accounts or regions than expected after a deploy.
+
+### What's the difference between EventBridge Scheduler and EventBridge scheduled rules?
+Scheduled rules are a feature of EventBridge Rules on an event bus, run strictly in UTC, and use `cron()`/`rate()` expressions. EventBridge Scheduler is a separate, newer service built specifically for scheduling, and it supports per-schedule timezones through `ScheduleExpressionTimezone`.
+
+### How do I know if my EventBridge rule's target invocation failed?
+Check the `FailedInvocations` metric on the rule in CloudWatch, and check whether a dead-letter queue is configured on the target. Without a DLQ, failed invocations are retried a couple of times and then dropped with no record beyond the metric.
+
+### Can EventBridge alert me directly if a scheduled rule stops firing?
+Not on its own. You need a CloudWatch alarm on the rule's `Invocations` metric with "treat missing data as breaching" enabled, since the default treatment does not alert on missing data. Alternatively, a heartbeat-based monitor like Crontinel alerts on the missing ping without that CloudWatch configuration.
+
+### Does Crontinel replace CloudWatch for EventBridge monitoring?
+No. Crontinel is a fast way to know a scheduled job didn't run at all. CloudWatch and a DLQ are still the right tools for understanding why a specific invocation failed, since Crontinel doesn't inspect Lambda errors, throttles, or SQS backlogs directly.
+
+### How do I monitor an SQS dead-letter queue tied to an EventBridge target?
+Set a CloudWatch alarm on `ApproximateNumberOfMessagesVisible` for the DLQ, typically with a threshold of zero, so any message landing there triggers a notification instead of sitting unnoticed.
+
+---
+
+Crontinel gives your scheduled jobs a heartbeat instead of a silent absence, whether they run on a server, in Laravel, or behind an EventBridge rule. [Try it free](https://app.crontinel.com/register).
