@@ -77,6 +77,26 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
     /* Danger text colour */
     .danger { color: var(--danger); }
 
+    /* ── PAIN CALLOUT ─────────────────────────────────────────────── */
+    .pain-callout {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--danger);
+      border-radius: 14px;
+      padding: 24px 28px;
+      margin-bottom: 40px;
+    }
+    .pain-callout-icon { flex-shrink: 0; margin-top: 2px; }
+    .pain-callout-body { flex: 1; }
+    .pain-callout-headline { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.5; margin: 0 0 10px; }
+    .pain-callout-copy { font-size: 13.5px; line-height: 1.7; color: var(--text-2); margin: 0; }
+
+    @media (max-width: 640px) {
+      .pain-callout { flex-direction: column; gap: 12px; padding: 20px; }
+    }
+
     /* Prevent horizontal bleed at small widths */
     html, body { max-width: 100%; overflow-x: hidden; }
 
@@ -347,6 +367,15 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
 <!-- ============================== PROBLEM ============================== -->
 <section class="section" id="sec-problem">
   <div class="container">
+    <div class="pain-callout reveal">
+      <div class="pain-callout-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="pain-callout-body">
+        <p class="pain-callout-headline">Your cron jobs are not running. Your dashboard shows <span class="ok-green">green</span>. <span class="accent">Crontinel</span> knows.</p>
+        <p class="pain-callout-copy">Uptime checks and status pages only confirm that a URL responds. They never look inside the schedule, so a cron entry a deploy silently removed, a stuck overlap lock, or a queue worker that's technically "running" but not draining anything all still read as a clean, all-green dashboard. Crontinel hooks into the scheduler and queue directly and alerts on the one signal that actually matters: the run that should have happened and didn't.</p>
+      </div>
+    </div>
     <div class="section-head reveal section-head--split">
       <div class="section-head-copy">
         <span class="eyebrow">The gap</span>
