@@ -1,0 +1,167 @@
+---
+title: "Monitoring GitHub Actions Scheduled Workflows: Detect When Scheduled Runs Go Silent"
+description: "GitHub Actions scheduled workflows can silently stop triggering. Learn how to monitor cron-based workflows, detect missed runs, and alert before your team notices gaps."
+date: 2026-08-06
+tags: ["github-actions", "cron", "monitoring", "devops"]
+---
+
+GitHub Actions makes it easy to schedule recurring workflows with cron syntax. But scheduled workflows have a quiet failure mode: they can stop triggering entirely, and GitHub won't tell you.
+
+Unlike manual workflow runs, scheduled workflows run in the background with no notification on success. If a cron expression breaks, a repository setting changes, or the default branch shifts, the workflow simply stops firing. Your nightly data sync, weekly report, or daily cleanup runs vanish without a trace.
+
+## Why scheduled GitHub Actions workflows fail silently
+
+### 1. Cron expression mistakes
+
+GitHub Actions uses a six-field cron syntax (with a mandatory `cron` trigger), but the format has quirks. A single typo in the cron string can prevent the workflow from ever matching the intended schedule.
+
+```yaml
+# Wrong: this runs at 3:00 AM UTC on the 1st of every month
+# but the day-of-month field is 1, not 0
+on:
+  schedule:
+    - cron: '0 3 1 * *'  # This is correct for monthly
+
+# Common mistake: forgetting the day-of-month field
+on:
+  schedule:
+    - cron: '0 3 * *'  # Missing field — GitHub may reject or misinterpret
+```
+
+GitHub's cron syntax requires all five fields: `minute hour day-of-month month day-of-week`. Missing or misaligning fields causes the workflow to never trigger.
+
+### 2. Repository inactivity
+
+GitHub disables scheduled workflows after 60 days of repository inactivity. If no commit or pull request has been made in two months, the cron trigger stops. This is by design — GitHub doesn't want to waste compute on abandoned repos — but it catches teams off guard.
+
+The workflow still appears in the Actions tab with a green checkmark from its last run. There's no banner, no email, no deprecation warning. The schedule just stops.
+
+### 3. Default branch changes
+
+Scheduled workflows trigger on the default branch (usually `main` or `master`). If you rename the default branch or create a new one, the workflow may not carry over. The YAML file exists on the old branch, but the scheduler looks at the new default.
+
+### 4. Workflow file deleted or moved
+
+If someone moves the workflow file to a different directory or renames it, the old schedule may stop working before the new one is active. GitHub doesn't warn about orphaned schedules.
+
+### 5. GitHub infrastructure delays
+
+GitHub's cron scheduler is best-effort. During high-traffic periods (e.g., Monday morning UTC), scheduled workflows can be delayed by minutes or even skipped entirely. There's no SLA for cron trigger precision. If your workflow runs once daily, a single skip means a full day with no execution.
+
+## How to detect missed scheduled runs
+
+### Check the Actions tab
+
+The most basic check: visit the Actions tab and look at the workflow run history. If the last run was 3 days ago and the schedule says daily, something is wrong.
+
+But this only works if someone is actively looking. For unattended workflows, you need automated monitoring.
+
+### Use the GitHub CLI
+
+You can query workflow runs programmatically to detect gaps:
+
+```bash
+# Get the last 10 runs of a workflow
+gh run list --workflow=WORKFLOW_FILE.yml --limit=10   --json createdAt,status,conclusion   --jq '.[] | {created: .createdAt, status: .status, result: .conclusion}'
+```
+
+If the gap between the two most recent `created` timestamps exceeds your expected interval, the workflow missed a run.
+
+### Add a heartbeat step
+
+The most reliable approach: add a monitoring ping at the end of your workflow that fires on every successful execution.
+
+```yaml
+jobs:
+  your-scheduled-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Do work
+        run: echo "Running scheduled task..."
+
+      # Heartbeat: tells your monitoring the workflow ran
+      - name: Ping heartbeat
+        if: success()
+        run: |
+          curl -sS "https://your-heartbeat-endpoint/ping/YOUR_WORKFLOW_ID" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"status": "ok", "run_id": "${{ github.run_id }}"}'
+```
+
+If the heartbeat doesn't arrive within your expected interval, your monitoring system alerts. This catches every failure mode — cron expression bugs, repository inactivity, branch changes, GitHub infrastructure delays.
+
+## Heartbeat monitoring setup
+
+Crontinel supports heartbeat monitoring for any workflow that can make an HTTP request. Here's the setup:
+
+### 1. Create a heartbeat check
+
+In Crontinel, create a new check with type "HTTP Heartbeat" and set the expected interval to match your workflow schedule. For a daily workflow, set the grace period to 25 hours (24 hours + 1 hour buffer for GitHub's best-effort scheduling).
+
+### 2. Add the ping to your workflow
+
+Add a `curl` step at the end of your workflow that sends a POST request to your Crontinel heartbeat URL. The request can include metadata like the run ID, commit SHA, or any other context.
+
+### 3. Configure alerts
+
+Set up notifications via Slack, email, Telegram, or PagerDuty. Crontinel will alert if the heartbeat doesn't arrive within the grace period.
+
+## Common patterns for scheduled workflows
+
+### Nightly data sync
+
+```yaml
+on:
+  schedule:
+    - cron: '0 2 * * *'  # 2:00 AM UTC daily
+  workflow_dispatch:  # Allow manual triggers too
+```
+
+This is the most common pattern — a nightly job that syncs data, generates reports, or cleans up resources. The `workflow_dispatch` trigger lets you run it manually for debugging without touching the cron expression.
+
+### Weekly deployment
+
+```yaml
+on:
+  schedule:
+    - cron: '0 6 * * 1'  # Monday 6:00 AM UTC
+```
+
+Weekly deployments or releases. Missing a weekly run means a full week of delay — high-impact, easy to miss.
+
+### Monthly maintenance
+
+```yaml
+on:
+  schedule:
+    - cron: '0 3 1 * *'  # 1st of every month at 3:00 AM UTC
+```
+
+Monthly cleanup, archival, or reporting tasks. A missed monthly run may not be noticed until the consequences surface weeks later.
+
+## Preventing silent failures
+
+### Always include workflow_dispatch
+
+Adding `workflow_dispatch` to your scheduled workflows lets you trigger them manually. This is essential for debugging and for re-running missed scheduled runs.
+
+### Monitor the heartbeat, not the schedule
+
+Don't try to predict when the workflow should run and check at that time. Instead, let the workflow report its own execution. A heartbeat approach is simpler, more reliable, and catches failures you didn't anticipate.
+
+### Set up branch protection
+
+If your default branch changes frequently, ensure scheduled workflows are defined on all active branches or use repository-level workflow files. GitHub Actions runs the workflow file from the default branch, so keep that branch's workflow definitions up to date.
+
+### Add a weekly sanity check
+
+Even with heartbeat monitoring, a weekly manual check of the Actions tab takes 30 seconds and catches edge cases like partially failed workflows (where the heartbeat step itself was skipped due to an earlier failure).
+
+## The cost of missed scheduled runs
+
+A silent missed workflow can cascade. If a nightly data sync misses three days, downstream reports are stale. If a weekly cleanup doesn't run, disk usage grows unchecked. If a monthly security scan stops, you're flying blind.
+
+The fix is straightforward: add a heartbeat ping to every scheduled workflow and monitor it. Crontinel catches the gap and alerts your team before the consequences compound.
+
+[START FREE TRIAL](https://crontinel.com) — set up heartbeat monitoring for your GitHub Actions workflows in under 5 minutes.
