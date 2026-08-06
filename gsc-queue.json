@@ -1,7 +1,5 @@
 {
-  "pending": [
-    "https://crontinel.com/use-cases/monitor-github-actions-scheduled-workflows/"
-  ],
+  "pending": [],
   "submitted": [
     "https://crontinel.com/vs/crontinel-vs-thenping",
     "https://crontinel.com/blog/laravel-cron-job-not-running",
