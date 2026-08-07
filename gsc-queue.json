@@ -168,7 +168,10 @@
     "https://crontinel.com/blog/python-scheduled-task-monitoring/",
     "https://crontinel.com/use-cases/monitor-vapor-cron/",
     "https://crontinel.com/use-cases/monitor-forge-cron-jobs/",
-    "https://crontinel.com/blog/laravel-cron-monitoring-multi-microservices"
+    "https://crontinel.com/blog/laravel-cron-monitoring-multi-microservices",
+    "https://crontinel.com/blog/datadog-cron-monitoring",
+    "https://crontinel.com/blog/eventbridge-cron-monitoring",
+    "https://crontinel.com/blog/laravel-scheduler-timezone"
   ],
-  "last_push": "2026-08-05"
+  "last_push": "2026-08-06"
 }
