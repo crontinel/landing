@@ -1,5 +1,118 @@
 # SEO Growth Tracker
 
+## Week of 2026-08-03 to 2026-08-07 (Friday review)
+
+### Content Published
+| Date | Type | Title | slug |
+|------|------|-------|------|
+| 2026-08-06 | Use-case | Monitoring GitHub Actions Scheduled Workflows | /use-cases/monitor-github-actions-scheduled-workflows/ |
+| (various) | Blog | Laravel Scheduler Timezone Pitfalls | /blog/laravel-scheduler-timezone/ |
+| (various) | Blog | EventBridge Cron Monitoring | /blog/eventbridge-cron-monitoring/ |
+| (various) | Blog | Datadog Cron Monitoring | /blog/datadog-cron-monitoring/ |
+| (various) | Blog | Detect Silent Laravel Cron Failures | /blog/detect-silent-laravel-cron-failures/ |
+| (various) | Blog | Monitoring Laravel Artisan Commands | /blog/monitoring-laravel-artisan-commands/ |
+| (various) | Blog | Redis Connection Lost Horizon | /blog/redis-connection-lost-horizon/ |
+| (various) | Blog | Background Job Monitoring Comparison | /blog/background-job-monitoring-comparison/ |
+| (various) | Blog | Docker Laravel Cron Monitoring | /blog/docker-laravel-cron-monitoring/ |
+| (various) | Blog | Laravel Cron Monitoring Multi-Microservices | /blog/laravel-cron-monitoring-multi-microservices/ |
+| (various) | Blog | Monitoring Kubernetes Cron Jobs | /blog/monitoring-kubernetes-cron-jobs/ |
+| (various) | Use-case | Monitoring Laravel Forge Cron Jobs | /use-cases/monitor-forge-cron-jobs/ |
+| (various) | Blog | Detecting Slow Laravel Jobs | /blog/detecting-slow-laravel-jobs/ |
+| (various) | Blog | Node.js Cron Monitoring | /blog/nodejs-cron-monitoring/ |
+| (various) | Blog | Python Scheduled Task Monitoring | /blog/python-scheduled-task-monitoring/ |
+| (various) | Use-case | Monitoring Laravel Vapor Cron | /use-cases/monitor-vapor-cron/ |
+| (various) | Blog | Cron Monitoring Pricing Compared 2026 | /blog/cron-monitoring-pricing-compared-2026/ |
+| (various) | Blog | Laravel Cron vs Queue | /blog/laravel-cron-vs-queue-when-to-use/ |
+| (various) | Blog | Laravel Queue Worker Memory Leak | /blog/laravel-queue-worker-memory-leak/ |
+| (various) | Blog | PagerDuty Laravel Queue Cron Alerts | /blog/pagerduty-laravel-queue-cron-alerts/ |
+| (various) | Use-case | Monitoring Redis Queue Performance | /use-cases/monitor-redis-queue-performance/ |
+| (various) | Blog | Horizon Paused Detection | /blog/horizon-paused-detection/ |
+| (various) | Blog | Laravel Queue Backpressure | /blog/laravel-queue-backpressure/ |
+| (various) | Blog | Laravel Queue Depth Alert | /blog/laravel-queue-depth-alert/ |
+| (various) | Blog | Laravel Queue Priority | /blog/laravel-queue-priority-laravel/ |
+
+### GSC 28-Day Performance (Jul 10 - Aug 7)
+| Metric | Value | Trend |
+|--------|-------|-------|
+| Total clicks | 16 | flat (8 to 8 to) |
+| Total impressions | 5,623 | slight decline (2,836 to 2,787 down) |
+| Overall CTR | 0.28% | still early-stage |
+| Avg position | 16.4 | |
+
+### GSC Last 7 Days
+| Date | Clicks | Impr | CTR | Pos |
+|------|--------|------|-----|-----|
+| Aug 1 | 1 | 223 | 0.4% | 19.2 |
+| Aug 2 | 1 | 236 | 0.4% | 16.4 |
+| Aug 3 | 1 | 232 | 0.4% | 14.5 |
+| Aug 4 | 0 | 224 | 0.0% | 20.1 |
+| Aug 5 | 1 | 257 | 0.4% | 18.4 |
+| Aug 6 | 3 | 335 | 0.9% | 14.3 |
+| Aug 7 | 0 | 257 | 0.0% | 14.3 |
+
+**Weekly total:** 7 clicks, ~1,764 impressions, 0.4% CTR
+
+### Top Gainers (7d)
+1. /blog/laravel-schedule-withoutoverlapping-explained/ — 2 clicks, 111 impr (best performer)
+2. /use-cases/monitor-reverb-server/ — 2 clicks, 21 impr (3.9% CTR — proof point)
+3. /blog/laravel-cron-job-not-running/ — 1 click, 19 impr
+4. /blog/laravel-failed-jobs-monitoring/ — 1 click, 58 impr
+5. /use-cases/monitor-laravel-cache-clear-cron-job-failed/ — 1 click, 6 impr (4.5% CTR)
+
+### Top Attention (high impr, low CTR / noise)
+1. /blog/cron-monitoring-pricing-compared-2026/ — 81 impr, 0 clicks, pos 7.0
+2. Homepage — 68 impr, 0 clicks, pos ~4-5
+3. /blog/horizon-supervisor-stopped-jobs-not-processing/ — 28 impr, 0 clicks
+4. /blog/ — 47 impr, 0 clicks
+5. /about/ — 21 impr, 0 clicks
+6. Technical noise: bootstrap/cache/routes-v7.php laravel — 16 impr, pos 5.1
+7. Competitor query: cronradar — 42 impr, pos 4.9
+
+### App subdomain
+app.crontinel.com/ — Already has `<meta name="robots" content="noindex, nofollow">`. Will drop from index. Still receiving impressions (15 imps homepage, 2 imps forgot-password) from historical crawl; noindex propagation takes 1-2 weeks.
+
+### GSC Queue Status
+- Sitemaps: landing 2026-08-06 (171 URLs), docs 2026-07-07 (35 URLs) — both fresh
+- Tracked: 171 submitted, 0 pending
+- Queue synced with sitemap (171/171 normalized)
+- Spot-checks: pricing-compared PASS, withoutoverlapping PASS, homepage PASS — all "Submitted and indexed"
+
+### Content Collections (filesystem 2026-08-07)
+| Collection | Count |
+|------------|-------|
+| Blog | 61 |
+| Use-cases | 76 |
+| Vs | 14 |
+| Integrations | 7 |
+| **Total** | **158** |
+
+### Friday Observations
+1. **Impression volume stable:** ~250/day average, up from ~150/day in late July. Google crawling more pages.
+2. **CTR improving slightly:** 0.4% this week vs 0.31% last week. Still in "CTR crisis" zone (typical for new sites).
+3. **Top performer:** withoutoverlapping at 2 clicks / 111 impr — strong technical content with real search intent.
+4. **CTR proof point:** monitor-reverb-server at 3.9% CTR — shows what's possible with targeted use-case pages.
+5. **Noise queries dominating:** Laravel bootstrap/cache file paths at position 5-6 with 0 clicks. These are matching on package documentation queries, not user intent.
+6. **Content pipeline empty:** pseo-queue has 0 pending topics. Monday keyword research needed to refill.
+7. **PR #235 merged:** Yesterday's daily pipeline PR merged successfully after CI pass.
+8. **Sitemap 0 indexed display:** GSC sitemap API shows "0 indexed" but URL inspection confirms pages ARE indexed — this is a known API display issue (string vs int parsing).
+
+### Tasks Completed This Run
+1. Stale PR cleanup — PR #235 merged (seo/daily-2026-08-06)
+2. GSC health — both sitemaps fresh, queue synced (171/171)
+3. URL spot-checks — 3 pages inspected, all PASS
+4. Friday performance review — 7-day data analyzed, this section written
+5. App subdomain verified — noindex already in place
+6. Content collections counted — 158 total
+
+### Blockers and Action Items
+1. **Content pipeline empty** — pseo-queue has 0 pending topics. Monday keyword research must refill.
+2. **Homepage CTR** — 68 impressions, 0 clicks at pos ~4-5. Meta description rewrite remains #1 lever.
+3. **Pricing page CTR** — 81 impressions, 0 clicks at pos 7.0. Description is good but position is the bottleneck.
+4. **Technical noise** — bootstrap/cache queries persist. These match package documentation, not Crontinel content. Low priority but worth monitoring.
+5. **Sitemap indexed count** — GSC API shows "0 indexed" but spot-checks confirm pages are indexed. API display issue; not a real problem.
+
+---
+
 ## Week of 2026-07-28 to 2026-07-31 (Friday review)
 
 ### Content Published
