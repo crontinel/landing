@@ -63,6 +63,6 @@ Plus, it's the only tool that monitors AI agent runs — tool call loops, model 
 ## Links
 
 - Website: https://crontinel.com
-- GitHub: https://github.com/crontinel/crontinel
+- GitHub: https://github.com/crontinel/laravel
 - Docs: https://docs.crontinel.com
 - SaaS: https://app.crontinel.com

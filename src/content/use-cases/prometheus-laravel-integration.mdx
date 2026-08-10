@@ -33,7 +33,7 @@ The fix is not to replace Prometheus. It is to add the piece that Prometheus can
 **Step 1: Install Crontinel alongside your Prometheus stack.**
 
 ```bash
-composer require crontinel/crontinel
+composer require crontinel/laravel
 ```
 
 Add the Crontinel heartbeat to each scheduled task that matters:
@@ -92,7 +92,7 @@ Getting started takes a few minutes. Install the package, add the heartbeat to y
 Crontinel works as a standalone layer on top of your existing monitoring. You keep your Prometheus dashboards for infrastructure and request metrics. Crontinel handles the cron and queue monitoring that Prometheus was never designed for.
 
 ```bash
-composer require crontinel/crontinel
+composer require crontinel/laravel
 php artisan crontinel:register
 ```
 
