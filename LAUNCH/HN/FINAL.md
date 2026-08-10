@@ -32,7 +32,7 @@ dotnet add package Crontinel
 
 MIT licensed, fully self-hostable. Local dashboard, CLI, no SaaS needed. There's also a hosted version for teams.
 
-GitHub: https://github.com/crontinel/crontinel
+GitHub: https://github.com/crontinel/laravel
 Docs: https://docs.crontinel.com
 Site: https://crontinel.com
 

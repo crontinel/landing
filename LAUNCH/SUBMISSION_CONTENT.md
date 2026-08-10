@@ -120,7 +120,7 @@ Ready-to-paste content for each directory. Copy-paste these when submitting.
 | Field | Value |
 |---|---|
 | **Project name** | Crontinel |
-| **URL** | https://github.com/crontinel/crontinel |
+| **URL** | https://github.com/crontinel/laravel |
 | **Description** | Open-source monitoring for cron jobs, queues, workers, and background tasks. Framework-agnostic — any stack, any framework. |
 | **Tags** | cron, monitoring, queue, laravel, devtools |
 | **License** | MIT |

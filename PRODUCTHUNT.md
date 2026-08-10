@@ -39,7 +39,7 @@ Crontinel monitors your Laravel queues, cron jobs, and Horizon workers - and ale
 - Product: https://crontinel.com
 - App: https://app.crontinel.com
 - Docs: https://docs.crontinel.com
-- GitHub: https://github.com/crontinel/crontinel
+- GitHub: https://github.com/crontinel/laravel
 
 ## Launch Checklist
 
