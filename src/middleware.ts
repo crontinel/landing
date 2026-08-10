@@ -3,8 +3,14 @@ import { defineMiddleware } from 'astro:middleware';
 export const onRequest = defineMiddleware(async (context, next) => {
   const url = new URL(context.request.url);
 
-  // Redirect HTTP to HTTPS (except localhost dev)
-  if (url.protocol === 'http:' && !['localhost', '127.0.0.1', '::1'].includes(url.hostname)) {
+  // Redirect HTTP to HTTPS (except localhost dev and Tailscale hosts, which
+  // terminate TLS at the tailnet edge and forward to us as plain HTTP)
+  const isTailscaleHost = url.hostname.endsWith('.ts.net');
+  if (
+    url.protocol === 'http:' &&
+    !['localhost', '127.0.0.1', '::1'].includes(url.hostname) &&
+    !isTailscaleHost
+  ) {
     url.protocol = 'https:';
     return Response.redirect(url.toString(), 301);
   }
