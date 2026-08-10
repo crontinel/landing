@@ -9,7 +9,8 @@ import Base from "../layouts/Base.astro";
 
         <section class="mb-12">
             <h2 class="text-xl font-semibold text-white mb-3">What is the Agent?</h2>
-            <p class="text-slate-400 mb-4">The Crontinel agent is a lightweight daemon that runs on your server, connects to app.crontinel.com via SSE, and listens for commands. When you schedule a trigger from the cloud, the agent receives it, executes it, reports the result, and it appears in your dashboard.</p>
+            <p class="text-slate-400 mb-4">The Crontinel agent is a lightweight daemon that runs on your server, connects to app.crontinel.com, and listens for commands. When you schedule a trigger from the cloud, the agent checks it against your configured command allowlist, executes it if permitted, reports the result, and it appears in your dashboard.</p>
+            <p class="text-slate-400 mb-4">By default the agent refuses to run <strong class="text-white">any</strong> command — you must configure an allowlist of permitted commands first. See the <a href="https://docs.crontinel.com/agent/guide/#command-allowlisting" class="text-green-400 underline">Command Allowlisting docs</a>.</p>
         </section>
 
         <section class="mb-12">
@@ -65,7 +66,7 @@ crontinel agent</code></pre>
 
         <section class="mb-12">
             <h2 class="text-xl font-semibold text-white mb-3">Test Your Agent</h2>
-            <p class="text-slate-400 mb-4">Schedule a trigger to verify the agent is connected:</p>
+            <p class="text-slate-400 mb-4">Add the command to your allowlist first, then schedule a trigger to verify the agent is connected:</p>
             <div class="bg-slate-900 rounded-xl p-5">
                 <pre class="text-sm text-green-400 overflow-x-auto"><code>curl -X POST https://app.crontinel.com/api/v1/triggers \
   -H "X-API-Key: YOUR_API_KEY" \
