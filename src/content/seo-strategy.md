@@ -1,5 +1,29 @@
 # Crontinel SEO Strategy
-Auto-generated: 2026-07-27 03:11 UTC — queue cleanup, no new content
+Auto-generated: 2026-08-10 09:17 UTC — title refresh for high-impression pages
+
+## Run Summary (2026-08-10)
+
+**Articles Generated: 0** — title/meta refresh only.
+
+**Title refreshes:**
+- `cron-monitoring-pricing-compared-2026.mdx` — "Crontinel vs Cronitor vs CronRadar: 2026 Pricing Compared" (was: "Cron Monitoring Pricing 2026: What Each Tool Actually Costs")
+  - Rationale: 98 impressions at position 4.9, 0 clicks. Lead with brand names for competitor search queries.
+- `laravel-cron-queue-monitoring-tools.mdx` — "Laravel Cron and Queue Monitoring Tools: 2026 Comparison" (was: "Best Laravel Cron and Queue Monitoring Tools for Production")
+  - Rationale: 266 impressions at position 22.7, 0 clicks. Match "laravel monitoring" query intent, add year for freshness signal.
+
+**GSC findings (28-day — 2026-07-13 to 2026-08-10):**
+- 12 total clicks across 100+ pages — site still early in search lifecycle
+- Top: cron-scheduler-alternatives (2 clicks, 90 imp, pos 17.9, CTR 2.2%)
+- Top CTR: monitor-reverb-server (2 clicks, 49 imp, pos 12.8, CTR 4.1%)
+- Pricing comparison: 98 imp, pos 4.9, 0 clicks — title refreshed
+- Monitoring tools: 266 imp, pos 22.7, 0 clicks — title refreshed
+- Homepage: 95 imp, pos 6.6, 0 clicks
+- Queue has 5 pending topics but all are artisan-command-adjacent; content strategy recommends against these
+
+**Recommendations:**
+- Title refreshes applied to two highest-impression zero-click pages
+- Queue topics need validation against search demand before generation
+- Consider homepage structured data / FAQ to improve SERP real estate
 
 ## Run Summary (2026-07-27)
 
