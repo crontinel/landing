@@ -229,7 +229,7 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
     <div class="right">
       <a class="btn btn-ghost btn-sm nav-github" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener" aria-label="GitHub">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
-        <span>1.2k</span>
+        <span>Star</span>
       </a>
       <a class="btn btn-primary btn-sm" href="https://app.crontinel.com/register">Start free <span class="arrow-i">&#8599;</span></a>
       <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
@@ -285,7 +285,7 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
       </div>
 
       <div class="hero-trust mono">
-        <span>polyglot · open core</span>
+        <span>Laravel-first, SDKs for other languages · open core</span>
         <span class="sep">·</span>
         <span>MIT licensed</span>
         <span class="sep">·</span>
@@ -539,7 +539,7 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
         <p>Drop the SDK in. No scheduler wrapping. No per-job decorators. No changes to existing jobs.</p>
         <pre><span class="cmt"># pick your runtime</span>
 <span class="ok">$</span> npm i @crontinel/node
-<span class="ok">$</span> pip install crontinel
+<span class="ok">$</span> pip install git+https://github.com/crontinel/python.git
 <span class="ok">$</span> go get github.com/crontinel/go
 <span class="ok">$</span> gem install crontinel
 <span class="ok">$</span> composer require crontinel/laravel
@@ -671,7 +671,6 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
           <span class="int-pill">PagerDuty</span>
           <span class="int-pill">Email / SES</span>
           <span class="int-pill">Webhook · HMAC</span>
-          <span class="int-pill">Telegram</span>
           <span class="int-pill">MCP · any agent</span>
         </div>
       </div>
@@ -683,6 +682,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
           <span class="int-pill soon">Linear</span>
           <span class="int-pill soon">Zapier</span>
           <span class="int-pill soon">Microsoft Teams</span>
+          <span class="int-pill soon">Telegram</span>
         </div>
       </div>
     </div>
@@ -761,7 +761,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <article class="card price reveal">
         <h3>Team</h3>
         <p class="tag">Unlimited apps, teammates, history.</p>
-        <div class="cost"><span class="amt" data-monthly="49" data-yearly="39">$49</span><span class="per">/mo</span></div>
+        <div class="cost"><span class="amt" data-monthly="49.99" data-yearly="41.66">$49.99</span><span class="per">/mo</span></div>
         <ul>
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited apps</li>
           <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 year of history</li>
@@ -904,7 +904,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <div class="oss-callout-cmd">
           <div class="oss-pkgs">
             <code class="mono">npm i @crontinel/node</code>
-            <code class="mono">pip install crontinel</code>
+            <code class="mono">pip install git+https://github.com/crontinel/python.git</code>
             <code class="mono">go get github.com/crontinel/go</code>
             <code class="mono">composer require crontinel/laravel</code>
             <code class="mono">gem install crontinel</code>
@@ -940,7 +940,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="npx crontinel check">COPY</button></div>
       </div>
       <div class="sdk-panel" data-for="python" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> pip install crontinel</span><button class="copy" data-copy="pip install crontinel">COPY</button></div>
+        <div class="install-cmd"><span><span class="prompt">$</span> pip install git+https://github.com/crontinel/python.git</span><button class="copy" data-copy="pip install git+https://github.com/crontinel/python.git">COPY</button></div>
         <div class="install-cmd"><span><span class="prompt">$</span> crontinel init</span><button class="copy" data-copy="crontinel init">COPY</button></div>
         <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
       </div>
@@ -1017,7 +1017,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     </div>
     <div class="mt-6 text-center">
       <a href="/use-cases/" class="text-sm text-green-400 hover:text-green-300 transition-colors">
-        Browse all 55 use cases &rarr;
+        Browse all 76 use cases &rarr;
       </a>
     </div>
   </div>
@@ -1031,36 +1031,6 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <div class="actions">
         <a class="btn btn-primary" href="https://app.crontinel.com/register">Start monitoring free <span class="arrow-i">&#8599;</span></a>
         <a class="btn btn-ghost" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">Read the source</a>
-      </div>
-      <div class="mt-8 max-w-xl mx-auto rounded-2xl border border-gray-800 bg-gray-900 p-6 text-center">
-        <div class="inline-flex items-center gap-2 rounded-full border border-green-500/20 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-400 mb-4">
-          Launch updates
-        </div>
-        <h3 class="text-white text-lg font-semibold mb-2">Join the waitlist</h3>
-        <p class="text-gray-400 text-sm mb-4">Get launch updates and the first release notes when Crontinel is ready.</p>
-        <p class="mb-6 text-sm text-gray-300">
-          <span class="inline-flex items-center gap-2 rounded-full border border-gray-700 bg-gray-950 px-3 py-1.5" aria-live="polite">
-            <span class="h-2 w-2 rounded-full bg-green-400"></span>
-            <span id="waitlist-count">Loading current count...</span>
-          </span>
-        </p>
-        <form id="waitlist-form" class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-          <input
-            type="email"
-            id="waitlist-email"
-            placeholder="you@yourapp.com"
-            required
-            class="flex-1 bg-gray-950 border border-gray-700 text-white placeholder-gray-500 px-4 py-2.5 rounded-lg text-sm focus:outline-none focus:border-green-500 transition-colors"
-          />
-          <button
-            type="submit"
-            id="waitlist-btn"
-            class="bg-green-500 hover:bg-green-400 disabled:opacity-50 text-black font-semibold px-4 py-2.5 rounded-lg transition-colors text-sm whitespace-nowrap"
-          >
-            Notify me
-          </button>
-        </form>
-        <p id="waitlist-msg" class="mt-3 text-sm hidden"></p>
       </div>
     </div>
   </div>
@@ -1087,7 +1057,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
           <a href="https://github.com/crontinel" aria-label="GitHub" class="soc">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
           </a>
-          <a href="https://x.com/HarunRRayhan" aria-label="X / Twitter" class="soc">
+          <a href="https://x.com/CrontinelApp" aria-label="X / Twitter" class="soc">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </a>
         </div>
@@ -1208,78 +1178,6 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     </div>
   </div>
 </aside>
-
-<script>
-  const form = document.getElementById('waitlist-form') as HTMLFormElement;
-  const emailInput = document.getElementById('waitlist-email') as HTMLInputElement;
-  const btn = document.getElementById('waitlist-btn') as HTMLButtonElement;
-  const msg = document.getElementById('waitlist-msg') as HTMLParagraphElement;
-  const countLabel = document.getElementById('waitlist-count') as HTMLSpanElement;
-
-  const formatWaitlistCount = (count: number) => {
-    const safeCount = Number.isFinite(count) ? Math.max(0, Math.trunc(count)) : 0;
-    const unit = safeCount === 1 ? 'person' : 'people';
-    return `${new Intl.NumberFormat('en-US').format(safeCount)} ${unit} already joined`;
-  };
-
-  const setWaitlistCount = (count: number) => {
-    if (countLabel) {
-      countLabel.textContent = formatWaitlistCount(count);
-    }
-  };
-
-  const refreshWaitlistCount = async () => {
-    try {
-      const res = await fetch('/api/waitlist-count', { headers: { 'Accept': 'application/json' } });
-      const data = await res.json();
-
-      if (res.ok && data.ok && typeof data.count === 'number') {
-        setWaitlistCount(data.count);
-      } else if (countLabel) {
-        countLabel.textContent = 'Count unavailable';
-      }
-    } catch {
-      if (countLabel) {
-        countLabel.textContent = 'Count unavailable';
-      }
-    }
-  };
-
-  refreshWaitlistCount();
-
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    btn.disabled = true;
-    btn.textContent = 'Joining...';
-
-    try {
-      const res = await fetch('/api/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: emailInput.value }),
-      });
-      const data = await res.json();
-      if (res.ok && data.ok) {
-        setWaitlistCount(data.count);
-        msg.textContent = data.alreadyJoined
-          ? `You're already on the list. ${formatWaitlistCount(data.count)}.`
-          : `You're on the list. ${formatWaitlistCount(data.count)}.`;
-        msg.className = 'mt-3 text-sm text-green-400';
-        form.reset();
-      } else {
-        msg.textContent = data.error ?? 'Something went wrong. Try again.';
-        msg.className = 'mt-3 text-sm text-red-400';
-        btn.disabled = false;
-        btn.textContent = 'Notify me';
-      }
-    } catch {
-      msg.textContent = 'Something went wrong. Try again.';
-      msg.className = 'mt-3 text-sm text-red-400';
-      btn.disabled = false;
-      btn.textContent = 'Notify me';
-    }
-  });
-</script>
 
 <script is:inline src="/src/main.js"></script>
 

@@ -29,6 +29,60 @@ const comparisons = [
     verdict: 'Best when you want a classic uptime tool with transaction checks.',
   },
   {
+    name: 'Cronitor',
+    slug: 'crontinel-vs-cronitor',
+    tagline: 'Ping-based dead-man alerts for cron jobs.',
+    verdict: 'Best when you only need to know a job pinged back, not why it failed.',
+  },
+  {
+    name: 'Healthchecks.io',
+    slug: 'crontinel-vs-healthchecks-io',
+    tagline: 'Focused dead-man switch for cron jobs.',
+    verdict: 'Best when you want a simple ping-based check with no Laravel-specific insight.',
+  },
+  {
+    name: "Dead Man's Snitch",
+    slug: 'crontinel-vs-deadmanssnitch',
+    tagline: 'Simple cron ping alerting.',
+    verdict: "Best when you want a bare-bones dead-man's switch.",
+  },
+  {
+    name: 'Laravel Forge Heartbeats',
+    slug: 'crontinel-vs-forge-heartbeats',
+    tagline: 'Built-in ping monitoring bundled with Forge.',
+    verdict: 'Best when you already pay for Forge and only need a basic ping check.',
+  },
+  {
+    name: 'Laravel Telescope',
+    href: '/vs/telescope/',
+    tagline: 'First-party debug assistant, not a monitoring tool.',
+    verdict: 'Best for local/staging debugging, not production alerting.',
+  },
+  {
+    name: 'CronRadar',
+    slug: 'crontinel-vs-cronradar',
+    tagline: 'AI-native cron monitoring with Laravel auto-discovery.',
+    verdict: 'Best when you want auto-discovery over deeper Horizon/queue visibility.',
+  },
+  {
+    name: 'Cronofy',
+    slug: 'crontinel-vs-cronofy',
+    tagline: 'Scheduling and calendar API, not a monitoring tool.',
+    verdict: 'Best when you need calendar sync, not job monitoring.',
+  },
+  {
+    name: 'LambdaTest',
+    slug: 'crontinel-vs-lambdatest',
+    tagline: 'Cloud cross-browser testing platform.',
+    verdict: 'Best for CI/CD test runs, not production job monitoring.',
+  },
+  {
+    name: 'thenping.me',
+    slug: 'crontinel-vs-thenping',
+    tagline: 'Archived Laravel-native cron monitor.',
+    verdict: 'Best if you want the actively maintained replacement.',
+  },
+  {
     name: 'Alternatives',
     slug: 'crontinel-alternatives',
     tagline: 'Shortlist other tools by use case, team size, and budget.',
@@ -70,7 +124,7 @@ const comparisons = [
     <div class="grid sm:grid-cols-2 gap-4">
       {comparisons.map((c) => (
         <a
-          href={`/vs/${c.slug}/`}
+          href={c.href ?? `/vs/${c.slug}/`}
           class="group block bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-gray-700 rounded-xl p-6 transition-colors"
         >
           <div class="flex items-start justify-between mb-3">
