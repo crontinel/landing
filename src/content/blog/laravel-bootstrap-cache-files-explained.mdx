@@ -1,0 +1,52 @@
+---
+title: "What Are the Files in Laravel's bootstrap/cache? Explained"
+description: "A plain-language breakdown of config.php, packages.php, services.php, and routes-v7.php in Laravel's bootstrap/cache directory, what creates them, and whether to commit them."
+date: 2026-08-11
+tags: ["laravel", "deployment", "caching"]
+---
+
+If you have deployed a Laravel app, you have seen the files in `bootstrap/cache/` and wondered what they actually are. `config.php`, `packages.php`, `services.php`, `routes-v7.php`. They look like the kind of files that should be in `vendor/` or somewhere a script manages, not sitting next to your source.
+
+They are compiled caches. Laravel writes them so it can load config, routes, and package discovery results from a single PHP file instead of parsing dozens of files and re-running discovery on every request. Understanding what each one does, and when it gets written, helps you avoid the classic deploy problems: stale config, missing routes, and workers running old code.
+
+## What each file is
+
+### config.php
+
+Created by `php artisan config:cache`. Laravel loads every file in `config/`, evaluates the environment values, and writes the result to `bootstrap/cache/config.php` as one PHP array. Once the file exists, calls like `config('database.default')` read from it directly.
+
+This is why the Laravel docs warn against using `env()` outside config files. After `config:cache` runs, `env()` reads from the cached array in production, not from `.env`. If a job or custom class calls `env('REDIS_HOST')`, it can behave differently from `config('database.redis.default.host')`.
+
+### packages.php and services.php
+
+Created during package discovery, which Laravel runs when you install dependencies or run `php artisan package:discover` (also part of `optimize`). The framework scans the installed packages, finds their service providers and bootstrappers, and writes the results to `packages.php` and `services.php`.
+
+You usually do not think about these files because Composer triggers discovery automatically after installs. But if they are missing or stale, packages fail to register their providers and parts of your app quietly stop loading.
+
+### routes-v7.php
+
+Created by `php artisan route:cache`. Laravel compiles every route definition into `bootstrap/cache/routes-v7.php`. The `v7` in the name tracks the route cache format, not your Laravel version directly, which is why you may also see `routes-v8.php` on newer releases.
+
+Route caching gives a real speedup on large apps, but it has a known trap: closures in routes cannot be cached. If any route uses a closure, `route:cache` fails and your deploy script fails with it.
+
+## Should you commit them to git?
+
+No. The standard Laravel `.gitignore` already contains `bootstrap/cache/*.php`, which covers all four files. If you see them in `git status`, either the ignore rule is missing or someone force-added them. They are environment-specific compiled output: fast to regenerate, and wrong to share between machines.
+
+What should be committed is `bootstrap/cache/.gitignore`, the file that contains the rule. Keep it, and never commit the `*.php` files it excludes.
+
+## Where deploy problems come from
+
+The files are usually fine. The problems start when the commands that create them run at the wrong time in a deploy.
+
+`config:cache` must run after the new `.env` and config files exist, and it has to run on every server that serves traffic. If the hook runs in the old release directory, or one host fails while the others succeed, production keeps pointing at the previous settings. Same story with `route:cache`: a closure in a route makes the command fail, and if the rest of the deploy does not stop, you ship with the old route file.
+
+When these caches go stale, the failures are intermittent and confusing: mail points at the old SMTP server, the payment gateway uses the previous key, some hosts return 404 for routes that exist in code. Nothing crashes loudly, because the app boots fine and serves cached versions of the old truth.
+
+Teams that have been burned by this tend to add a check that runs after deploy: verify the new release directory is live, confirm `config.php` and `routes-v7.php` were regenerated, and confirm every host agrees on the same values. That is exactly the kind of thing [cron and queue monitoring tools like Crontinel](https://crontinel.com) watch externally, so the moment a deploy hook fails or a server keeps stale config, you get an alert instead of finding out from user reports. If you want the deeper setup, the [monitoring config:cache guide](/use-cases/monitor-config-cache/) walks through the full ping strategy.
+
+If you are debugging a fleet-wide config mismatch right now, start with `php artisan config:clear` and `php artisan route:clear` on one host, rebuild both caches, and compare the files across hosts. The file that differs tells you which server ran a different deploy sequence.
+
+## The short version
+
+`bootstrap/cache` holds compiled config, package discovery results, and routes. Laravel regenerates them with `config:cache`, `package:discover`, and `route:cache`. Do not commit them, do not delete them mid-deploy, and make sure the commands that build them run after every release, on every host.
