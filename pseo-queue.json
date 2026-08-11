@@ -1,6 +1,12 @@
 {
   "in_progress": [],
-  "pending": [],
+  "pending": [
+    "laravel-octane-cron",
+    "supervisor-queue-worker-config",
+    "queue-worker-memory-limit",
+    "laravel-deploy-zero-downtime-queue",
+    "horizon-rebalancing-strategy"
+  ],
   "completed": [
     "about",
     "backup-clean",
@@ -88,7 +94,8 @@
     "redis-queue-performance",
     "monitor-vapor-cron",
     "monitor-forge-cron-jobs",
-    "laravel-cron-monitoring-multi-microservices"
+    "laravel-cron-monitoring-multi-microservices",
+    "queue-worker-graceful-shutdown"
   ],
   "done": [
     "spatie-schedule-monitor-setup"

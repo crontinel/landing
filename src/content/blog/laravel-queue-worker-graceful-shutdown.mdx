@@ -1,0 +1,177 @@
+---
+title: "Laravel Queue Worker Graceful Shutdown: Stop Losing Jobs on Deploy"
+description: "How to configure Laravel queue workers for graceful shutdown during deployments so no jobs are lost or duplicated. Covers Horizon, Supervisor, and queue:work strategies."
+date: 2026-08-10
+tags: ["laravel", "queues", "deployment"]
+---
+
+Deploying code while queue workers are running is one of the most common ways to lose jobs in production. You push a release, restart your process manager, and workers die mid-execution. The job is lost, or worse, it runs twice because the database transaction hadn't committed yet.
+
+This guide covers how to configure graceful shutdown for Laravel queue workers so deployments never lose work.
+
+## Why Workers Die During Deployments
+
+When you deploy a new release, your process manager (Supervisor, systemd, or your hosting platform) typically does one of:
+
+1. **SIGTERM the old worker** — the worker receives the signal and immediately exits
+2. **SIGKILL** — the process is killed without cleanup
+3. **New worker starts before old one finishes** — the old worker is orphaned
+
+Laravel's `queue:work` command handles `SIGTERM` gracefully by default. It finishes the current job, then exits. But only if you configure it correctly.
+
+## The Default Behavior (And Why It Breaks)
+
+Run a queue worker without flags:
+
+```bash
+php artisan queue:work
+```
+
+This worker will:
+- Process one job, then check for the next
+- On `SIGTERM`, it finishes the current job and exits
+- But it does **not** release the job if the process is killed with `SIGKILL`
+
+The problem: most process managers send `SIGTERM` first, then `SIGKILL` after a timeout (usually 10 seconds). If your job takes longer than that timeout, the worker is killed mid-execution.
+
+## Configure Graceful Shutdown
+
+### 1. Set the `--timeout` Flag
+
+The `--timeout` flag controls how long a worker waits before killing a job that's taking too long:
+
+```bash
+php artisan queue:work --timeout=60
+```
+
+This tells the worker: "If a job takes more than 60 seconds, kill it." But this doesn't control the worker's own shutdown behavior — it controls the *job's* timeout.
+
+### 2. Set `SIGTERM` Handler in Your Worker
+
+Laravel's `queue:work` command already handles `SIGTERM` — it finishes the current job and exits. The issue is when your process manager doesn't give it enough time.
+
+### 3. Configure Supervisor for Graceful Shutdown
+
+If you're using Supervisor, set `stopwaitsecs` to give workers time to finish:
+
+```ini
+[program:queue-worker]
+command=php artisan queue:work --sleep=3 --tries=3 --timeout=60
+process_name=%(program_name)s_%(process_num)02d
+autostart=true
+autorestart=true
+stopwaitsecs=90
+stopasgroup=true
+killasgroup=true
+```
+
+Key settings:
+- **`stopwaitsecs=90`** — Supervisor waits 90 seconds for the worker to exit after sending `SIGTERM`
+- **`stopasgroup=true`** — sends `SIGTERM` to the entire process group (catches child processes)
+- **`killasgroup=true`** — sends `SIGKILL` to the process group if `stopwaitsecs` expires
+
+Without `stopwaitsecs`, Supervisor defaults to 10 seconds — too short for most jobs.
+
+### 4. Configure Horizon for Graceful Shutdown
+
+Horizon handles this differently. Horizon's supervisor process manages worker lifecycle:
+
+```php
+// config/horizon.php
+'environments' => [
+    'production' => [
+        'supervisor-1' => [
+            'connection' => 'redis',
+            'queue' => ['default', 'emails', 'reports'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => 10,
+            'maxTime' => 3600,
+            'maxJobs' => 1000,
+            'memory' => 128,
+            'tries' => 3,
+            'timeout' => 60,
+            'nice' => 0,
+        ],
+    ],
+],
+```
+
+Horizon workers respect the `--timeout` setting and handle `SIGTERM` by finishing the current job. But you still need to configure your process manager (Supervisor, systemd) with appropriate `stopwaitsecs`.
+
+### 5. Use `queue:listen` as a Fallback
+
+If you need absolute safety (every job must finish or be released), use `queue:listen` instead of `queue:work`:
+
+```bash
+php artisan queue:listen --timeout=60
+```
+
+`queue:listen` spawns a new process for each job. If the worker is killed, the job was either completed or never started — no partial execution. The downside: higher memory usage and slower job processing.
+
+## Deploy-Time Strategy: The Two-Step Restart
+
+The safest deployment pattern for queue workers:
+
+```bash
+# 1. Stop accepting new jobs
+php artisan queue:work --once
+# Or: kill the workers, wait for current jobs to finish
+
+# 2. Deploy new code
+git pull && composer install --no-dev
+
+# 3. Start new workers
+php artisan queue:work --sleep=3 --tries=3 --timeout=60
+```
+
+With Horizon, this is simpler:
+
+```bash
+# Horizon automatically restarts workers on config change
+php artisan horizon:terminate
+```
+
+`horizon:terminate` sends `SIGTERM` to all workers, waits for them to finish their current job, then starts new workers with the updated code.
+
+## The `--max-jobs` Safety Net
+
+For extra safety, use `--max-jobs` to force workers to restart after processing a set number of jobs:
+
+```bash
+php artisan queue:work --max-jobs=500
+```
+
+This ensures workers periodically restart with fresh code and clear memory. Combined with `stopwaitsecs`, it gives you predictable shutdown behavior.
+
+## Common Failure Modes
+
+| Scenario | What Happens | Fix |
+|---|---|---|
+| Worker killed with `SIGKILL` | Job lost (or duplicated if DB transaction hadn't committed) | Use `stopwaitsecs` and `SIGTERM` handling |
+| Worker timeout too short | Job killed before completion | Set `--timeout` higher than your longest job |
+| Multiple workers on same queue | Race conditions, duplicate processing | Use `--uniqueJob` or Horizon's balancing |
+| Redis connection drops during job | Job stuck in "processing" forever | Use `queue:restart` after Redis reconnects |
+| Memory leak in long-running worker | Worker OOM-killed | Use `--max-jobs` or `--max-time` |
+
+## Monitoring Shutdowns
+
+Track graceful vs forced shutdowns in your logs:
+
+```php
+// In aServiceProvider::boot()
+Queue::after(function (JobProcessed $event) {
+    Log::info('Job completed', [
+        'job' => $event->job->resolveName(),
+        'queue' => $event->job->getQueue(),
+    ]);
+});
+```
+
+If you see jobs that start but never complete, your workers are being killed before they finish. Check your process manager's `stopwaitsecs` setting.
+
+## Key Takeaway
+
+The single most impactful change: **set `stopwaitsecs` in Supervisor (or equivalent) to at least 90 seconds**, and use `--timeout=60` on your queue workers. This gives workers enough time to finish any job before being killed, and ensures deployments never lose work.
+
+With Crontinel, you get alerts when workers stop processing jobs — so if a deployment does go wrong, you know within seconds, not hours.

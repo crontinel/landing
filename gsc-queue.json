@@ -1,5 +1,7 @@
 {
-  "pending": [],
+  "pending": [
+    "https://crontinel.com/blog/laravel-queue-worker-graceful-shutdown"
+  ],
   "submitted": [
     "https://crontinel.com/vs/crontinel-vs-thenping",
     "https://crontinel.com/blog/laravel-cron-job-not-running",
@@ -171,7 +173,9 @@
     "https://crontinel.com/blog/laravel-cron-monitoring-multi-microservices",
     "https://crontinel.com/blog/datadog-cron-monitoring",
     "https://crontinel.com/blog/eventbridge-cron-monitoring",
-    "https://crontinel.com/blog/laravel-scheduler-timezone"
+    "https://crontinel.com/blog/laravel-scheduler-timezone",
+    "https://crontinel.com/use-cases/monitor-github-actions-scheduled-workflows/",
+    "https://crontinel.com/use-cases/monitor-github-actions-scheduled-workflows"
   ],
-  "last_push": "2026-08-06"
+  "last_push": "2026-08-10"
 }
