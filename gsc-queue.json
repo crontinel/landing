@@ -175,7 +175,8 @@
     "https://crontinel.com/blog/eventbridge-cron-monitoring",
     "https://crontinel.com/blog/laravel-scheduler-timezone",
     "https://crontinel.com/use-cases/monitor-github-actions-scheduled-workflows/",
-    "https://crontinel.com/use-cases/monitor-github-actions-scheduled-workflows"
+    "https://crontinel.com/use-cases/monitor-github-actions-scheduled-workflows",
+    "https://crontinel.com/blog/laravel-octane-scheduler-not-running"
   ],
-  "last_push": "2026-08-11"
+  "last_push": "2026-08-12"
 }

@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "laravel-octane-cron",
     "supervisor-queue-worker-config",
     "queue-worker-memory-limit",
     "laravel-deploy-zero-downtime-queue",
@@ -35,6 +34,7 @@
     "horizon-worker-starvation",
     "kubernetes-laravel-horizon",
     "laravel-kubernetes-cron",
+    "laravel-octane-cron",
     "laravel-schedule-timezone-mismatch",
     "laravel-supervisor-configuration",
     "long-running-cron-jobs",
