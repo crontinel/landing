@@ -1,0 +1,88 @@
+---
+title: "Laravel Octane Doesn't Run the Scheduler (How to Catch It)"
+description: "Laravel Octane serves HTTP but does not run the scheduler. Why scheduled tasks silently stop after an Octane deploy, and how to monitor schedule:run."
+date: 2026-08-12
+tags: ["laravel", "octane", "scheduler", "monitoring"]
+---
+
+The most common Octane misunderstanding is also the most expensive: moving to Octane and assuming the scheduler comes along. It does not. Octane is an HTTP application server. Swoole, RoadRunner, or FrankenPHP workers boot your framework once, keep it in memory, and serve thousands of requests from those warm processes. Nothing in that loop runs `php artisan schedule:run`.
+
+The scheduler is a completely separate process. It either runs as a cron entry that invokes `schedule:run` every minute, or as `schedule:work`, a long-lived daemon that loops and sleeps. Either way, Octane has nothing to do with it. Teams that forget this end up with an app that serves traffic beautifully while every scheduled task silently stops.
+
+## Why the confusion happens
+
+Octane's selling point is that your app stays alive between requests. It is easy to extend that logic one step too far: the app is running, so background work must be running. It is not. Octane keeps *request handling* state in memory. The scheduler, like queue workers, is an outside process that must be started and supervised on its own.
+
+The second source of confusion is deploy tooling. Forge and similar panels add Octane as a daemon, which looks after the HTTP workers. Nobody adds a second supervised entry for the scheduler unless they already had one. If your old Laravel setup used a server cron line and your deploy script or Forge recipe silently replaced the crontab, the scheduler is gone.
+
+## Failure modes specific to Octane deployments
+
+**Crontab replaced or dropped.** Forge's Octane recipe manages daemons, not crontabs. If the crontab was rebuilt during migration and `schedule:run` is missing, nothing runs. Check with `crontab -l`; the line should look like:
+
+```cron
+* * * * * cd /home/forge/example.com && php artisan schedule:run >> /dev/null 2>&1
+```
+
+**`schedule:work` running old code.** Octane has `octane:reload`, which restarts HTTP workers to pick up new code. People assume the same reload refreshes the scheduler. It does not. `schedule:work` is its own process; if you do not restart it on deploy, it keeps executing the previous release for days. Deploy scripts that do `octane:reload` but never touch `schedule:work` produce exactly this bug.
+
+```bash
+# After deploy: reload HTTP workers AND restart the scheduler daemon
+php artisan octane:reload
+sudo supervisorctl restart laravel-scheduler
+```
+
+**Scheduler wedged but "running".** `schedule:work` can hit an exception in the loop, stop scheduling, and keep the process alive. Supervisor reports the program as RUNNING, `docker ps` shows the container up, and nothing fires. The failure is invisible to every process check.
+
+**Config cache mismatch.** Octane workers boot once and keep config in memory; the scheduler process holds its own copy. If `config:cache` runs at a different point in the deploy than the scheduler restart, the two processes disagree about environment variables, queue names, or external service URLs.
+
+## What to monitor, and how
+
+Monitor the scheduler as its own thing. Checking that the Octane server answers HTTP tells you the workers are warm; it says nothing about cron. Three separate signals matter:
+
+1. **The scheduler fires on cadence.** A heartbeat check that expects a ping every minute (or every N minutes for long schedules) catches a dead crontab, a wedged `schedule:work`, and a missed run. This is the signal that covers all failure modes at once.
+
+2. **The cron process is alive.** `pgrep -f schedule:run` style checks catch the crontab being empty. Useful as a secondary alarm, but it will not catch a wedged loop that stays alive.
+
+3. **Deploys restart everything.** After `octane:reload`, confirm the scheduler also came back up and produced a fresh heartbeat. The check that catches "old code for days" is a scheduler heartbeat timestamp, not a process list.
+
+```php
+// app/Console/Commands/PingScheduler.php
+Artisan::command('scheduler:ping', function () {
+    // External monitor: expect this every minute, alert if silent
+    Http::post('https://crontinel.com/api/pings/' . env('CRONTINEL_PING_ID'));
+});
+```
+
+```php
+// app/Console/Kernel.php
+protected function schedule(Schedule $schedule)
+{
+    // Runs inside schedule:run, so this one ping proves the scheduler fired
+    $schedule->command('scheduler:ping')->everyMinute();
+}
+```
+
+```cron
+* * * * * cd /home/forge/example.com && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Registering the ping as a scheduled command keeps one cron entry. When `schedule:run` fires, the ping fires with it. When the crontab is empty, the loop is wedged, or the daemon never restarted, the ping stops and the monitor pages you. The [Laravel monitoring guide](/use-cases/monitor-schedule-run/) shows the full `schedule:run` ping pattern. If you run the scheduler under Docker, [container cron monitoring](/blog/docker-laravel-cron-monitoring/) covers the entrypoint variants.
+
+## The setup that survives
+
+Keep Octane for HTTP, supervisor for the scheduler, and an external heartbeat for truth:
+
+```ini
+# /etc/supervisor/conf.d/laravel-scheduler.conf
+[program:laravel-scheduler]
+command=php artisan schedule:work
+autostart=true
+autorestart=true
+stopasgroup=true
+```
+
+Then point a [Crontinel monitor](https://crontinel.com) at the scheduler heartbeat with a 2-minute grace period. Expect the ping every minute; page the on-call when it stops. That single check catches the empty crontab, the wedged daemon, the missed deploy restart, and the exhausted server, without watching any of them directly. That is the point of external monitoring: the app is allowed to be broken inside, as long as the outside observer keeps telling the truth.
+
+## The short version
+
+Octane serves requests. It does not run the scheduler, it does not restart the scheduler, and `octane:reload` does not refresh it. Run `schedule:run` or `schedule:work` as a separately supervised process, restart it on every deploy, and watch its heartbeat from outside. The teams that get burned are the ones that checked the server, saw green, and never checked the one process Octane does not own.
