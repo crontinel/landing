@@ -10,3 +10,13 @@
 # NOTE: Removed catch-all /:slug /:slug/ 301 redirect
 # It was redirecting /logo.png to /logo.png/ which 404s
 # Astro's trailingSlash: 'already handles trailing slashes at build time
+
+# Old duplicate /vs/ pages superseded by the content-collection versions
+/vs/datadog          /vs/crontinel-vs-datadog          301
+/vs/datadog/         /vs/crontinel-vs-datadog/         301
+/vs/cronitor         /vs/crontinel-vs-cronitor         301
+/vs/cronitor/        /vs/crontinel-vs-cronitor/        301
+/vs/better-stack     /vs/crontinel-vs-better-stack     301
+/vs/better-stack/    /vs/crontinel-vs-better-stack/    301
+/vs/healthchecksio   /vs/crontinel-vs-healthchecks-io  301
+/vs/healthchecksio/  /vs/crontinel-vs-healthchecks-io/ 301
