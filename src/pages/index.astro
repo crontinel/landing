@@ -4,8 +4,8 @@ import Base from '../layouts/Base.astro';
 export const prerender = true;
 
 const canonicalURL = new URL('/', 'https://crontinel.com').toString();
-const title = 'Cron Monitoring That Actually Works - Free Open Source | Crontinel';
-const description = 'Your cron jobs can fail for weeks before anyone notices. Crontinel alerts you the moment a scheduled task, queue, or worker goes silent. Free, 1-min setup.';
+const title = 'Laravel Schedule & Queue Monitoring - Free Open Source | Crontinel';
+const description = 'Your Laravel scheduler or Horizon queue can fail for weeks before anyone notices. Crontinel alerts you the moment a scheduled task, queue, or worker goes silent. Free, 1-min setup. Also works with Node.js and Python.';
 ---
 
 <Base title={title} description={description} canonical={canonicalURL}>
@@ -27,7 +27,7 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
       "@id": "https://crontinel.com/#website",
       "url": "https://crontinel.com",
       "name": "Crontinel",
-      "description": "Cron, Scheduler & Background Job Monitoring",
+      "description": "Laravel Schedule, Queue & Worker Monitoring",
       "publisher": { "@id": "https://crontinel.com/#organization" }
     }
   ]
@@ -272,8 +272,8 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
       </h1>
 
       <p class="hero-sub" id="sub">
-        Crontinel watches your scheduled tasks, queue workers, supervisors, backups, and agent runs,
-        so you hear about the failure <em>before</em> your users do.
+        Crontinel watches your Laravel scheduler, Horizon queues, workers, backups, and agent runs,
+        so you hear about the failure <em>before</em> your users do. Also works with Node.js and Python.
       </p>
 
       <div class="hero-ctas">
@@ -372,8 +372,8 @@ const description = 'Your cron jobs can fail for weeks before anyone notices. Cr
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div class="pain-callout-body">
-        <p class="pain-callout-headline">Your cron jobs are not running. Your dashboard shows <span class="ok-green">green</span>. <span class="accent">Crontinel</span> knows.</p>
-        <p class="pain-callout-copy">Uptime checks and status pages only confirm that a URL responds. They never look inside the schedule, so a cron entry a deploy silently removed, a stuck overlap lock, or a queue worker that's technically "running" but not draining anything all still read as a clean, all-green dashboard. Crontinel hooks into the scheduler and queue directly and alerts on the one signal that actually matters: the run that should have happened and didn't.</p>
+        <p class="pain-callout-headline">Your Laravel scheduler isn't running. Your dashboard shows <span class="ok-green">green</span>. <span class="accent">Crontinel</span> knows.</p>
+        <p class="pain-callout-copy">Uptime checks and status pages only confirm that a URL responds. They never look inside <code class="mono">artisan schedule:run</code> or Horizon, so a cron entry a deploy silently removed, a stuck overlap lock, or a queue worker that's technically "running" but not draining anything all still read as a clean, all-green dashboard. Crontinel hooks into the scheduler and queue directly and alerts on the one signal that actually matters: the run that should have happened and didn't.</p>
       </div>
     </div>
     <div class="section-head reveal section-head--split">
