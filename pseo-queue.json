@@ -1,10 +1,18 @@
 {
   "in_progress": [],
   "pending": [
-    "supervisor-queue-worker-config",
     "queue-worker-memory-limit",
     "laravel-deploy-zero-downtime-queue",
-    "horizon-rebalancing-strategy"
+    "horizon-rebalancing-strategy",
+    "crontinel-vs-cronsignal",
+    "crontinel-vs-pulsewatch",
+    "crontinel-vs-upcanary",
+    "monitor-kubernetes-cronjob-heartbeat",
+    "supervisor-stopwaitsecs-job-loss",
+    "horizon-balance-cooldown-tuning",
+    "schedule-run-boot-loop-detection",
+    "laravel-supervisor-numprocs-sizing",
+    "quietpulse-cron-monitoring"
   ],
   "completed": [
     "about",
@@ -95,7 +103,8 @@
     "monitor-vapor-cron",
     "monitor-forge-cron-jobs",
     "laravel-cron-monitoring-multi-microservices",
-    "queue-worker-graceful-shutdown"
+    "queue-worker-graceful-shutdown",
+    "supervisor-queue-worker-config"
   ],
   "done": [
     "spatie-schedule-monitor-setup"

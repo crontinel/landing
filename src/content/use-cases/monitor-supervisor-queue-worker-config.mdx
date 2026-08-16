@@ -1,0 +1,163 @@
+---
+title: "Monitoring Supervisor Queue Worker Config in Laravel Production"
+description: "A production-ready Supervisor config for Laravel queue workers, the settings that silently break processing, and how to detect misconfigured workers before the backlog explodes."
+date: 2026-08-17
+---
+
+Most Laravel queue outages are not "Redis is down." They are a bad Supervisor program block that looked fine at deploy time and failed three days later at peak load.
+
+The process is still listed in `supervisorctl status`. Autorestart is on. Logs look quiet. Jobs still enqueue. Nothing dequeues. That pattern almost always traces back to Supervisor config: wrong user, too-short `stopwaitsecs`, missing `--max-time`, a `numprocs` that never matched traffic, or a command line that never loaded the right `.env`.
+
+This page is the production checklist for Supervisor-managed `queue:work` (and the outer Supervisor that keeps Horizon alive), plus the external signals that catch a bad config before customers do.
+
+## What Supervisor is actually responsible for
+
+Supervisor does three jobs for Laravel queues:
+
+1. Keep N worker processes running (`numprocs`)
+2. Restart them when they exit (`autorestart`)
+3. Stop them cleanly on deploy (`stopsignal` + `stopwaitsecs`)
+
+It does **not** know whether a worker is making progress. A worker that boots, connects to Redis, then blocks forever on a hung HTTP call still counts as `RUNNING`. Your monitoring has to cover throughput, not just process presence.
+
+## A production-ready program block
+
+Start from something explicit. Vague defaults are how silent failures get shipped.
+
+```ini
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /var/www/app/artisan queue:work redis --queue=high,default --sleep=3 --tries=3 --timeout=90 --max-time=3600 --memory=256 --max-jobs=500
+directory=/var/www/app
+user=www-data
+numprocs=4
+autostart=true
+autorestart=true
+startsecs=5
+startretries=10
+stopwaitsecs=100
+stopsignal=TERM
+stopasgroup=true
+killasgroup=true
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/laravel-worker.log
+stdout_logfile_maxbytes=20MB
+stdout_logfile_backups=5
+```
+
+Why each non-obvious line matters:
+
+| Setting | If wrong | Failure mode |
+|---|---|---|
+| `user=www-data` | Runs as root or deploy user | Permission errors on storage/logs; secrets leak risk |
+| `directory=` | Missing or stale path | Wrong `.env`, wrong release after symlink deploy |
+| `--timeout=90` | Lower than real job runtime | Jobs killed mid-flight, endless retries |
+| `stopwaitsecs` | Less than job timeout | Deploy SIGKILLs workers; jobs lost or double-run |
+| `--max-time=3600` | Omitted | Memory creep never recycled; OOM days later |
+| `startsecs=5` | Set to 1 | Boot-looping workers marked RUNNING before they die |
+| `numprocs` | Guessed once, never revisited | Peak traffic starves; off-peak wastes RAM |
+
+Reload after every edit:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl status laravel-worker:*
+```
+
+## The five config mistakes that look healthy
+
+### 1. `stopwaitsecs` shorter than job timeout
+
+Laravel finishes the current job on `SIGTERM`. Supervisor sends `SIGKILL` when `stopwaitsecs` expires. If timeout is 90s and `stopwaitsecs` is 10, every deploy can murder in-flight work.
+
+Rule: `stopwaitsecs >= timeout + 10`.
+
+### 2. Command points at a stale release path
+
+Capistrano/Envoyer-style deploys symlink `current`. If Supervisor's `command=` hardcodes an old release directory, workers keep running last week's code after you "deployed successfully."
+
+Always point `command` and `directory` at the stable path (`/var/www/app` or `current`), then run `php artisan queue:restart` so workers recycle into the new code.
+
+### 3. No `--max-time` / `--max-jobs` recycling
+
+Long-lived PHP workers leak. Without a recycle bound, RSS climbs until the kernel OOM-killer takes a random worker. Supervisor restarts it. You see brief blips, never a clean root cause.
+
+`--max-time=3600` and/or `--max-jobs=500` force predictable turnover.
+
+### 4. `numprocs` sized for average, not peak
+
+Four workers that clear the queue at noon may fall behind at 09:00 when invoices, webhooks, and mail all spike. Supervisor will not scale for you. Either size for peak, split queues (`high` vs `default`) into separate programs, or move to Horizon auto-balancing with an external depth alert.
+
+### 5. Logging to nowhere
+
+`redirect_stderr=true` without a writable `stdout_logfile` path means workers crash on boot and Supervisor only shows `FATAL` / `BACKOFF` with no reason. Confirm the log directory exists and is writable by the `user=` account before the first restart.
+
+## Horizon still needs Supervisor (or systemd)
+
+Horizon is not a replacement for a process manager. Something still has to keep `php artisan horizon` alive:
+
+```ini
+[program:horizon]
+command=php /var/www/app/artisan horizon
+directory=/var/www/app
+user=www-data
+autostart=true
+autorestart=true
+startsecs=5
+stopwaitsecs=3600
+stopsignal=TERM
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/horizon.log
+```
+
+Set `stopwaitsecs` high enough for Horizon's longest job timeout. On deploy: `php artisan horizon:terminate`, wait until status is inactive, then let Supervisor restart the master.
+
+## Detecting a bad config from outside the box
+
+Process checks answer "is something named laravel-worker running?" They do not answer "are jobs completing?"
+
+Wire three signals:
+
+1. **Worker heartbeat** — each worker (or a scheduled health command) pings on a fixed interval. Missed pings mean the pool died, boot-looped, or never started after deploy.
+2. **Queue depth trend** — depth rising for N minutes while workers report RUNNING is starvation or a hung pool, not "healthy."
+3. **Deploy marker** — after every release, assert workers recycled (new PIDs or a post-deploy ping) so stale-release path bugs surface immediately.
+
+Example scheduled probe you can alert on:
+
+```php
+// app/Console/Commands/QueueWorkerHealth.php
+public function handle(): int
+{
+    $pending = Redis::llen('queues:default');
+    $failed  = DB::table('failed_jobs')->where('failed_at', '>=', now()->subHour())->count();
+
+    if ($pending > 500 || $failed > 20) {
+        // Ping failure / open incident
+        return self::FAILURE;
+    }
+
+    // Ping success heartbeat
+    return self::SUCCESS;
+}
+```
+
+Schedule it every minute. If `schedule:run` itself is the weak link, the heartbeat must come from an external monitor that expects the ping and pages when it stops.
+
+## How Crontinel fits
+
+Crontinel watches the schedule and worker heartbeats from outside your VPC. When Supervisor marks workers `RUNNING` but the expected ping never arrives — boot loop, wrong user, stale release, OOM restart storm — you get the alert without staring at `supervisorctl status`.
+
+Pair it with queue-depth checks on the hot queues. Config mistakes rarely throw exceptions. They just stop completing work. External expected-ping monitoring is how you catch that class of failure.
+
+## Checklist before the next deploy
+
+- [ ] `command` and `directory` use the stable app path, not a dated release folder
+- [ ] `stopwaitsecs` is greater than the longest `--timeout`
+- [ ] `--max-time` or `--max-jobs` forces worker recycle
+- [ ] `numprocs` matches peak load or queues are split by priority
+- [ ] Log path exists and is writable by `user=`
+- [ ] `queue:restart` / `horizon:terminate` is part of the deploy script
+- [ ] An external heartbeat expects worker or scheduler pings after every release
+
+Ship the config. Then verify the workers are still finishing jobs an hour later — not just that Supervisor still lists them as running.
