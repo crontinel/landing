@@ -4,9 +4,16 @@ description: "Deliver Crontinel Laravel alerts to Telegram via bot API or webhoo
 date: 2026-07-08
 ---
 
-Telegram is popular for fast mobile notifications. Crontinel does not include a built-in Telegram bot; you connect via **webhook** to the Telegram Bot API or a relay service.
+Telegram is popular for fast mobile notifications. Crontinel's cloud dashboard supports Telegram as a native alert channel — it calls the Telegram Bot API directly, no relay needed. Self-hosting the OSS package requires a webhook relay to the Bot API.
 
-## Option A: Webhook relay (recommended)
+## Cloud dashboard (recommended)
+
+1. Create a bot with [@BotFather](https://t.me/BotFather), get the bot token
+2. Obtain your chat ID (message the bot, then call `getUpdates` on the Bot API)
+3. In [app.crontinel.com](https://app.crontinel.com), open your app's **Alert Channels**, add a **Telegram** channel, and paste the bot token and chat ID
+4. Save — Crontinel calls `sendMessage` on the Telegram Bot API directly
+
+## Self-hosted OSS package: Option A, webhook relay (recommended)
 
 1. Create a bot with [@BotFather](https://t.me/BotFather), get the token
 2. Obtain your chat ID (message the bot, then call `getUpdates` on the Bot API)

@@ -4,9 +4,15 @@ description: "Route Crontinel Laravel alerts to Discord with a webhook URL. Get 
 date: 2026-07-08
 ---
 
-Discord is a common home for small-team on-call and `#alerts` channels. Crontinel does not ship a native Discord bot; you use a **Discord incoming webhook** the same way you would for Slack-style JSON payloads.
+Discord is a common home for small-team on-call and `#alerts` channels. Crontinel's cloud dashboard supports Discord as a native alert channel, or you can route to it as a **Discord incoming webhook** the same way you would for Slack-style JSON payloads.
 
-## Setup
+## Setup (cloud dashboard, recommended)
+
+1. In [app.crontinel.com](https://app.crontinel.com), open your app's **Alert Channels** and add a **Discord** channel
+2. Paste the Discord webhook URL (see below for how to create one)
+3. Save — Crontinel posts directly to the webhook, no relay needed
+
+## Setup (self-hosted OSS package, via generic webhook)
 
 ### 1. Create a Discord webhook
 

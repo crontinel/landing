@@ -11,7 +11,7 @@ import Footer from '../components/Footer.astro';
   "name": "Crontinel",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Laravel",
-  "description": "Laravel-native cron, scheduler, and background job monitoring. Monitors Horizon internals, queue depth, failed jobs, and cron run history with Slack, email, PagerDuty, and webhook alerts.",
+  "description": "Laravel-native cron, scheduler, and background job monitoring. Monitors Horizon internals, queue depth, failed jobs, and cron run history with Slack, email, PagerDuty, Discord, Microsoft Teams, Telegram, and webhook alerts.",
   "url": "https://crontinel.com/features/",
   "offers": {
     "@type": "AggregateOffer",
@@ -24,7 +24,7 @@ import Footer from '../components/Footer.astro';
     "Laravel Horizon supervisor and job rate monitoring",
     "Queue depth and oldest-job-age monitoring",
     "Failed job counting and alerting",
-    "Slack, email, PagerDuty, and webhook alert channels",
+    "Slack, email, PagerDuty, Discord, Microsoft Teams, Telegram, and webhook alert channels",
     "Multi-app hosted dashboard",
     "Public status pages",
     "REST API for programmatic access",
@@ -50,7 +50,7 @@ import Footer from '../components/Footer.astro';
 
 <Base
   title="Queue & Cron Monitoring - Features | Crontinel"
-  description="Set up in 1 minute: monitor Horizon supervisors, queue depth, cron run history, and failed jobs. Slack, email, PagerDuty, and webhook alerts. Free for 1 app."
+  description="Set up in 1 minute: monitor Horizon supervisors, queue depth, cron run history, and failed jobs. Slack, email, PagerDuty, Discord, Teams, Telegram, and webhook alerts. Free for 1 app."
 >
   <Nav />
 
@@ -169,6 +169,9 @@ import Footer from '../components/Footer.astro';
             { name: 'Email', desc: 'Single or multiple recipients' },
             { name: 'PagerDuty', desc: 'Full incident lifecycle' },
             { name: 'Webhook', desc: 'Any endpoint you choose' },
+            { name: 'Discord', desc: 'Post to a server channel' },
+            { name: 'Microsoft Teams', desc: 'Post to a team channel' },
+            { name: 'Telegram', desc: 'Bot API, direct to a chat' },
           ].map((ch) => (
             <div class="bg-gray-900 rounded-lg p-4 border border-gray-800 text-center">
               <div class="font-medium text-white mb-1">{ch.name}</div>

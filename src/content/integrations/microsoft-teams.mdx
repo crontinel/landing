@@ -4,9 +4,15 @@ description: "Send Crontinel Laravel monitoring alerts to Microsoft Teams using 
 date: 2026-07-08
 ---
 
-Many Laravel teams on Microsoft 365 use Teams for incident discussion. Crontinel alerts can land in a Teams channel through an **Incoming Webhook** connector.
+Many Laravel teams on Microsoft 365 use Teams for incident discussion. Crontinel's cloud dashboard supports Microsoft Teams as a native alert channel, posting a MessageCard directly to your Teams webhook.
 
-## Setup
+## Setup (cloud dashboard, recommended)
+
+1. In [app.crontinel.com](https://app.crontinel.com), open your app's **Alert Channels** and add a **Microsoft Teams** channel
+2. Paste the Teams incoming webhook URL (see below for how to create one)
+3. Save — Crontinel posts a MessageCard directly to the webhook, no relay needed
+
+## Setup (self-hosted OSS package, via generic webhook)
 
 ### 1. Add Incoming Webhook in Teams
 
