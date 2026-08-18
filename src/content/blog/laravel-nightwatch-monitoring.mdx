@@ -1,0 +1,118 @@
+---
+title: "Laravel Nightwatch Monitoring: What It Does, What It Misses"
+description: "A practical look at Laravel Nightwatch, the framework's official APM tool: what it tracks for requests, jobs, and the scheduler, how its agent works, and where the blind spots are for teams that need dead-man's-switch style monitoring."
+date: 2026-08-18
+tags: ["laravel", "nightwatch", "monitoring", "comparison"]
+keywords: ["laravel nightwatch", "laravel nightwatch review", "laravel nightwatch pricing", "laravel nightwatch vs crontinel", "laravel nightwatch alternative"]
+---
+
+Laravel Nightwatch is the framework's own first-party monitoring product: install a package, run an agent, and it traces requests, queries, jobs, mail, cache, and scheduled tasks across your app with almost no configuration. It is a genuinely capable APM tool built by the team that maintains Laravel itself. It is also, structurally, an in-process observability tool, and that shapes exactly where its blind spots sit: it is very good at telling you a job ran slowly or threw an exception, and much weaker at telling you nothing ran at all.
+
+> **Quick summary:** Laravel Nightwatch is a paid, fully-managed monitoring product from the Laravel team. A local agent (`php artisan nightwatch:agent`) listens on port 2407, receives events your app fires, batches them, and ships them to Nightwatch's cloud. It covers requests, jobs, queries, mail, cache, commands, and scheduled tasks with deep Laravel-specific detail, and pricing is metered per event starting at 300k events free. What it does not do natively is catch the case where nothing runs at all: a missing crontab entry, a dead server, or an agent process that silently stopped, because there is no event to sample if the app or agent never fires. That is the gap external, ping-based tools like Crontinel are built to close, either instead of Nightwatch or running alongside it.
+
+## What Nightwatch actually is
+
+Nightwatch is Laravel's paid, cloud-hosted observability product, sitting next to the older free tools Telescope and Pulse rather than replacing them. Telescope is a local debug tool for development. Pulse is a lightweight, self-hosted dashboard. Nightwatch is aimed at production and built for scale, with a column-oriented backend Laravel says can query billions of events in under a second.
+
+The framework's own FAQ is direct about the trade-off: "Nightwatch is purpose-built for Laravel and deeply integrates with the framework's internals, from queues and events to the request lifecycle... Supporting generic PHP would mean compromising on that experience, so we've chosen to go deep rather than broad." That focus is exactly why it works well for Laravel apps and not at all for anything outside one.
+
+An event in Nightwatch is any of nine things, and each one is billed individually:
+
+| Event type | What it captures |
+|---|---|
+| Requests | HTTP request tracing with detailed interaction and performance metrics |
+| Outgoing requests | External API calls and third-party service integrations |
+| Notifications | Delivery tracking across all notification channels |
+| Jobs | Queue executions and job performance |
+| Queries | Query performance and problematic SQL |
+| Mail | Sending, recipients, sources, and rendering performance |
+| Commands | Artisan command executions and system resource impact |
+| Cache | Key hit rates, storage patterns, invalidation events |
+| Scheduled tasks | Whether the scheduler runs on time and tasks complete |
+
+## How the agent works
+
+Setup is `composer require laravel/nightwatch`, then `php artisan nightwatch:install` to publish config and register a token, then `php artisan nightwatch:agent` to start a local agent process. That agent listens on `127.0.0.1:2407`. Your app pushes events to it over a local TCP connection instead of calling Nightwatch's API directly on every request, so the request thread never blocks waiting on a network round trip to a third party. The agent buffers what it receives, batches it, and forwards it on to Nightwatch's cloud.
+
+It is a solid design for the job it does: capture rich detail cheaply, without adding a network hop to every request. Laravel puts the added overhead at under 3ms per request, and one independent test clocked a single agent instance handling over 13,000 payloads a second.
+
+That design also means the whole pipeline depends on three things being true at the same moment: the app has to boot and actually run the code, the local agent process has to be alive on that same host, and the host needs outbound network access to reach Nightwatch's cloud. Laravel even ships `php artisan nightwatch:status`, a command whose entire job is checking whether the agent is accepting connections. That command existing is a quiet admission that the agent is a thing which can silently stop working, and the way you find out is by asking it yourself rather than being told.
+
+## What it tracks for jobs and the scheduler
+
+For queued jobs, Nightwatch's docs describe counts of queued, processed, released, and failed executions, plus average and p95 execution time. The p95 number is genuinely useful: it shows what your slowest 5 percent of job runs look like, which is usually where real problems hide, not in the average.
+
+For the scheduler, Laravel's own description is short: Nightwatch is built to "ensure your scheduler is running on time and tasks complete successfully." That covers a scheduled command that throws, times out, or runs longer than expected, and it will show up in the dashboard as an event with a duration and a status.
+
+What the job docs do not mention is Horizon-specific state: a paused supervisor, a worker process count that dropped to zero, or per-queue depth and oldest-pending-job age as a first-class metric. The docs also note that job capture is tied to "their parent execution context" being sampled, meaning visibility into individual job runs is connected to whether the request, command, or scheduled task that triggered them was sampled, not a guarantee that every single execution is captured in full detail.
+
+## Where the real gaps are
+
+**No signal when nothing runs at all.** This is the core one. Nightwatch's agent reports events that your app fires. If the crontab entry for `schedule:run` is missing after a server migration, if the box is unreachable, or if PHP-FPM never comes back up after a bad deploy, there is no event to sample, because nothing executed to fire one. The dashboard just stays quiet, and quiet looks identical to "nothing was scheduled to run right now." Catching that requires something watching from outside the app, on a timer of its own, that expects to hear from you and alerts when it does not.
+
+**The agent itself is a single point of failure.** Events flow through a local process on the same host as your app. If that process crashes, gets OOM-killed, or never starts after a reboot, your app keeps running but Nightwatch goes dark for that host. The existence of `nightwatch:status` as a manual check is the tell: something needs to watch the watcher, and Nightwatch does not do that part for you automatically.
+
+**Serverless setups need a dedicated VM just to run it.** Per Nightwatch's own FAQ, if you're on a serverless platform like Laravel Vapor, "you'll need to create a virtual machine on another server to run Nightwatch." Teams choose serverless specifically to stop managing servers, and the workaround here is provisioning one anyway, just to host the agent.
+
+**It only covers Laravel.** By design, not by oversight. A polyglot stack with Node workers, a Python ETL script, or a queue consumer written in Go gets zero visibility from Nightwatch. Anything outside the Laravel process is invisible to it.
+
+**Data leaves your infrastructure by default.** Nightwatch is "a fully-managed product" with no self-hosting option, and data centers are in the US and EU only, with more regions planned. You can configure the agent to redact sensitive fields before they're transmitted, but the redaction has to be set up deliberately; the default path sends event data to Laravel's cloud.
+
+**Pricing scales with app activity, not with what you actually need to know.** Every query, cache hit, mail send, and job attempt is a billable event. A job-heavy Laravel app, or one with a chatty query pattern, can burn through the 300k free tier or even the 7.5m Pro tier fast, independent of how many things you actually care about watching. The Free plan is also capped at one performance monitor (a custom alert threshold), and free projects pause after 30 days of inactivity.
+
+## Laravel Nightwatch pricing
+
+| Plan | Price | Events included | Lookback | Performance monitors |
+|---|---|---|---|---|
+| Free | $0/mo | 300k | 14 days | 1 |
+| Pro | $20/mo | 7.5m | 30 days | 10 |
+| Team | $60/mo | 30m | 60 days | 20 |
+| Business | $300/mo | 180m | 90 days | 30 |
+| Enterprise | Custom | Custom | Custom | Custom |
+
+Additional events beyond the included quota are billed per 100k, ranging from $0.50 on the Free tier down to $0.20 on Business. Every tier includes unlimited applications, environments, and team seats, so the price scales with event volume, not with how many services or people you have.
+
+## Nightwatch vs Crontinel
+
+These two tools solve different problems and the overlap is narrower than it looks. Nightwatch is deep, in-process APM for everything your Laravel app does. Crontinel is a purpose-built, external watchdog for whether your scheduled commands, Horizon supervisors, and queues are actually running, the same kind of dead-man's-switch monitoring that predates APM entirely.
+
+| | Laravel Nightwatch | Crontinel |
+|---|---|---|
+| Detection model | In-process agent, reports events the app fires | External pings, alerts on absence of an expected signal |
+| Detects "nothing ran at all" | Not natively; no event exists to sample | Core use case; that is what a missed check-in is |
+| Horizon supervisor state | Not documented as a tracked metric | Native: paused supervisors and process count drops |
+| Queue depth / oldest job age | Job execution counts and duration, not queue backlog as a first-class metric | Native, tracked automatically per queue |
+| Scope | Requests, queries, mail, cache, commands, jobs, scheduled tasks | Laravel scheduler, Horizon, and queues specifically |
+| Self-hosting | Fully managed only | N/A, external SaaS by design |
+| Setup | Composer package plus a running local agent process | Composer package, `php artisan crontinel:install` |
+| Pricing model | Metered per event, scales with app activity | Flat per-app tier: free, $19/mo Pro, $49/mo Team |
+
+## When Nightwatch is the right call
+
+If you want request-level tracing, query performance detail, exception grouping, and mail delivery insight, all built with deep Laravel-specific context and almost no setup, Nightwatch is a strong choice, and it is maintained by the people who wrote the framework. For debugging why a specific request was slow or why an exception keeps recurring, this kind of in-process telemetry is exactly the right tool.
+
+## Why teams add external monitoring alongside it
+
+The gap shows up in deploys, not in debugging sessions. A cron entry that got dropped during a server migration, a Horizon supervisor that silently paused, a queue that backed up to thousands of pending jobs while nothing threw an exception: these look identical to "everything is fine" from inside the app, because nothing inside the app knows it stopped happening. Crontinel's [Horizon monitoring](/use-cases/laravel-horizon-monitoring/) and [queue monitoring](/use-cases/laravel-queue-monitoring/) are built around exactly that gap, expecting a check-in on a schedule and alerting the moment one goes missing, which is a different job than tracing what happened during a request that did occur. The [longer piece on why APM tools miss silent job failures](/blog/laravel-cron-queue-monitoring-tools/) goes deeper into why "no exception thrown" and "the job actually ran" are different questions.
+
+Using both is not redundant. Nightwatch answers what happened inside a request or job that did run. Crontinel answers whether the thing you expected to run, ran at all.
+
+## FAQ
+
+### Does Laravel Nightwatch monitor cron jobs and the scheduler?
+Yes, for jobs that fire and get sampled. Nightwatch tracks scheduled task executions, their duration, and whether they completed successfully. It does not have a documented way to detect a scheduled task that never fired at all, for example because the crontab entry itself was never registered.
+
+### Does Nightwatch monitor Laravel Horizon?
+It tracks job and queue execution metrics generally, but its published docs do not describe Horizon-specific signals like a paused supervisor or a worker process count dropping to zero as tracked metrics.
+
+### How much does Laravel Nightwatch cost?
+The Free plan includes 300k events a month with 14-day lookback. Pro is $20/month for 7.5 million events and 30-day lookback. Team is $60/month for 30 million events, and Business is $300/month for 180 million events. Enterprise pricing is custom.
+
+### Can I self-host Laravel Nightwatch?
+No. Nightwatch is a fully-managed product with data centers in the US and EU. There is no self-hosted option.
+
+### Does Nightwatch work with Laravel Vapor or other serverless setups?
+Yes, but it requires extra infrastructure. Because the agent needs a long-running process, Laravel's own guidance is to provision a separate virtual machine to run it if you're on a serverless platform like Vapor.
+
+### Is Crontinel a replacement for Laravel Nightwatch?
+Not really, they cover different failure modes. Nightwatch traces what happened during requests, jobs, and queries that did execute. Crontinel watches whether your scheduled commands, Horizon supervisors, and queues are running on the schedule you expect, and alerts when a check-in goes missing. Many teams run both.
