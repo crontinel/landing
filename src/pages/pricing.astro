@@ -17,7 +17,7 @@ import Footer from '../components/Footer.astro';
     {
       "@type": "Offer",
       "name": "Free",
-      "description": "1 app, 5 monitors, 7-day history. No credit card required.",
+      "description": "1 app, 5 monitors, 7-day history, Slack/email/Discord/Teams/Telegram/webhook alerts. No credit card required.",
       "price": "0",
       "priceCurrency": "USD",
       "availability": "https://schema.org/InStock",
@@ -119,7 +119,7 @@ import Footer from '../components/Footer.astro';
 
 <Base
   title="Cron & Queue Monitoring - Pricing | Crontinel"
-  description="Free for 1 app with 5 monitors. No credit card required. Pro ($19.99/mo) adds Slack/PagerDuty alerts, unlimited monitors, and 90-day history. 14-day free trial on Pro and Team."
+  description="Free for 1 app with 5 monitors and Slack/email/Discord/Teams/Telegram alerts. No credit card required. Pro ($19.99/mo) adds PagerDuty/SMS alerts, unlimited monitors, and 90-day history. 14-day free trial on Pro and Team."
 >
   <Nav />
 
@@ -158,7 +158,8 @@ import Footer from '../components/Footer.astro';
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 5 monitors per app</li>
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 7-day history retention</li>
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 team member (owner)</li>
-          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">Slack / email alerts</span></li>
+          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Slack, email, Discord, Teams, Telegram, webhook alerts</li>
+          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">PagerDuty / SMS alerts</span></li>
           <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">REST API access</span></li>
           <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 public status page</li>
         </ul>
@@ -262,7 +263,7 @@ import Footer from '../components/Footer.astro';
         {[
           {
             q: 'Is there a free tier?',
-            a: 'Yes. The free plan covers one app with up to five monitors and seven days of history. No credit card required.',
+            a: 'Yes. The free plan covers one app with up to five monitors, seven days of history, and Slack, email, Discord, Teams, Telegram, and webhook alerts. No credit card required.',
           },
           {
             q: 'Can I self-host?',
