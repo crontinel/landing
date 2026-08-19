@@ -143,6 +143,6 @@ In your external monitor:
 
 ## Where Crontinel Fits
 
-Crontinel is built for the gap Forge leaves open: expected cadence, missed-run detection, and quiet failures inside Laravel's scheduler. Point scheduled tasks (or the official Laravel SDK) at Crontinel, keep Forge managing servers and daemons, and you get paged when the job did not happen — not when the VM happens to be offline. The same logic applies if Forge is running your app under Octane: Octane serves HTTP, but it does not run the scheduler, so keep a separate heartbeat on `schedule:run` ([why](/blog/laravel-octane-scheduler-not-running)).
+Crontinel is built for the gap Forge leaves open: expected cadence, missed-run detection, and quiet failures inside Laravel's scheduler. Point scheduled tasks (or the official Laravel SDK) at Crontinel, keep Forge managing servers and daemons, and you get paged when the job did not happen — not when the VM happens to be offline. The same logic applies if Forge is running your app under Octane: Octane serves HTTP, but it does not run the scheduler, so keep a separate heartbeat on `schedule:run` ([why](/blog/laravel-octane-scheduler-not-running/)).
 
 Install the Laravel package, attach monitors to `schedule:run` and your critical commands, and route alerts to the same Slack or PagerDuty channel your on-call already watches. Forge keeps the box alive. Crontinel watches the work.

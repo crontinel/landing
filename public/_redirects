@@ -20,3 +20,9 @@
 /vs/better-stack/    /vs/crontinel-vs-better-stack/    301
 /vs/healthchecksio   /vs/crontinel-vs-healthchecks-io  301
 /vs/healthchecksio/  /vs/crontinel-vs-healthchecks-io/ 301
+
+# Dead internal links found in GSC (404s) - never real pages, other posts linked to them by mistake
+/vs/horizon                /use-cases/laravel-horizon-monitoring/        301
+/vs/horizon/                /use-cases/laravel-horizon-monitoring/        301
+/blog/horizon-monitoring    /blog/how-to-monitor-horizon-jobs-production/ 301
+/blog/horizon-monitoring/   /blog/how-to-monitor-horizon-jobs-production/ 301
