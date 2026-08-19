@@ -97,10 +97,3 @@ The technical controls matter, but the operational pattern matters more. Treat `
 4. **Audit the failed_jobs count.** A scheduled check that tracks row count over time catches both deliberate and accidental deletions, regardless of which command caused them.
 
 The `queue:forget` command exists for a reason: not every failed job deserves a retry. But in production, every deletion deserves a record.
-
-## See also
-
-- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
-- [How to Monitor php artisan queue:flush in Production](/use-cases/monitor-queue-flush/)
-- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
-- [Laravel Queue Monitoring](/use-cases/laravel-queue-monitoring/)

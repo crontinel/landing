@@ -6,7 +6,7 @@ updated: 2026-07-22
 tags: ["laravel", "cron", "monitoring"]
 ---
 
-Your cron jobs are either working or they're not, and the default answer from Laravel is silence either way. If you've already figured out *why* crons fail silently (we covered [the 5 common causes here](/blog/debugging-silent-laravel-cron-failures)), the next question is: how do you actually detect failures when they happen?
+Your cron jobs are either working or they're not, and the default answer from Laravel is silence either way. If you've already figured out *why* crons fail silently (we covered [the 5 common causes here](/blog/debugging-silent-laravel-cron-failures/)), the next question is: how do you actually detect failures when they happen?
 
 There are five main approaches, each with different tradeoffs. Here's what each one catches and what it misses.
 
@@ -153,7 +153,7 @@ Two commands, and you're collecting data on every scheduled task. No external pi
 
 Failed runs with full context (exit code, exception, output). Missed runs where the task never started. Duration anomalies where a task that normally takes 2 seconds suddenly takes 30. Per-task history so you can see patterns over time.
 
-For a deeper look at the alerting side, including Slack, PagerDuty, and email notification setup, see the [production cron job alerting](/use-cases/production-cron-job-alerting) page.
+For a deeper look at the alerting side, including Slack, PagerDuty, and email notification setup, see the [production cron job alerting](/use-cases/production-cron-job-alerting/) page.
 
 ## Which method should you use?
 

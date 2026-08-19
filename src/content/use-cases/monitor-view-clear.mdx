@@ -116,10 +116,3 @@ Ping the first immediately after `view:clear` completes on each production serve
 If host A and host B send the clear ping but only host A sends the cache ping, you know the second server needs attention. If both pings arrive from all servers, the deploy handled views correctly.
 
 Together these two monitors tell you whether the deploy handled views correctly. A clear ping without a cache ping means production is serving uncached templates until the next deploy.
-
-## See also
-
-- [Monitoring view:cache in Laravel production](/use-cases/monitor-view-cache/)
-- [Monitoring config:clear in Laravel production](/use-cases/monitor-config-clear/)
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
-- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)

@@ -98,11 +98,3 @@ Create a Crontinel monitor named `production config:cache completed`. Ping it af
 If you deploy irregularly, start the monitor at the beginning of the deploy and require the ping before the deploy is marked healthy. If you deploy on a schedule, set the expected window to match that schedule with a short grace period.
 
 Config cache failures rarely announce themselves as "config cache failed." They look like Redis errors, mail failures, bad payment callbacks, or workers using yesterday's credentials. A missing `config:cache` heartbeat tells you the deploy is not finished yet.
-
-## See also
-
-- [What are the files in Laravel's bootstrap/cache?](/blog/laravel-bootstrap-cache-files-explained/)
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize/)
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
-- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
-- [Monitoring queue:restart in Laravel production](/use-cases/monitor-queue-restart/)

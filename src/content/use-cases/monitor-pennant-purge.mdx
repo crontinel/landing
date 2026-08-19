@@ -96,10 +96,3 @@ The first alert is the most important. If `pennant:purge` stops firing because y
 Add a heartbeat to your daily `pennant:purge` schedule in the Crontinel dashboard. Set the expected interval to 25 hours and the grace period to 3 hours. Deploy your changes. Verify you see a successful ping within 26 hours. Then comment out the schedule line on staging to confirm the alert fires.
 
 If you run `pennant:purge` on a different schedule (multiple times per day is common when iterating on features), adjust the interval to match plus one hour. The goal is to catch the stoppage before stale data causes a production incident, not to micro-manage the purge frequency.
-
-## See also
-
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
-- [Production cron job alerting](/use-cases/production-cron-job-alerting)
-- [Clearing and Monitoring Laravel Telescope Entries](/use-cases/monitor-telescope-clear)

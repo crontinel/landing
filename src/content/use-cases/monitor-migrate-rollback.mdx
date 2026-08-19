@@ -127,10 +127,3 @@ With Crontinel, you know about a rollback within seconds. Before anyone has to e
 **How do I roll back only one migration instead of a batch?**  \nUse `--step=1` to roll back one migration at a time. Run it multiple times to roll back exactly the migrations you want. This gives you fine-grained control and avoids rolling back an entire batch.
 
 **What happens if I roll back a migration that was already rolled back manually?**  \nIf someone deleted the migration's row from the `migrations` table manually, `migrate:rollback` skips it. The batch tracking is based entirely on the `migrations` table, not on which tables or columns actually exist.
-
-## See also
-
-- [Detect migrate:fresh in production](/use-cases/monitor-migrate-fresh/)
-- [How to monitor php artisan migrate in production](/use-cases/monitor-migrate/)
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)
-- [Production cron job alerting](/use-cases/production-cron-job-alerting/)

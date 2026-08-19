@@ -89,10 +89,3 @@ That one log line makes it much easier to tell whether the job cleared the right
 Create a Crontinel monitor for the expected schedule, then ping it only after `cache:clear` succeeds. Set the grace period a little longer than the slowest normal run. If the command usually finishes in 5 seconds, a 5 minute grace period is enough.
 
 Use separate monitors for deploy-time cache clears and scheduled maintenance cache clears. They fail for different reasons, and you will want different alert messages when one goes quiet.
-
-## See also
-
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize) - catch stale config and cache refresh failures together
-- [Monitoring php artisan optimize:clear after deployments](/use-cases/monitor-php-artisan-optimize-clear-after-deployment) - detect deploy-time maintenance failures
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring) - broader scheduled task monitoring for production apps
-- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side

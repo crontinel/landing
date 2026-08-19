@@ -100,10 +100,3 @@ Yes, but use `withoutOverlapping()` in the scheduler to prevent concurrent seed 
 
 **What happens if db:seed fails halfway through?**
 Rows inserted before the failure are committed. You get partial seed data. This is why checking your seed tables for expected row counts after each run is important.
-
-## See also
-
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
-- [Production cron job alerting](/use-cases/production-cron-job-alerting)
-- [Monitoring Laravel failed jobs in production](/blog/laravel-failed-jobs-monitoring)

@@ -137,10 +137,3 @@ CRONTINEL_MAX_PENDING_PER_WORKER=10
 ```
 
 When Crontinel detects active workers with a growing queue, you get a single alert that tells you the supervisor is alive but the work is not getting done. No dashboard watching required.
-
-## See also
-
-- [Monitoring horizon:work in Laravel production](/use-cases/monitor-horizon-work/) — catching the case where the master supervisor itself crashes
-- [Laravel Horizon monitoring](/use-cases/laravel-horizon-monitoring/) — supervisor status, queue depth, and failed job rate
-- [Laravel queue depth alert](/blog/laravel-queue-depth-alert/) — setting up queue threshold alerts
-- [Laravel queue backpressure](/blog/laravel-queue-backpressure/) — handling slow consumers and producer overflow

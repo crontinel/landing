@@ -85,10 +85,3 @@ Create one Crontinel monitor for `route:clear` and, if you rebuild route cache i
 Use a descriptive monitor name such as `production route:clear completed` and include host metadata in the ping URL. When the ping is missing, treat it as a deploy verification failure, not a generic uptime problem.
 
 If you already monitor [`route:cache`](/use-cases/monitor-route-cache/), add `route:clear` as the paired signal. Together they show whether Laravel cleared the old route table and rebuilt the new one cleanly.
-
-## See also
-
-- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize/)
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)
-- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache/)

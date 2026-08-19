@@ -66,10 +66,3 @@ The most important alert is the first one. If `horizon:purge` stops firing becau
 Add a heartbeat to your hourly `horizon:purge` schedule in the Crontinel dashboard. Set the expected interval to 65 minutes and the grace period to 15 minutes. Deploy your changes. Verify you see a successful ping within 70 minutes. Then intentionally break the cron entry on staging to confirm the alert fires.
 
 If you run `horizon:purge` less frequently (daily is common for low-volume apps), set the interval to match your retention period plus one hour. The goal is to alert before Redis fills up, not after.
-
-## See also
-
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
-- [Production cron job alerting](/use-cases/production-cron-job-alerting)
-- [Monitoring Laravel Telescope prune in production](/use-cases/monitor-telescope-prune)

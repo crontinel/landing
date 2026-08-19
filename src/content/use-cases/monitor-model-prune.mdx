@@ -87,9 +87,3 @@ The scheduler failure case is the most common and the most damaging. A daily `mo
 Create a daily heartbeat job in Crontinel for `model:prune`. Expected interval: 25 hours. Grace period: 2 hours. On staging, intentionally break the scheduler and confirm you get an alert within 3 hours. Then fix it and confirm the ping arrives. This is the verification step most teams skip, and it is the only way to know your monitoring is actually working before a real failure happens.
 
 If you have models with high deletion volume (more than 100k records per day), consider running `model:prune` twice daily. The command is idempotent and safe to overlap-prevent, so using `withoutOverlapping()` on a more frequent schedule is low risk and prevents the accumulation problem from building up between runs.
-
-## See also
-
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
-- [Laravel queue monitoring](/use-cases/laravel-queue-monitoring)

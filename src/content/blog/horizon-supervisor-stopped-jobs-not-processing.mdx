@@ -141,7 +141,7 @@ The problem with the DIY approach above is that it requires your scheduled task 
 
 Crontinel's package runs the supervisor check as part of its own monitoring loop, which pushes state to a separate reporting endpoint rather than relying on the scheduler to fire. It reads the same Redis keys Horizon uses, tracks per-supervisor health, and alerts you when a supervisor disappears from the heartbeat map.
 
-You get per-supervisor status in the Crontinel dashboard, not just a binary "is Horizon running" flag. See [crontinel.com/features](https://crontinel.com/features) for the full breakdown.
+You get per-supervisor status in the Crontinel dashboard, not just a binary "is Horizon running" flag. See [crontinel.com/features](https://crontinel.com/features/) for the full breakdown.
 
 ```bash
 composer require crontinel/laravel

@@ -72,9 +72,3 @@ That pattern gives you a simple, durable signal that can drive an alert, a statu
 Generic uptime tools can tell you whether a URL returned 200. They do not know whether the scheduler actually executed the right work. A cron heartbeat system is better when the thing you care about is scheduler cadence, not just endpoint availability.
 
 Crontinel adds the missing context: command name, schedule, run history, lateness, and failure state.
-
-## See also
-
-- [How to monitor `php artisan schedule:run` in production](/use-cases/monitor-schedule-run/)
-- [Production cron job alerting for Laravel](/use-cases/production-cron-job-alerting/)
-- [What happens when your Laravel scheduler stops running](/blog/what-happens-when-laravel-scheduler-stops-running/)

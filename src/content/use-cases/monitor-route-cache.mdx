@@ -91,12 +91,3 @@ Create a Crontinel monitor for your `route:cache` deploy hook. If you deploy sev
 Set the alert window to match your rollout. For a normal CI deploy, 15 to 30 minutes is usually enough. For rolling deploys, give each node enough time to finish and include host metadata so you can see which server failed to report.
 
 Do not monitor route cache as a generic cron job. Monitor it as a deploy-critical signal tied to the release that should have rebuilt `bootstrap/cache/routes-v7.php`.
-
-## See also
-
-- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/) - keep route clear and route cache in sync
-- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/) - catch stale config and cache refresh failures together
-- [Monitoring optimize in Laravel production](/use-cases/monitor-optimize) - catch stale config and cache refresh failures together
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment) - detect deploy-time maintenance failures
-- [Monitoring event:cache in Laravel production](/use-cases/monitor-event-cache) - keep cached event discovery in sync
-- [How to monitor a Laravel cache:clear cron job failure](/use-cases/monitor-laravel-cache-clear-cron-job-failed) - broader cache maintenance monitoring

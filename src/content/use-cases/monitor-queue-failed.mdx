@@ -100,11 +100,3 @@ php artisan queue:prune-failed --hours=168
 This removes entries older than seven days. Pair it with your monitoring: alert on new failures first, then prune resolved ones on a schedule. The goal is a `failed_jobs` table where every row represents an actionable problem, not a historical archive of last quarter's transient errors.
 
 The `queue:failed` command gives you the raw data. What it cannot give you is the discipline of watching that data continuously and reacting before your users notice.
-
-## See also
-
-- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
-- [How to Monitor php artisan queue:flush in Production](/use-cases/monitor-queue-flush/)
-- [How to Monitor php artisan queue:forget in Production](/use-cases/monitor-queue-forget/)
-- [Laravel Queue Monitoring: Depth, Failures, and Stuck Jobs](/use-cases/laravel-queue-monitoring/)
-- [Queue monitoring setup guide](/use-cases/queue-monitoring-setup/) - production-ready configuration with Crontinel

@@ -88,9 +88,3 @@ If you run multiple app servers, use `onOneServer()` and include the hostname in
 Create an hourly Crontinel monitor named `cache:prune-stale-tags`. Set the grace period based on your normal prune duration. For most apps, 10 minutes is generous. For high-volume tagged cache, start with 30 minutes, then tighten it after you have a week of runtime data.
 
 Do not monitor this command by checking whether Redis is online. Redis can be perfectly healthy while stale tag metadata piles up. Monitor the maintenance command itself.
-
-## See also
-
-- [How to monitor Laravel cache:clear cron job failures](/use-cases/monitor-laravel-cache-clear-cron-job-failed)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run)
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring)
