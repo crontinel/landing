@@ -146,9 +146,3 @@ CREATE INDEX idx_scheduled_tasks_last_run_at ON scheduled_tasks (last_run_at);
 - No database schema to maintain (Crontinel is a hosted service)
 
 For teams that want both the historical audit trail and real-time alerting, using both tools together covers more ground than either alone.
-
-## See also
-
-- [Cron heartbeat monitoring for Laravel schedulers](/use-cases/cron-heartbeat-monitoring/)
-- [Production cron job alerting for Laravel](/use-cases/production-cron-job-alerting/)
-- [How to monitor `php artisan schedule:run` in production](/use-cases/monitor-schedule-run/)

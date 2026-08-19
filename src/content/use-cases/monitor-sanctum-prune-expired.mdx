@@ -94,10 +94,3 @@ Create a daily heartbeat job in Crontinel for `sanctum:prune-expired`. Expected 
 On staging, intentionally break the scheduler and confirm you get an alert within 3 hours. Then fix it and confirm the ping arrives. This verification step is the only way to know your monitoring works before a real failure.
 
 If your app creates tokens at a high rate (thousands per day from API integrations), consider running the prune twice daily. The command is idempotent and overlap-safe, so scheduling it more frequently is low risk and prevents backlog between runs.
-
-## See also
-
-- [Crontinel homepage](/)
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run/)
-- [Laravel queue monitoring](/use-cases/laravel-queue-monitoring/)

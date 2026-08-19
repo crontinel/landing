@@ -111,10 +111,3 @@ If you need to run `queue:flush` in production, treat it like a database migrati
 4. **Never put queue:flush in automated pipelines without monitoring.** If it must be scheduled, ensure an external system confirms it ran and that the result was expected.
 
 The `queue:flush` command is a maintenance tool, not a cleanup script to run on autopilot. Every execution in production should be a conscious, tracked decision.
-
-## See also
-
-- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
-- [How to Monitor php artisan queue:forget in Production](/use-cases/monitor-queue-forget/)
-- [How to Monitor php artisan queue:retry in Production](/use-cases/monitor-queue-retry/)
-- [Laravel Queue Monitoring](/use-cases/laravel-queue-monitoring/)

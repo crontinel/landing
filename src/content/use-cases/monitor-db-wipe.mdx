@@ -140,10 +140,3 @@ Yes. PostgreSQL also drops sequences and custom types when `--drop-types` is pas
 
 **How do I prevent db:wipe from being run in production altogether?**  
 Remove it from the production-server `artisan` binary path entirely. Rename `artisan` to `artisan.bin` and replace it with a wrapper that blocks `db:wipe` and `db:wipe --force` outright. This is the only guarantee.
-
-## See also
-
-- [Detect migrate:fresh in production](/use-cases/monitor-migrate-fresh/)
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)
-- [Production cron job alerting](/use-cases/production-cron-job-alerting/)
-- [Monitoring Laravel failed jobs](/blog/laravel-failed-jobs-monitoring/)

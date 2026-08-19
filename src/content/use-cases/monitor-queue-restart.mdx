@@ -89,10 +89,3 @@ The `sleep` duration should match or exceed your longest `--timeout` value. If y
 In Laravel 11 and 12, if you are using Horizon, `php artisan horizon:terminate` is the better alternative. Horizon manages its own worker lifecycle and provides built-in metrics on worker status. But many teams run workers directly with Supervisor, and for those setups, `queue:restart` plus proper monitoring is the path that works.
 
 The core lesson: treat `queue:restart` as a "stop" command, not a "restart" command. Everything after the stop is your responsibility to verify.
-
-## See also
-
-- [Laravel Horizon Monitoring for Paused Supervisors, Queue Depth, and Failed Jobs](/use-cases/laravel-horizon-monitoring/)
-- [How to Monitor php artisan queue:monitor in Production](/use-cases/monitor-queue-monitor/)
-- [How to Monitor php artisan queue:work in Production](/use-cases/monitor-queue-work/)
-- [Laravel Queue Monitoring: Depth, Failures, and Stuck Jobs](/use-cases/laravel-queue-monitoring/)

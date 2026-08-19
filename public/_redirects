@@ -21,8 +21,16 @@
 /vs/healthchecksio   /vs/crontinel-vs-healthchecks-io  301
 /vs/healthchecksio/  /vs/crontinel-vs-healthchecks-io/ 301
 
-# Dead internal links found in GSC (404s) - never real pages, other posts linked to them by mistake
-/vs/horizon                /use-cases/laravel-horizon-monitoring/        301
-/vs/horizon/                /use-cases/laravel-horizon-monitoring/        301
-/blog/horizon-monitoring    /blog/how-to-monitor-horizon-jobs-production/ 301
-/blog/horizon-monitoring/   /blog/how-to-monitor-horizon-jobs-production/ 301
+# Dead internal links found via link audit - never real pages, other posts linked to them by mistake
+/vs/horizon                     /use-cases/laravel-horizon-monitoring/        301
+/vs/horizon/                    /use-cases/laravel-horizon-monitoring/        301
+/blog/horizon-monitoring        /blog/how-to-monitor-horizon-jobs-production/ 301
+/blog/horizon-monitoring/       /blog/how-to-monitor-horizon-jobs-production/ 301
+/blog/bull-queue-monitoring     /vs/crontinel-vs-cronitor/                    301
+/blog/bull-queue-monitoring/    /vs/crontinel-vs-cronitor/                    301
+/blog/celery-beat-monitoring    /vs/crontinel-vs-cronitor/                    301
+/blog/celery-beat-monitoring/   /vs/crontinel-vs-cronitor/                    301
+/blog/incident-alert-system-laravel   /use-cases/incident-alert-system/       301
+/blog/incident-alert-system-laravel/  /use-cases/incident-alert-system/       301
+/blog/migrate-from-thenping-me        /vs/crontinel-vs-thenping/              301
+/blog/migrate-from-thenping-me/       /vs/crontinel-vs-thenping/              301

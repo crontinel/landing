@@ -63,12 +63,3 @@ That third layer is the only thing that catches the "scheduler stopped firing en
 ## Quick Setup with Crontinel
 
 Create a job in your Crontinel dashboard with a 24-hour expected interval and a 2-hour grace period. Copy the resulting ping URLs into `config/crontinel.php`, deploy, and let one full cycle complete. After the next 02:00 run, you will see the duration, exit status, and uploaded archive size in the dashboard. Pull the plug on your S3 credentials in staging to verify the alert path actually pages you. Skipping that test is the most common reason teams discover, during an incident, that their Spatie laravel-backup monitoring was never wired up correctly.
-
-## See also
-
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/)
-- [Monitoring schedule:run in Laravel production](/use-cases/monitor-schedule-run/)
-- [Production cron job alerting](/use-cases/production-cron-job-alerting/)
-- [Monitoring backup:run failures in Laravel production](/use-cases/monitor-backup-run/)
-- [Detecting when Laravel backup:clean fails to run](/use-cases/monitor-backup-clean/)
-- [Monitoring Laravel backup health checks in production](/use-cases/monitor-backup-monitor/)

@@ -142,7 +142,3 @@ Crontinel's heartbeat monitoring is **pod-independent** — it doesn't care if y
 The fundamental rule: **don't trust pod status — trust heartbeats.**
 
 To monitor your Laravel scheduler on Kubernetes, set up a free Crontinel account, add a heartbeat monitor, and add the heartbeat call to your scheduler. You'll know the instant a CronJob fails to run.
-
-## Further Reading
-
-- [Laravel Cron Monitoring Across Multiple Microservices](/blog/laravel-cron-monitoring-multi-microservices/) — when each microservice runs its own scheduler, you need cross-service correlation and dependency-aware alerting. Covers the shift from per-service dashboards to a unified monitoring layer.

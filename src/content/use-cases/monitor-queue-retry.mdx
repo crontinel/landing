@@ -91,11 +91,3 @@ Manually checking `php artisan queue:failed` after every retry is not sustainabl
 Crontinel tracks retry outcomes alongside your normal queue metrics. When you run `queue:retry`, it correlates the re-queued jobs with their processing results and flags jobs that enter a fail-retry-fail loop. Instead of discovering at 6 PM that your 2 PM retry made things worse, you get an alert within minutes of the second failure.
 
 The `queue:retry` command is a recovery tool, not a monitoring tool. It puts jobs back on the queue and walks away. Production systems need the follow-through: confirmation that retried jobs succeeded, early warning when they don't, and enough context to decide whether the next step is another retry or a code fix.
-
-## See also
-
-- [How to Monitor php artisan queue:failed in Production](/use-cases/monitor-queue-failed/)
-- [How to Monitor php artisan queue:flush in Production](/use-cases/monitor-queue-flush/)
-- [How to Monitor php artisan queue:forget in Production](/use-cases/monitor-queue-forget/)
-- [How to Monitor php artisan queue:monitor in Production](/use-cases/monitor-queue-monitor/)
-- [Queue monitoring setup guide](/use-cases/queue-monitoring-setup/) - production-ready configuration with Crontinel

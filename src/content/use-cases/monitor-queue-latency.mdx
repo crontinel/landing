@@ -62,10 +62,3 @@ curl -s "https://crontinel.com/api/heartbeat/your-endpoint" \
 ```
 
 When average processing time stays above your threshold for three heartbeats in a row, Crontinel alerts before users notice the lag. That gives you time to find the root cause (slow query, upstream timeout, memory leak) while the queue is still moving.
-
-## See also
-
-- [Laravel Queue Worker Timeout Monitoring](/use-cases/monitor-queue-worker-timeout/) (workers that freeze or crash)
-- [Monitor php artisan queue:work in Production](/use-cases/monitor-queue-work/)
-- [Laravel Queue Monitoring: Catch Failures Before Users Do](/blog/laravel-queue-monitoring-catch-failures/)
-- [Laravel Background Job Monitoring Checklist](/blog/laravel-background-job-monitoring-checklist/)

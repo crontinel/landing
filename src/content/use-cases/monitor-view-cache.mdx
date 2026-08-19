@@ -107,11 +107,3 @@ Create a Crontinel monitor named `deploy view:cache completed`. Ping it after `v
 If you deploy on a schedule, set the expected times to match. For ad-hoc deploys, start the monitor at deploy time and require the ping from every server before the deploy is considered healthy.
 
 The `view:cache` step is one of the easiest to skip during a rushed deploy. A heartbeat tells you within minutes that it was missed, before stale templates reach your users.
-
-## See also
-
-- [Monitoring view:clear in Laravel production](/use-cases/monitor-view-clear/)
-- [Monitoring config:cache in Laravel production](/use-cases/monitor-config-cache/)
-- [Monitoring route:cache in Laravel production](/use-cases/monitor-route-cache/)
-- [Monitoring route:clear in Laravel production](/use-cases/monitor-route-clear/)
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/)

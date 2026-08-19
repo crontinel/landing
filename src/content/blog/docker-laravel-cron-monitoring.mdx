@@ -248,8 +248,3 @@ Without this, `cron` runs tasks at UTC times while Laravel's scheduler thinks it
 ## Key Takeaway
 
 Docker cron monitoring requires thinking beyond "is the process running?" You need to verify that tasks are actually executing on schedule, that the scheduler loop hasn't silently died, and that zombie processes aren't accumulating. External monitoring tools like Crontinel give you visibility from outside the container — the only perspective that's truly reliable when everything inside is potentially broken.
-
-## Further Reading
-
-- [Laravel Cron Monitoring Across Multiple Microservices](/blog/laravel-cron-monitoring-multi-microservices/) — when you scale from one Docker container to multiple services, the monitoring challenge changes. This covers cross-service heartbeats, dependency-aware alerting, and queue depth tracking.
-- [Monitoring Laravel Cron Jobs on Kubernetes](/blog/monitoring-kubernetes-cron-jobs/) — for teams running containers at scale with K8s CronJobs.

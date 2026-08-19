@@ -113,10 +113,3 @@ Event::listen(OrderShipped::class, function ($event) {
 If this ping stops arriving for a specific event that should fire regularly, the listener is not being invoked. Crontinel watches for the absence of these pings and alerts when a critical event goes silent.
 
 Event caching is one of those optimizations that works beautifully until it silently breaks. Monitoring the cache file modification time and comparing the registered listener count against a known-good baseline catches most failures before they become user-visible problems.
-
-## See also
-
-- [How to monitor Laravel route:cache in production](/use-cases/monitor-route-cache/) - keep cached routes fresh across deploys
-- [How to monitor php artisan optimize:clear after deployment](/use-cases/monitor-php-artisan-optimize-clear-after-deployment/) - detect deploy-time maintenance failures
-- [Laravel cron monitoring](/use-cases/laravel-cron-monitoring/) - broader scheduled task monitoring for production apps
-- [How to detect cron job failures in Laravel](/blog/detect-cron-job-failures-laravel/) - compare five detection methods side by side
