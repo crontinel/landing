@@ -35,7 +35,7 @@ If `route:clear` succeeds but `route:cache` fails, your app may still work, but 
 
 ## Building visibility into route:clear
 
-Treat route cache clearing as a deployment event worth verifying. The simplest check is to run `route:clear`, confirm the cache file is gone, then ping Crontinel only after the verification passes:
+Treat route cache clearing as a deployment event worth verifying. The simplest check is to run `route:clear` and confirm the cache file is actually gone:
 
 ```bash
 set -e
@@ -43,20 +43,24 @@ set -e
 php artisan route:clear
 
 test ! -f bootstrap/cache/routes-v7.php
-
-curl -fsS "https://your-crontinel-endpoint/ping/route-clear?release=$RELEASE_ID&host=$(hostname)"
 ```
 
-If that ping does not arrive after a deploy starts, you know the cache clear step failed, did not run, or ran on the wrong host. That is more useful than waiting for users to report strange 404s.
+That fails the deploy immediately if the clear step didn't do what it should. It does not catch a node that never ran the deploy step at all - for that, schedule a periodic verification so Crontinel has something ongoing to watch:
 
-For teams that always rebuild routes after clearing them, monitor both steps separately. Send one ping after `route:clear` succeeds and another after `route:cache` succeeds. If the first ping arrives but the second never does, the app is in the exact unsafe state you need to investigate.
+```php
+// routes/console.php
+Schedule::call(function () {
+    if (file_exists(base_path('bootstrap/cache/routes-v7.php')) && ! app()->isDownForMaintenance()) {
+        // still cached when you expected a fresh clear/rebuild cycle - investigate
+    }
+})->everyFiveMinutes()->name('route-cache-state-check');
+```
+
+For teams that always rebuild routes after clearing them, run both steps together in the deploy script and let the smoke test below catch drift:
 
 ```bash
 php artisan route:clear
-curl -fsS "$CRONTINEL_ROUTE_CLEAR_URL"
-
 php artisan route:cache
-curl -fsS "$CRONTINEL_ROUTE_CACHE_URL"
 ```
 
 ## Detecting when route:clear fails
@@ -74,14 +78,10 @@ if [ -f bootstrap/cache/routes-v7.php ]; then
 fi
 ```
 
-For multiple servers, include the hostname or release ID in the Crontinel ping. That lets you see which node missed the deploy step. If one server does not report in, you can pull it from rotation before users hit stale routes.
-
 You should also run a small route smoke test after the clear and rebuild sequence. Call one public route and one authenticated or API route that changed in the release. A file check tells you the cache state changed. A route smoke test tells you Laravel is actually serving the routes you expect.
 
 ## Quick setup with Crontinel
 
-Create one Crontinel monitor for `route:clear` and, if you rebuild route cache in production, a second monitor for `route:cache`. Set the expected window to match your deployment process. If deploys are manual or irregular, trigger the monitor during the deploy and require the ping before marking the release healthy.
+Crontinel's package hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` automatically once installed - no ping URL or config needed. Create a Cron monitor for the scheduled `route-cache-state-check` above, with an alert window that matches your deployment cadence.
 
-Use a descriptive monitor name such as `production route:clear completed` and include host metadata in the ping URL. When the ping is missing, treat it as a deploy verification failure, not a generic uptime problem.
-
-If you already monitor [`route:cache`](/use-cases/monitor-route-cache/), add `route:clear` as the paired signal. Together they show whether Laravel cleared the old route table and rebuilt the new one cleanly.
+If you already monitor [`route:cache`](/use-cases/monitor-route-cache/), the two checks together show whether Laravel cleared the old route table and rebuilt the new one cleanly.

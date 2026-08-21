@@ -26,7 +26,7 @@ That speedup is useful in production. The risk is that the file is a snapshot. I
 
 ## Building visibility into route:cache
 
-The safest pattern is to ping Crontinel only after `route:cache` succeeds:
+The safest pattern is to make the deploy script fail loudly if the cache file is missing or empty after `route:cache` runs:
 
 ```bash
 php artisan route:cache
@@ -36,13 +36,9 @@ if [ ! -s "$route_file" ]; then
   echo "route cache file missing or empty"
   exit 1
 fi
-
-curl -fsS "https://your-crontinel-endpoint/ping/route-cache?host=$(hostname)&release=$RELEASE_ID"
 ```
 
-That ping tells you the command ran and the cache file exists on that host. For multi-node apps, include the hostname or instance ID in the ping URL so a missing server is visible.
-
-You can also add a small internal health endpoint that checks file age against your deploy window:
+That check catches the command failing on the node running the deploy. It does not catch a node that never received the deploy at all - for that, add a small internal health endpoint that checks file age against your deploy window:
 
 ```php
 Route::get('/health/routes', function () {
@@ -65,11 +61,9 @@ Keep this endpoint private. It is a production safety check, not a public status
 
 ## Detecting when route:cache fails
 
-Use two signals together. First, your deploy script should fail immediately if `route:cache` exits non-zero or `bootstrap/cache/routes-v7.php` is missing. Second, Crontinel should alert when the expected post-deploy ping never arrives.
+Use two signals together. First, your deploy script should fail immediately if `route:cache` exits non-zero or `bootstrap/cache/routes-v7.php` is missing. Second, schedule a lightweight verification that Crontinel can watch on an ongoing basis.
 
-That missing ping catches the cases your deploy script misses: a command skipped on one node, a cache file written by the wrong user, or a deploy wrapper that continued after Artisan failed.
-
-For apps with scheduled release checks, run a lightweight verification after deploy:
+That scheduled check catches the cases your deploy script misses: a command skipped on one node, a cache file written by the wrong user, or a deploy wrapper that continued after Artisan failed.
 
 ```php
 // routes/console.php
@@ -77,17 +71,17 @@ Schedule::call(function () {
     $routeFile = base_path('bootstrap/cache/routes-v7.php');
 
     if (! is_file($routeFile) || time() - filemtime($routeFile) > 7200) {
-        Http::get('https://your-crontinel-endpoint/alert/stale-route-cache');
+        throw new RuntimeException('route cache missing or stale');
     }
-})->everyFiveMinutes();
+})->everyFiveMinutes()->name('route-cache-freshness-check');
 ```
 
 This does not replace a deploy hook. It gives you a second line of defense when a release tool skips a step.
 
 ## Quick setup with Crontinel
 
-Create a Crontinel monitor for your `route:cache` deploy hook. If you deploy several times a day, expect one ping per deploy window. If deployments are irregular, trigger the monitor from CI and include the release ID in the ping URL.
+Crontinel's package hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` automatically once installed - no ping URL or config needed. Create a Cron monitor in the dashboard named `route-cache-freshness-check`; when the closure above throws, Crontinel reports the failed run.
 
-Set the alert window to match your rollout. For a normal CI deploy, 15 to 30 minutes is usually enough. For rolling deploys, give each node enough time to finish and include host metadata so you can see which server failed to report.
+Set the alert window to match your rollout. For a normal CI deploy, 15 to 30 minutes of staleness tolerance is usually enough. For rolling deploys, give each node enough time to finish before the freshness check flags it.
 
 Do not monitor route cache as a generic cron job. Monitor it as a deploy-critical signal tied to the release that should have rebuilt `bootstrap/cache/routes-v7.php`.

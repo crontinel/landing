@@ -91,8 +91,8 @@ And for prevention, you can add a guard that blocks `migrate:rollback` in produc
 if [[ "$*" == *"migrate:rollback"* ]] || [[ "$*" == *"migrate:reset"* ]]; then
     echo "[BLOCKED] migrate:rollback is not allowed in production."
     echo "If you must roll back, do it manually with a backup first."
-    curl -fsS --retry 3 \
-      "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=migrate:rollback+blocked"
+    # Notify your team through whatever alert channel you already have wired up
+    # (Slack webhook, PagerDuty, etc).
     exit 1
 fi
 exec "$(dirname "$0")/artisan.bin" "$@"
@@ -104,19 +104,23 @@ The silent failure pattern is the hardest to catch. The command outputs "Rolling
 
 Your alerting should watch for two signals:
 
-1. **Migration count drops with no deploy.** If the number of rows in the `migrations` table decreases outside of a deployment window, something triggered a rollback. A Crontinel heartbeat that pings before and after every deploy can detect this.
+1. **Migration count drops with no deploy.** If the number of rows in the `migrations` table decreases outside of a deployment window, something triggered a rollback.
 
 2. **Batch numbers become non-sequential.** If migrations exist with batch numbers 1, 2, and 4 (missing 3), a batch was partially rolled back. This is a database health check that runs on every `schedule:run` execution.
 
 ## Quick Setup with Crontinel
 
-Create a heartbeat check in Crontinel that monitors your migrations table health. Set it to ping after every successful `schedule:run`:
+Turn the migrations-table check into its own scheduled command or closure:
 
-1. Create a heartbeat ping URL in your Crontinel dashboard.
-2. Add the migrations check to your scheduler command and ping the heartbeat only when the check passes.
-3. If `migrate:rollback` runs, the pre-execution webhook alert fires immediately. If the rollback partially fails and leaves your schema inconsistent, the next heartbeat check catches it.
+```php
+Schedule::call(function () {
+    // your migrations-table health check from above
+})->everyFiveMinutes()->name('migrations-table-health-check');
+```
 
-With Crontinel, you know about a rollback within seconds. Before anyone has to explain why the staging data leaked into production or why a column half the app depends on just disappeared.
+Crontinel's package hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` automatically once installed - no ping URL needed. Create a Cron monitor in the dashboard named `migrations-table-health-check`. If the check fails (batch gap, unexpected row-count drop), Crontinel reports the failed run. If the scheduler itself stops firing, Crontinel's late-run detection catches the silence.
+
+With Crontinel, you know about a rollback within minutes of the next scheduled check. Before anyone has to explain why the staging data leaked into production or why a column half the app depends on just disappeared.
 
 ## FAQ
 

@@ -74,18 +74,15 @@ Each check covers a different gap. The heartbeat catches run-level failures. The
 
 ## Quick Setup with Crontinel
 
-Create a job in your Crontinel dashboard with a 24-hour expected interval and a 30-minute grace period for nightly seeding. Copy the ping URLs into your `config/crontinel.php`:
+Add the nightly seed to your Laravel schedule with `--force`:
 
 ```php
-// config/crontinel.php
-return [
-    'db_seed_start' => env('CRONTINEL_DB_SEED_START'),
-    'db_seed_success' => env('CRONTINEL_DB_SEED_SUCCESS'),
-    'db_seed_failure' => env('CRONTINEL_DB_SEED_FAILURE'),
-];
+Schedule::command('db:seed --force')->dailyAt('02:00')->name('nightly-seed-refresh');
 ```
 
-Deploy, let the next scheduled seed run complete, then verify the dashboard shows the duration and status. To test the alert path, temporarily remove `--force` from your scheduled command and confirm Crontinel reports a missed ping within the grace period.
+Crontinel's package hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` automatically once installed - no ping URL or extra config needed. Create a Cron monitor in the Crontinel dashboard named to match the command, with a grace period wide enough to cover your seed duration, and it starts populating from the next scheduled run.
+
+Deploy, let the next scheduled seed run complete, then verify the dashboard shows the duration and status. To test the alert path, temporarily remove `--force` from your scheduled command and confirm Crontinel reports the failure.
 
 ## FAQ
 
