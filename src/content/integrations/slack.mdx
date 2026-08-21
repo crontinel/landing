@@ -74,7 +74,7 @@ Recovery alerts (when a paused supervisor resumes, or queue depth drops back bel
 
 To send alerts to both Slack and another channel (for example, Slack for warnings and PagerDuty for critical failures), use webhook integration to fan out alerts or configure the alert channel at the per-app level in the dashboard.
 
-The Team plan ($49/month) supports per-alert-type routing from the dashboard UI. On Pro and free, the alert channel is set globally per app via `.env`.
+Per-app channel routing works on every plan, free included, from the app.crontinel.com dashboard. There's no per-alert-type or per-monitor routing yet - each channel receives every alert type for the app(s) it's scoped to.
 
 ## Slack alert customization
 
