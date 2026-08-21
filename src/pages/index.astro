@@ -450,7 +450,7 @@ const description = 'Your Laravel scheduler or Horizon queue can fail for weeks 
         <div>
           <span class="b-eyebrow">Workers &amp; supervisors</span>
           <h3 class="b-title">See the worker, not just the URL.</h3>
-          <p class="b-desc">Per-worker status, paused detection, queue sparklines, failed job rate. Monitor every worker type - the moment one blinks, you know.</p>
+          <p class="b-desc">Per-worker status, paused detection, queue depth trend, failed job rate. Monitor every worker type - the moment one blinks, you know.</p>
         </div>
         <div class="horizon-grid" id="workers-grid">
           <!-- JS populates cells -->
@@ -577,10 +577,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     <div class="dashboard reveal">
       <div class="db-top">
         <div class="lights"><span class="r"></span><span class="y"></span><span class="g"></span></div>
-        <div class="url mono">app.crontinel.com/invoice-processor</div>
-        <div class="db-actions mono">
-          <span>&#8984;K</span>
-        </div>
+        <div class="url mono">app.crontinel.com/apps/invoice-processor</div>
       </div>
       <div class="db-body">
         <aside class="db-side">
@@ -590,10 +587,6 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
           <div class="app fail"><span class="dot"></span><span>notifications</span><span class="mono" style="margin-left:auto;color:var(--danger)">2</span></div>
           <div class="app"><span class="dot"></span><span>analytics-etl</span></div>
           <div class="app"><span class="dot"></span><span>billing-webhooks</span></div>
-
-          <div class="mono section-title">Filter</div>
-          <div class="app"><span class="dot"></span><span>status: all</span></div>
-          <div class="app"><span class="dot" style="background:var(--warn)"></span><span>alerts only</span></div>
         </aside>
 
         <div class="db-main">
@@ -601,6 +594,13 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
             <h3>invoice-processor</h3>
             <span class="badge">production · eu-west-1</span>
             <span class="badge fail">1 alert</span>
+          </div>
+
+          <div class="db-tabs mono">
+            <span>Setup</span>
+            <span>Monitors</span>
+            <span class="active">History</span>
+            <span>Settings</span>
           </div>
 
           <div class="kpis">
@@ -632,19 +632,19 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
                 <thead><tr><th>Queue</th><th>Depth</th><th>Oldest</th><th>Trend</th></tr></thead>
                 <tbody>
                   <tr><td>default</td><td class="mono">12</td><td class="mono">200ms</td><td>
-                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,18 10,14 20,20 30,12 40,16 50,10 60,14 70,8 80,12 90,10 100,14"/></svg>
+                    <div class="depth-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
                   </td></tr>
                   <tr><td>invoices</td><td class="mono">127</td><td class="mono">2m 04s</td><td>
-                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,20 10,18 20,16 30,18 40,14 50,14 60,16 70,10 80,14 90,12 100,14"/></svg>
+                    <div class="depth-dots"><span></span><span style="background:var(--warn)"></span><span style="background:var(--warn)"></span><span style="background:var(--warn)"></span><span style="background:var(--danger)"></span><span style="background:var(--danger)"></span></div>
                   </td></tr>
                   <tr class="fail"><td>emails</td><td class="mono danger">6,413</td><td class="mono danger">12m 04s</td><td>
-                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--danger)" stroke-width="1.5" points="0,22 10,22 20,20 30,18 40,14 50,10 60,6 70,4 80,3 90,2 100,1"/></svg>
+                    <div class="depth-dots"><span style="background:var(--danger)"></span><span style="background:var(--danger)"></span><span style="background:var(--danger)"></span><span style="background:var(--danger)"></span><span style="background:var(--danger)"></span><span style="background:var(--danger)"></span></div>
                   </td></tr>
                   <tr><td>analytics</td><td class="mono">88</td><td class="mono">400ms</td><td>
-                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,14 10,16 20,12 30,10 40,12 50,16 60,14 70,10 80,8 90,12 100,10"/></svg>
+                    <div class="depth-dots"><span></span><span></span><span style="background:var(--warn)"></span><span style="background:var(--warn)"></span><span style="background:var(--warn)"></span><span style="background:var(--warn)"></span></div>
                   </td></tr>
                   <tr><td>notifications</td><td class="mono">3</td><td class="mono">80ms</td><td>
-                    <svg class="sparkline" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline fill="none" stroke="var(--accent)" stroke-width="1.5" points="0,16 10,14 20,18 30,12 40,14 50,12 60,14 70,10 80,12 90,14 100,12"/></svg>
+                    <div class="depth-dots"><span></span><span></span><span></span><span></span><span></span><span></span></div>
                   </td></tr>
                 </tbody>
               </table>
