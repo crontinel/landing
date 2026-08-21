@@ -33,7 +33,9 @@ You do not need a giant incident platform to do this well. You need a page that 
 
 ## How Crontinel fits
 
-Crontinel already sees the signals that should drive a status page:
+Crontinel includes a built-in public status page - create one from your dashboard, attach the endpoints you want to show (an API health check, a webhook receiver, a background worker), and publish it at a Crontinel-hosted URL or your own custom domain. No separate status-page product to wire up.
+
+It's driven by the same signals Crontinel already watches:
 
 - missed scheduled runs
 - failed cron commands
@@ -42,7 +44,7 @@ Crontinel already sees the signals that should drive a status page:
 - Horizon pause and resume state
 - webhook delivery failures
 
-Once those signals trigger, you can publish a customer-facing update instead of waiting for support tickets to pile up.
+Free includes one status page, Pro adds one per monitored app, and Team is unlimited.
 
 ## Good status page angles
 
@@ -55,9 +57,9 @@ If you are writing SEO or support copy around this topic, the strongest angles a
 
 Those phrases match how teams actually search when they want to explain downtime or delayed work.
 
-## Setup idea
+## If you need a fully custom incident page instead
 
-Use Crontinel to alert on the background signal, then point the alert to your incident workflow.
+Crontinel's built-in status page covers most teams, but if you want a custom incident workflow layered on top, use Crontinel to alert on the background signal and drive your own update process from there.
 
 ```php
 // Example: a scheduled health check that can drive a status page update
