@@ -4,12 +4,6 @@ description: "Monitor Laravel's horizon:pause command in production with instant
 date: 2026-04-10
 ---
 
-Good, I now have a clear sense of the style, structure, and voice. Let me write the MDX content for the `horizon:pause` monitoring page. This is a use-cases page based on the pattern.
-
-Now I need to determine where this file should go. Based on the existing pattern (`monitor-horizon-work.mdx`, `monitor-horizon-terminate.mdx`), it should be `src/content/use-cases/monitor-horizon-pause.mdx`.
-
-Let me write the content. The user asked for ONLY the MDX body, no frontmatter.
-
 Your Horizon dashboard shows "Running." Supervisors are alive and reporting heartbeats. Redis is healthy. But no jobs have completed in the last 45 minutes. A teammate paused Horizon before running a risky migration two hours ago and never resumed it. Meanwhile, 6,000 password reset emails, payment confirmation webhooks, and search index updates are sitting in Redis, untouched. Nobody noticed because every health indicator except actual job throughput stayed green.
 
 This is the specific failure mode of `horizon:pause` in production. It does not stop Horizon. It does not kill processes. It tells supervisors to stop dequeuing, and then it waits for you to remember that you paused things. It is the quietest failure you can have: all the infrastructure stays up, and nothing moves.
