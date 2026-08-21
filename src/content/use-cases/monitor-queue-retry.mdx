@@ -4,8 +4,6 @@ description: "Monitor Laravel's queue:retry command in production. Get alerts wh
 date: 2026-04-07
 ---
 
-The file write was denied. Here's the MDX body:
-
 Your deploy went out at 2 PM. By 4 PM, 3,200 jobs are sitting in the `failed_jobs` table because a third-party payment API changed its response format. You fix the parsing logic, deploy the patch, and run `php artisan queue:retry all`. The jobs flood back onto the queue. Half of them fail again because the original payloads contain malformed data that your fix didn't account for. Now you have 1,600 new entries in `failed_jobs`, your queue workers are burning cycles on doomed retries, and legitimate jobs dispatched by real users are waiting behind the wreckage.
 
 This is the `queue:retry` problem in production. The command itself is simple. Knowing whether it actually helped is the hard part.

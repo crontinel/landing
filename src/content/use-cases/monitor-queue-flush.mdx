@@ -4,8 +4,6 @@ description: "Monitor Laravel's queue:flush command in production. Get alerts wh
 date: 2026-04-09
 ---
 
-The file was blocked by permissions. Here's the MDX body content:
-
 You are trying to understand why yesterday's queue failures vanished overnight. The answer is usually the same: someone ran `php artisan queue:flush` in production, and the `failed_jobs` table was wiped before anyone captured the evidence. No retry. No inspection. No audit trail. Just a silent deletion that removed the record of what failed and when.
 
 That is why `queue:flush` deserves monitoring. It is a destructive, silent operation that deletes every row from `failed_jobs` without confirmation, logging, or any built-in notification. In production, even a legitimate flush should be treated like a change event that must be tracked and reviewed.
