@@ -73,45 +73,32 @@ The default Forge recipe often appends `>> /dev/null 2>&1`. Failures leave no lo
 
 ### 1. Heartbeat the scheduler itself
 
-Treat "did `schedule:run` fire this minute?" as a first-class signal. Add a lightweight scheduled task that pings an external monitor every minute (or every five, with a matching grace window).
+Treat "did `schedule:run` fire this minute?" as a first-class signal. Add a lightweight scheduled task purely to prove the scheduler itself is alive:
 
 ```php
 // routes/console.php
 use Illuminate\Support\Facades\Schedule;
-use Illuminate\Support\Facades\Http;
 
-Schedule::call(function () {
-    $url = config('services.crontinel.scheduler_ping_url');
-
-    Http::timeout(5)->get($url);
-})->everyMinute()->name('scheduler-heartbeat')->withoutOverlapping();
+Schedule::call(fn () => null)
+    ->everyMinute()
+    ->name('scheduler-heartbeat')
+    ->withoutOverlapping();
 ```
 
-Configure the monitor to expect a ping within ~3 minutes. If Forge's crontab dies, PHP breaks after a version bump, or the release path is wrong, the heartbeat stops first — before the weekly report is late.
+Crontinel's package hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` automatically once installed - no ping URL or config needed. Create a Cron monitor named `scheduler-heartbeat` with an alert window of a few minutes. If Forge's crontab dies, PHP breaks after a version bump, or the release path is wrong, this monitor goes silent first - before the weekly report is late.
 
-With Crontinel you create a job for that ping URL, set the expected cadence, and alert Slack/PagerDuty when the window is missed.
+### 2. Let the package track critical artisan commands directly
 
-### 2. Wrap critical artisan commands with start/finish pings
-
-Heartbeats prove the scheduler is alive. They do not prove `backup:run` finished. For high-value commands, ping on start and success (and optionally on failure):
+Heartbeats prove the scheduler is alive. They do not prove `backup:run` finished. For high-value commands, no wrapping is needed - Crontinel's package tracks every scheduled command automatically:
 
 ```php
 Schedule::command('backup:run')
     ->dailyAt('02:00')
     ->onOneServer()
-    ->withoutOverlapping()
-    ->before(function () {
-        Http::timeout(5)->get(config('services.crontinel.backup_start_url'));
-    })
-    ->onSuccess(function () {
-        Http::timeout(5)->get(config('services.crontinel.backup_success_url'));
-    })
-    ->onFailure(function () {
-        Http::timeout(5)->get(config('services.crontinel.backup_fail_url'));
-    });
+    ->withoutOverlapping();
 ```
 
-If start arrives and success never does, you get a hung-or-failed alert even when the process exit code was swallowed somewhere upstream.
+Create a matching Cron monitor for `backup:run` in the dashboard. If it exits non-zero, hangs past your grace period, or the run never starts at all, Crontinel reports it - no start/success/failure hooks to write or maintain.
 
 ### 3. Do not rely on Forge Heartbeats alone for Laravel schedules
 

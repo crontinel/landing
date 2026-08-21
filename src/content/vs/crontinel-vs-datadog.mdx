@@ -17,7 +17,7 @@ Datadog can get expensive as you add infrastructure, logs, traces, and synthetic
 
 ## Cron job monitoring
 
-Crontinel is built around cron monitoring. You add a monitor, get a ping URL, and call it from your job. Datadog can support cron workflows too, but it usually takes more setup and more custom configuration.
+Crontinel is built around cron monitoring. Install the Laravel package and it automatically tracks every command on your schedule - no ping URLs, no wrapping your jobs. Datadog can support cron workflows too, but it usually takes more setup and more custom configuration.
 
 ## Uptime and synthetic checks
 
@@ -40,7 +40,7 @@ Crontinel is quick to start because it does not require a full observability rol
 
 ## Switching notes
 
-Moving from Datadog cron checks to Crontinel usually means replacing custom events or monitors with simple ping URLs. For teams that only need job monitoring, the switch is usually straightforward.
+Moving from Datadog cron checks to Crontinel usually means removing custom event instrumentation entirely - the Laravel package tracks scheduled commands automatically once installed. For teams that only need job monitoring, the switch is usually straightforward.
 
 ## FAQ
 
@@ -54,4 +54,4 @@ Usually yes, especially if you only need scheduled job and uptime monitoring.
 No. Crontinel works without an agent.
 
 ### Can I migrate from Datadog cron monitors to Crontinel?
-Yes. Most teams can move by replacing their existing monitor calls with Crontinel ping URLs.
+Yes. Most teams can move by removing their existing Datadog monitor calls and letting the Crontinel Laravel package track scheduled commands automatically.
