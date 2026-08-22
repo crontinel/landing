@@ -10,7 +10,6 @@
     "monitor-kubernetes-cronjob-heartbeat",
     "supervisor-stopwaitsecs-job-loss",
     "horizon-balance-cooldown-tuning",
-    "schedule-run-boot-loop-detection",
     "laravel-supervisor-numprocs-sizing",
     "quietpulse-cron-monitoring"
   ],
@@ -104,7 +103,8 @@
     "monitor-forge-cron-jobs",
     "laravel-cron-monitoring-multi-microservices",
     "queue-worker-graceful-shutdown",
-    "supervisor-queue-worker-config"
+    "supervisor-queue-worker-config",
+    "schedule-run-boot-loop-detection"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
