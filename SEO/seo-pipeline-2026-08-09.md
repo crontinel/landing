@@ -54,7 +54,7 @@
 - No technical issues found
 - Blog content is generating impressions for long-tail queries
 
-**Blocker:** Web search unavailable (xAI credentials missing) — cannot do keyword research to refill pseo-queue. Need Harun to run `hermes auth` to restore xAI Grok OAuth, or set `XAI_API_KEY`.
+**Blocker:** Web search unavailable (xAI credentials missing) — cannot do keyword research to refill pseo-queue. Need Harun to restore xAI Grok OAuth credentials, or set `XAI_API_KEY`.
 
 **Next action needed:** Keyword research to refill pseo-queue. Focus on high-intent problem/solution queries rather than artisan command documentation. Consider:
 - Refreshing `monitor-config-cache` (464 imp, 0 clicks) with better title/meta

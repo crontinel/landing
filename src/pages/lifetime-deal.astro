@@ -104,7 +104,7 @@ const faqs = [
       <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 max-w-xl mx-auto text-center">
         <div class="text-sm text-gray-400 uppercase tracking-wide mb-2">Codes remaining</div>
         <div class="text-4xl font-bold text-white mb-3">
-          <span id="codes-remaining">250</span> <span class="text-lg text-gray-400 font-normal">of 250</span>
+          <span id="codes-remaining">250</span> <span class="text-lg text-gray-400 font-normal">of <span id="codes-total">250</span></span>
         </div>
         <div class="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
           <div id="codes-bar" class="bg-green-500 h-3 rounded-full transition-all duration-500" style="width: 100%"></div>
@@ -352,4 +352,27 @@ const faqs = [
     }
   ]
 }
+</script>
+
+<script>
+  fetch('https://app.crontinel.com/lifetime-deal/inventory')
+    .then((response) => (response.ok ? response.json() : null))
+    .then((data) => {
+      if (!data || typeof data.remaining !== 'number' || typeof data.total !== 'number') {
+        return;
+      }
+
+      const remainingEl = document.getElementById('codes-remaining');
+      const totalEl = document.getElementById('codes-total');
+      const barEl = document.getElementById('codes-bar');
+
+      if (remainingEl) remainingEl.textContent = String(data.remaining);
+      if (totalEl) totalEl.textContent = String(data.total);
+      if (barEl && data.total > 0) {
+        barEl.style.width = `${Math.max(0, Math.min(100, (data.remaining / data.total) * 100))}%`;
+      }
+    })
+    .catch(() => {
+      // Keep the static fallback if the inventory API is unreachable.
+    });
 </script>
