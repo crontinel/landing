@@ -31,6 +31,10 @@ const faqs = [
 ];
 ---
 
+<Base
+  title="Lifetime Deal | Crontinel"
+  description="Get Crontinel Pro or Team forever with a single payment. Limited to 250 codes. Laravel-native cron and queue monitoring, one price, no subscriptions."
+>
 <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
@@ -42,10 +46,6 @@ const faqs = [
 }
 </script>
 
-<Base
-  title="Lifetime Deal | Crontinel"
-  description="Get Crontinel Pro or Team forever with a single payment. Limited to 250 codes. Laravel-native cron and queue monitoring, one price, no subscriptions."
->
   <Nav />
 
   <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16" id="main-content">
@@ -295,9 +295,8 @@ const faqs = [
   </main>
 
   <Footer />
-</Base>
 
-<script type="application/ld+json">
+<script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -376,3 +375,4 @@ const faqs = [
       // Keep the static fallback if the inventory API is unreachable.
     });
 </script>
+</Base>

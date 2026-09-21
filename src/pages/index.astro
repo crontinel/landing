@@ -4,8 +4,8 @@ import Base from '../layouts/Base.astro';
 export const prerender = true;
 
 const canonicalURL = new URL('/', 'https://crontinel.com').toString();
-const title = 'Laravel Schedule & Queue Monitoring - Free Open Source | Crontinel';
-const description = 'Your Laravel scheduler or Horizon queue can fail for weeks before anyone notices. Crontinel alerts you the moment a scheduled task, queue, or worker goes silent. Free, 1-min setup. Also works with Node.js and Python.';
+const title = 'Laravel Cron & Queue Monitoring | Crontinel';
+const description = 'Catch silent Laravel cron, queue, and Horizon failures before users do. Open-source monitoring with Slack alerts, a free hosted plan, and one-minute setup.';
 ---
 
 <Base title={title} description={description} canonical={canonicalURL}>
@@ -13,24 +13,26 @@ const description = 'Your Laravel scheduler or Horizon queue can fail for weeks 
 <!-- JSON-LD -->
 <script type="application/ld+json" slot="head" set:html={JSON.stringify({
   "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      "@id": "https://crontinel.com/#organization",
-      "name": "Crontinel",
-      "url": "https://crontinel.com",
-      "logo": { "@type": "ImageObject", "url": "https://crontinel.com/logo.png" },
-      "sameAs": ["https://github.com/crontinel", "https://x.com/CrontinelApp"]
-    },
-    {
-      "@type": "WebSite",
-      "@id": "https://crontinel.com/#website",
-      "url": "https://crontinel.com",
-      "name": "Crontinel",
-      "description": "Laravel Schedule, Queue & Worker Monitoring",
-      "publisher": { "@id": "https://crontinel.com/#organization" }
-    }
-  ]
+  "@type": "SoftwareApplication",
+  "name": "Crontinel",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web, Linux",
+  "description": description,
+  "url": "https://crontinel.com/",
+  "offers": {
+    "@type": "Offer",
+    "name": "Free",
+    "price": "0",
+    "priceCurrency": "USD",
+    "url": "https://app.crontinel.com/register"
+  },
+  "featureList": [
+    "Laravel scheduler monitoring",
+    "Laravel Horizon and queue monitoring",
+    "Worker health and missed-run alerts",
+    "Open-source self-hosted monitoring"
+  ],
+  "provider": { "@id": "https://crontinel.com/#organization" }
 })} />
 
 <!-- Fonts (index page only) -->
@@ -987,7 +989,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       <p class="body">If you're comparing tools or looking for a specific failure mode, these are the strongest pages on the site.</p>
     </div>
     <div class="seo-links reveal">
-      <a class="seo-link-card" href="/blog/cron-vs-queue-monitoring/">
+      <a class="seo-link-card" href="/blog/laravel-cron-vs-queue-monitoring/">
         <h3>Cron vs queue monitoring</h3>
         <p>See what cron monitoring covers, what queue monitoring covers, and why you need both in production.</p>
       </a>
@@ -995,7 +997,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <span class="seo-link-card-title">Cron Monitoring Guide</span>
         <span class="seo-link-card-desc">Complete guide to detecting missed runs, silent failures, worker stalls, and queue backpressure.</span>
       </a>
-      <a class="seo-link-card" href="/use-cases/worker-monitoring/">
+      <a class="seo-link-card" href="/use-cases/laravel-horizon-monitoring/">
         <h3>Worker & supervisor monitoring</h3>
         <p>Track paused supervisors, queue depth, and failing workers before the backlog becomes customer visible.</p>
       </a>

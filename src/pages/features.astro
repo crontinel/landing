@@ -4,6 +4,10 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 ---
 
+<Base
+  title="Queue & Cron Monitoring - Features | Crontinel"
+  description="Monitor Laravel Horizon, queues, scheduled tasks, and failed jobs. Get Slack, email, PagerDuty, and webhook alerts with a free plan."
+>
 <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
@@ -48,10 +52,6 @@ import Footer from '../components/Footer.astro';
 }
 </script>
 
-<Base
-  title="Queue & Cron Monitoring - Features | Crontinel"
-  description="Set up in 1 minute: monitor Horizon supervisors, queue depth, cron run history, and failed jobs. Slack, email, PagerDuty, Discord, Teams, Telegram, and webhook alerts. Free for 1 app."
->
   <Nav />
 
   <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16" id="main-content">
@@ -246,9 +246,8 @@ import Footer from '../components/Footer.astro';
   </main>
 
   <Footer />
-</Base>
 
-<script type="application/ld+json">
+<script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -304,3 +303,4 @@ import Footer from '../components/Footer.astro';
   ]
 }
 </script>
+</Base>

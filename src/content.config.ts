@@ -7,6 +7,7 @@ const blog = defineCollection({
     title: z.string(),
     description: z.string().optional(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
     draft: z.boolean().optional().default(false),
   }),
 });
@@ -18,6 +19,7 @@ const vs = defineCollection({
     description: z.string().optional(),
     competitor: z.string(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
   }),
 });
 
@@ -27,6 +29,7 @@ const useCases = defineCollection({
     title: z.string(),
     description: z.string().optional(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
   }),
 });
 
@@ -36,6 +39,7 @@ const integrations = defineCollection({
     title: z.string(),
     description: z.string().optional(),
     date: z.coerce.date(),
+    updated: z.coerce.date().optional(),
   }),
 });
 
