@@ -9,7 +9,18 @@ const disallowed = [
   '&#x' + '2014;',
 ];
 const offenders = [];
-const files = execFileSync('git', ['ls-files'], { encoding: 'utf8' })
+// Keep this quality check focused on compiled landing UI source. Editorial
+// content and historical operational notes may use normal prose punctuation.
+const uiPaths = [
+  'src/pages',
+  'src/layouts',
+  'src/components',
+  'src/styles',
+  'src/lib',
+  'src/content.config.ts',
+  'src/middleware.ts',
+];
+const files = execFileSync('git', ['ls-files', '--', ...uiPaths], { encoding: 'utf8' })
   .trim()
   .split('\n')
   .filter(Boolean);
@@ -32,7 +43,7 @@ for (const file of files) {
 }
 
 if (offenders.length > 0) {
-  console.error('No em dash characters or entities are allowed.');
+  console.error('No em dash characters or entities are allowed in landing UI source.');
   console.error(offenders.join('\n'));
   process.exit(1);
 }
