@@ -4,6 +4,10 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 ---
 
+<Base
+  title="About Crontinel - Why We Built Open Source Cron Monitoring"
+  description="Crontinel is open-source monitoring for Laravel cron jobs, queues, and Horizon. Learn why we built it and how the project works."
+>
 <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
@@ -27,10 +31,6 @@ import Footer from '../components/Footer.astro';
 }
 </script>
 
-<Base
-  title="About Crontinel - Why We Built Open Source Cron Monitoring"
-  description="Crontinel was built by a developer tired of silent cron failures breaking production. Open-source, framework-agnostic monitoring that alerts you when things break."
->
   <Nav />
 
   <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16" id="main-content">

@@ -4,6 +4,10 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 ---
 
+<Base
+  title="Cron & Queue Monitoring - Pricing | Crontinel"
+  description="Free Laravel cron and queue monitoring for 1 app. Get Slack and email alerts, self-hosted monitoring, and a 14-day Pro trial with no credit card."
+>
 <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
@@ -117,10 +121,6 @@ import Footer from '../components/Footer.astro';
 }
 </script>
 
-<Base
-  title="Cron & Queue Monitoring - Pricing | Crontinel"
-  description="Free for 1 app with 5 monitors and Slack/email/Discord/Teams/Telegram alerts. No credit card required. Pro ($19.99/mo) adds PagerDuty/SMS alerts, unlimited monitors, and 90-day history. 14-day free trial on Pro and Team."
->
   <Nav />
 
   <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16" id="main-content">
@@ -313,7 +313,6 @@ import Footer from '../components/Footer.astro';
   </main>
 
   <Footer />
-</Base>
 
 <script>
   const monthly = { pro: '$19.99', team: '$49.99', period: '/mo/', proNote: '', teamNote: '' };
@@ -358,7 +357,7 @@ import Footer from '../components/Footer.astro';
   btnYearly.addEventListener('click', setYearly);
 </script>
 
-<script type="application/ld+json">
+<script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -406,3 +405,4 @@ import Footer from '../components/Footer.astro';
   ]
 }
 </script>
+</Base>

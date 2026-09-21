@@ -48,12 +48,11 @@ const badgeText = page.data.competitor === 'Alternatives'
   : `Crontinel vs ${page.data.competitor}`;
 ---
 
-<script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} />
-
 <Base
   title={`${page.data.title}  |  Crontinel`}
   description={page.data.description ?? page.data.title}
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumb)} />
   <Nav />
 
   <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">

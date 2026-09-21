@@ -1,6 +1,7 @@
 {
   "pending": [
-    "https://crontinel.com/use-cases/monitor-supervisor-queue-worker-config/"
+    "https://crontinel.com/use-cases/monitor-supervisor-queue-worker-config/",
+    "https://crontinel.com/blog/laravel-nightwatch-monitoring/"
   ],
   "submitted": [
     "https://crontinel.com/blog/laravel-queue-worker-graceful-shutdown",
@@ -49,7 +50,6 @@
     "https://crontinel.com/use-cases/laravel-status-page",
     "https://crontinel.com/blog",
     "https://crontinel.com/vs/crontinel-vs-cronradar",
-    "https://crontinel.com/vs/crontinel-vs-betteruptime",
     "https://crontinel.com/blog/laravel-failed-jobs-monitoring",
     "https://crontinel.com/use-cases/monitor-backup-clean",
     "https://crontinel.com/blog/laravel-broadcast-failure-detection",

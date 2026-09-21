@@ -9,7 +9,7 @@ import { getCollection, render } from 'astro:content';
 export const prerender = true;
 
 export async function getStaticPaths() {
-  const posts = await getCollection('blog');
+  const posts = (await getCollection('blog')).filter((post) => !post.data.draft);
   return posts.map((post) => ({
     params: { slug: post.id },
     props: { post },
@@ -20,7 +20,7 @@ const { post } = Astro.props;
 const { Content } = await render(post);
 
 const [blogPosts, useCases, vsPages, integrations] = await Promise.all([
-  getCollection('blog'),
+  getCollection('blog', ({ data }) => !data.draft),
   getCollection('use-cases'),
   getCollection('vs'),
   getCollection('integrations'),
@@ -35,11 +35,14 @@ const relatedItems = buildRelatedLinks(post, 'blog', [
 
 const articleSchema = {
   "@context": "https://schema.org",
-  "@type": "Article",
+  "@type": "BlogPosting",
   "headline": post.data.title,
   "description": post.data.description ?? post.data.title,
   "datePublished": post.data.date.toISOString(),
+  ...(post.data.updated ? { "dateModified": post.data.updated.toISOString() } : {}),
+  "image": new URL('/og-default.png', Astro.site).toString(),
   "url": new URL(`/blog/${post.id}/`, Astro.site).toString(),
+  "mainEntityOfPage": new URL(`/blog/${post.id}/`, Astro.site).toString(),
   "publisher": {
     "@type": "Organization",
     "@id": "https://crontinel.com/#organization",
@@ -74,8 +77,8 @@ const breadcrumb = {
     <div class="scanline"></div>
   </div>
 
-  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
-  <script type="application/ld+json" set:html={JSON.stringify(breadcrumb)} />
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(articleSchema)} />
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumb)} />
 
   <main id="main-content">
     <div class="container">
