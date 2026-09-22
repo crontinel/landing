@@ -1,0 +1,158 @@
+---
+title: "Laravel Queue Worker Memory Limits: Configure --memory Without Restart Loops"
+description: "How Laravel's queue:work --memory flag differs from PHP memory_limit, how to choose a safe value, and how to configure Supervisor for clean worker recycling."
+date: 2026-09-22
+tags: ["laravel", "queues", "supervisor", "performance"]
+---
+
+Your Laravel worker does not need a memory leak to run out of RAM. One CSV import can use 300 MB while normal jobs stay near 70 MB. If several workers hit heavy jobs together, PHP or the operating system can kill them before Supervisor has a chance to restart anything.
+
+Laravel's `queue:work` command has a `--memory` option for this problem. It gives the worker a soft memory limit. When the worker is over that limit after a job finishes, it exits so the process manager can start a fresh worker.
+
+That is useful, but it is not the same thing as PHP's `memory_limit`. The two limits protect different parts of the system.
+
+## What `--memory` actually does
+
+Start a worker with a 256 MB Laravel memory limit:
+
+```bash
+php artisan queue:work redis --memory=256
+```
+
+The worker checks its memory usage between jobs. If it is over 256 MB, it exits cleanly after the current job. Supervisor or Horizon then starts a replacement process.
+
+The flag does not stop a job that allocates 500 MB. It also does not repair a job that keeps references to large objects. It limits how long the worker stays alive after memory usage has grown.
+
+This makes `--memory` a recycling policy, not a leak fix. If the same job causes growth on every run, the worker will keep recycling until you fix the job or change how it processes data. See [how to find Laravel queue worker memory leaks](/blog/laravel-queue-worker-memory-leak/) for the investigation side.
+
+## `--memory` versus PHP `memory_limit`
+
+PHP's `memory_limit` is a hard allocation limit for the process. Check the CLI value, not only the value shown by your web server:
+
+```bash
+php --ini
+php -r 'echo ini_get("memory_limit"), PHP_EOL;'
+```
+
+The limits work in this order:
+
+1. A job runs inside the worker.
+2. PHP can terminate the process if it reaches `memory_limit`.
+3. If the job finishes, Laravel checks the worker's `--memory` value.
+4. Laravel exits the worker when the soft limit has been exceeded.
+5. Supervisor or Horizon starts a replacement.
+
+If one job can exceed PHP's hard limit, lowering `--memory` will not save it. Split the job, process records in chunks, or raise the PHP CLI limit after checking the host's available memory.
+
+## Pick a limit from measurements
+
+Do not copy a `--memory=128` value into every environment. Start with three measurements:
+
+- Baseline memory after the worker boots.
+- Peak memory for the largest normal job.
+- Total RAM available after reserving space for PHP-FPM, Redis, the database, and the operating system.
+
+For example, a worker that starts at 70 MB and reaches 180 MB on its largest normal job could use a 256 MB soft limit. That leaves room for variation without letting a slow leak run forever.
+
+Start with bounded workers as well:
+
+```bash
+php artisan queue:work redis \
+    --queue=high,default \
+    --sleep=3 \
+    --tries=3 \
+    --timeout=90 \
+    --memory=256 \
+    --max-jobs=500 \
+    --max-time=3600
+```
+
+`--max-jobs` and `--max-time` give workers additional recycling points. They help with fragmentation and small leaks that never cross the memory threshold during a single shift.
+
+## Configure Supervisor to recycle workers cleanly
+
+The worker command and Supervisor configuration need to agree about timeouts and recycling:
+
+```ini
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+directory=/var/www/app
+command=php artisan queue:work redis --queue=high,default --sleep=3 --tries=3 --timeout=90 --memory=256 --max-jobs=500 --max-time=3600
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=4
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/laravel-worker.log
+stopwaitsecs=120
+```
+
+Set `directory` so relative paths and the application's environment resolve consistently. Set `stopwaitsecs` above the longest job timeout. Keep `numprocs` within the server's memory budget: four workers at 256 MB each need more than 1 GB once PHP overhead and the rest of the stack are included.
+
+Apply a changed Supervisor program with:
+
+```bash
+sudo supervisorctl reread
+sudo supervisorctl update
+sudo supervisorctl restart laravel-worker:*
+```
+
+Watch the worker count and queue depth after the restart. A worker that exits every few seconds is not healthy recycling. It is usually hitting a fatal error, a PHP hard limit, or a bad configuration.
+
+## Horizon uses different configuration keys
+
+Horizon does not use the full `queue:work` command line from Supervisor. Set its worker limits in `config/horizon.php`:
+
+```php
+'environments' => [
+    'production' => [
+        'supervisor-default' => [
+            'connection' => 'redis',
+            'queue' => ['high', 'default'],
+            'balance' => 'auto',
+            'processes' => 4,
+            'tries' => 3,
+            'memory' => 256,
+            'maxJobs' => 500,
+            'maxTime' => 3600,
+        ],
+    ],
+],
+```
+
+After changing Horizon settings, terminate the old workers so they load the new configuration:
+
+```bash
+php artisan horizon:terminate
+```
+
+The Horizon master process should bring the workers back. Confirm the new process count, memory setting, and queue assignment in the Horizon dashboard or supervisor logs.
+
+## Tell a limit exit from an out-of-memory crash
+
+The response depends on which limit fired:
+
+| Symptom | Likely cause | First check |
+|---|---|---|
+| Worker exits after a completed job and restarts | Laravel `--memory`, `--max-jobs`, or `--max-time` | Worker logs and configured flags |
+| `Allowed memory size exhausted` | PHP `memory_limit` | CLI `php.ini` and the failing job |
+| Process disappears with no PHP error | OS or container OOM killer | `journalctl`, container events, or host metrics |
+| Workers restart together under load | Limit is too low or jobs are too large | Peak job memory and total host RAM |
+| Queue depth rises while workers look active | Worker crash loop or stuck jobs | Restart rate, failed jobs, and queue latency |
+
+Do not raise every limit when a worker crashes. If the process is in a restart loop, first identify whether Laravel, PHP, or the operating system terminated it.
+
+## Monitor recycling instead of hiding it
+
+A memory limit is useful only if you can see the pattern it creates. Track:
+
+- Worker restart count and uptime.
+- Queue depth and oldest job age.
+- Failed jobs and timeout counts.
+- A small heartbeat command that runs through the same deployment and queue path.
+
+Crontinel can alert when the heartbeat stops, queue latency grows, or failures increase. Those signals tell you that workers are recycling too often even when Supervisor still reports them as running.
+
+For a worker that keeps growing, capture memory before and after representative jobs, then inspect the job for large collections, query logs, static caches, and package-level state. Lowering `--memory` should reduce the blast radius while you investigate, not become the permanent explanation for a process that never stays healthy.
