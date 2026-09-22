@@ -1,7 +1,8 @@
 {
   "pending": [
     "https://crontinel.com/use-cases/monitor-supervisor-queue-worker-config/",
-    "https://crontinel.com/blog/laravel-nightwatch-monitoring/"
+    "https://crontinel.com/blog/laravel-nightwatch-monitoring/",
+    "https://crontinel.com/blog/schedule-run-boot-loop-detection/"
   ],
   "submitted": [
     "https://crontinel.com/blog/laravel-queue-worker-graceful-shutdown",

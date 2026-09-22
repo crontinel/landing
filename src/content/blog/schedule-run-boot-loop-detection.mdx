@@ -1,0 +1,211 @@
+---
+title: "Detect Laravel schedule:run Boot Loops Before Cron Goes Silent"
+description: "When php artisan schedule:run crashes on boot, Supervisor restarts it every second and your real cron never fires. How to detect schedule runner boot loops, common causes, and production monitoring that catches them."
+date: 2026-08-23
+tags: ["laravel", "cron", "scheduler", "supervisor"]
+---
+
+Your server's crontab looks fine. `* * * * * php /var/www/app/artisan schedule:run` is still there. Supervisor says the process is "RUNNING." And yet nothing on the schedule has fired in forty minutes.
+
+What you are looking at is almost never a broken crontab. It is a **boot loop**: `schedule:run` starts, dies during application bootstrap, Supervisor restarts it immediately, and the cycle repeats so fast that no scheduled task ever reaches `handle()`.
+
+This failure mode is quiet, common after deploys, and invisible to heartbeat pings that only fire when a job actually completes.
+
+## What a schedule:run boot loop looks like
+
+A healthy minute looks like this:
+
+1. Cron wakes up
+2. `php artisan schedule:run` boots Laravel
+3. The scheduler evaluates due events
+4. Due commands run (or are dispatched to the queue)
+5. The process exits 0
+6. Nothing happens until the next minute
+
+A boot loop looks like this instead:
+
+1. Cron or Supervisor starts `schedule:run`
+2. Bootstrap throws (config, package provider, missing env, Redis, DB)
+3. Process exits non-zero in under a second
+4. Supervisor restarts it with `autorestart=true`
+5. Repeat hundreds of times per minute
+
+From the outside you still see a process named `artisan`. CPU ticks. Logs fill with the same stack trace. Your actual `BackupDatabase`, `GenerateInvoices`, and `PruneTelescope` commands never start.
+
+## Why ping-style monitors miss it
+
+Most teams wire monitoring like this:
+
+```php
+// routes/console.php or Kernel.php
+Schedule::command('app:daily-report')
+    ->dailyAt('06:00')
+    ->thenPing('https://example.com/ping/daily-report');
+```
+
+That ping only fires after the command finishes successfully. If `schedule:run` never gets past boot, the ping never leaves the box. Depending on the expected window, you may wait an entire day before the missed-ping alert fires - and by then the damage is done.
+
+Worse: if *some* schedules still run (for example a second app on the same host, or a queue worker that pings independently), your monitor stays green while this app's scheduler is dead.
+
+You need a signal on the **runner itself**, not only on downstream jobs.
+
+## Common causes after a deploy
+
+These are the boot failures I see most often on Laravel production boxes:
+
+### 1. Config or env mismatch
+
+```bash
+# Stale config cache pointing at old secrets / hosts
+php artisan config:cache
+# Missing required env after a new package was added
+php artisan package:discover
+```
+
+A new package service provider that reads `env('SOME_KEY')` with no default will throw during boot the moment config is cached without that key.
+
+### 2. Redis / DB unavailable during boot
+
+Anything that connects in a service provider `boot()` method (or in a singleton resolved during provider registration) will take down every Artisan command, including `schedule:run`.
+
+```php
+// Dangerous in a service provider
+public function boot(): void
+{
+    // Throws if Redis is briefly down during deploy
+    $this->app->make(FeatureFlagClient::class)->warm();
+}
+```
+
+### 3. Broken autoload after a partial deploy
+
+Composer dump unfinished, opcache holding old files, or a release symlink flipped before `vendor/` finished copying. `schedule:run` dies on class-not-found; Supervisor thrash begins.
+
+### 4. Memory limit during boot
+
+Large service providers, Telescope, or Debugbar accidentally left enabled in production can push boot past `memory_limit` before the scheduler even evaluates due events.
+
+## Detect the loop from the process side
+
+### Watch restart rate, not just "is running"
+
+In Supervisor, a healthy `schedule:run` invoked from cron should not be a long-lived supervised program at all. If you *did* put it under Supervisor (some setups do), check:
+
+```ini
+[program:laravel-scheduler]
+command=php /var/www/app/artisan schedule:work
+autostart=true
+autorestart=true
+stopwaitsecs=3600
+stdout_logfile=/var/log/laravel-scheduler.log
+stderr_logfile=/var/log/laravel-scheduler.err.log
+```
+
+`schedule:work` (Laravel's long-running scheduler) is different from cron-driven `schedule:run`. Either way, a restart counter that climbs every second is the smoking gun:
+
+```bash
+supervisorctl status laravel-scheduler
+# Look at uptime. Sub-second or few-second uptime that keeps resetting = boot loop
+
+# Error log will usually show the same exception over and over
+tail -n 50 /var/log/laravel-scheduler.err.log
+```
+
+### Cron + flock pattern (preferred)
+
+Keep the classic crontab entry and detect failure via exit code and lock behavior:
+
+```cron
+* * * * * cd /var/www/app && flock -n /tmp/laravel-schedule.lock -c 'php artisan schedule:run >> /var/log/schedule.log 2>&1'
+```
+
+If boot fails, the log gets a new stack trace every minute. If a previous run is still held (long task without `withoutOverlapping`), flock skips - that is a different failure mode (stuck run), not a boot loop.
+
+### A tiny health command that only proves boot works
+
+```php
+// app/Console/Commands/SchedulerHeartbeat.php
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+
+class SchedulerHeartbeat extends Command
+{
+    protected $signature = 'scheduler:heartbeat';
+    protected $description = 'Prove schedule:run can boot and execute';
+
+    public function handle(): int
+    {
+        Cache::put('scheduler:last_heartbeat', now()->toIso8601String(), 600);
+        $this->info('ok');
+        return self::SUCCESS;
+    }
+}
+```
+
+```php
+// routes/console.php
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('scheduler:heartbeat')
+    ->everyMinute()
+    ->evenInMaintenanceMode();
+```
+
+Now you have a cache key that must advance every minute **if and only if** the scheduler booted and ran events. External monitoring can read that key (or have the command POST a heartbeat to your monitor).
+
+## Failure modes to alert on
+
+| Signal | Meaning | Severity |
+|---|---|---|
+| No heartbeat for 2–3 minutes | Runner not completing boot + event loop | Critical |
+| Same exception N times/minute in schedule log | Hard boot loop | Critical |
+| Heartbeat OK but specific command pings missing | That command failing or not due | Warning |
+| flock always busy | Overlapping long task / stuck schedule:run | Warning |
+| Heartbeat resumes after deploy | Transient boot issue, confirm config cache | Info |
+
+Do not wait for the daily report ping to notice the runner is dead.
+
+## How Crontinel fits
+
+Crontinel watches the scheduled commands and the runner signals your app already emits. When `schedule:run` stops completing, you get a missed-run alert on the heartbeat (or on every monitored command) within minutes - not at the end of the expected window for a once-daily job.
+
+Typical setup for Laravel:
+
+1. Install the package and point it at your app key
+2. Monitor `scheduler:heartbeat` (or any every-minute command) with a tight grace window
+3. Monitor critical daily/hourly commands with their own schedules
+4. Alert on missed runs and failed exits without depending on a single end-of-job ping URL
+
+That split matters: a boot loop kills every command at once. One shared runner heartbeat catches the whole class of failure. Per-command monitors still catch "scheduler is fine, this one job is broken."
+
+## Quick recovery checklist
+
+When you suspect a boot loop:
+
+```bash
+# 1. Confirm thrash
+tail -f /var/log/schedule.log   # or supervisor stderr
+# 2. Run once in the foreground - read the real exception
+cd /var/www/app && php artisan schedule:run -v
+# 3. Classic post-deploy fixes
+php artisan config:clear
+php artisan cache:clear
+php artisan package:discover
+composer dump-autoload -o
+# 4. Re-cache only after env is correct
+php artisan config:cache
+php artisan route:cache
+# 5. Prove the runner lives
+php artisan schedule:run -v
+php artisan scheduler:heartbeat
+```
+
+If foreground `schedule:run` works but cron does not, compare users, cwd, PATH, and env sources (`/etc/environment` vs `.env` vs PHP-FPM pool env). Boot loops often appear only under the cron user.
+
+## Takeaway
+
+`schedule:run` boot loops do not look like "cron stopped." They look like a process that is always restarting and a schedule that is mysteriously idle. Instrument the runner with a one-minute heartbeat, watch restart rate and identical stack traces, and alert on missing heartbeats in minutes - not when tomorrow's report never arrives.
+
+If you want that missed-run path without building the alert plumbing yourself, point Crontinel at the heartbeat and your critical scheduled commands and let the gap detection do the boring part.
