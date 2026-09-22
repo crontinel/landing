@@ -13,7 +13,7 @@ Missed schedule runs are insidious because Laravel's scheduler is silent on succ
 
 The most common root causes are unrelated to your application code:
 
-**PHP timeouts.** A long-running task exceeds `max_execution_time` (typically 30s in shared hosting, 240s in Laravel Forge). The scheduler never completes, and the mutex stays locked, skipping the next run.
+**PHP timeouts.** A long-running task exceeds `max_execution_time` (typically 30s in shared hosting, 240s in Laravel Forge). The scheduler never completes, and the [`withoutOverlapping()` mutex](/blog/laravel-schedule-withoutoverlapping-explained/) stays locked, skipping the next run.
 
 **Maintenance mode.** `php artisan down` blocks scheduled tasks that aren't marked `->evenInMaintenanceMode()`. If your deploy script puts the app in maintenance mode during the scheduler's minute, that run is lost.
 
