@@ -30,7 +30,7 @@ The scheduler fails in predictable ways that are easy to miss:
 
 **Timezone drift.** Laravel uses the timezone set in `config/app.php`, but `schedule:run` executes in whatever timezone the server's system clock reports. If your server is UTC but your app config says `America/New_York`, tasks scheduled for "daily at 9am" run at 9am UTC, not Eastern. Laravel 11 added the `Schedule::timezone()` method to make this more explicit, but the mismatch still catches people.
 
-**Overlapping runs.** A task that takes longer than one minute to complete will spawn a second instance on the next `schedule:run` cycle. Laravel provides `withoutOverlapping()`, but it relies on the cache driver. If you're using the `file` cache driver and your deployment clears the cache directory, the lock files vanish and overlapping resumes.
+**Overlapping runs.** A task that takes longer than one minute to complete will spawn a second instance on the next `schedule:run` cycle. Laravel provides `withoutOverlapping()`, but it relies on the cache driver. If you're using the `file` cache driver and your deployment clears the cache directory, the lock files vanish and overlapping resumes. [Learn how a stale `withoutOverlapping()` mutex can skip future runs](/blog/laravel-schedule-withoutoverlapping-explained/).
 
 **Memory and timeout limits.** Each `schedule:run` invocation inherits the memory limit and max execution time from your CLI PHP configuration, not your web `php.ini`. A task that works fine in testing can OOM in production when processing larger datasets.
 

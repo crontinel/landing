@@ -1,7 +1,8 @@
 ---
-title: "Laravel withoutOverlapping() Deep Dive: When It Helps and When It Silently Kills Jobs"
-description: "withoutOverlapping() can silently skip your scheduled task forever after one stuck mutex — no error, no log. Here's how to catch it before customers do."
+title: "Laravel withoutOverlapping(): Prevent Stuck Scheduled Tasks"
+description: "Learn how Laravel's withoutOverlapping() lock works, why stale mutexes skip jobs, how to clear them, and how to monitor skipped tasks."
 date: 2026-04-07
+updated: 2026-09-22
 tags: ["laravel", "scheduling"]
 ---
 
@@ -9,7 +10,7 @@ You add `->withoutOverlapping()` to a scheduled task because running two copies 
 
 This post covers how `withoutOverlapping()` actually works, the specific conditions that cause stuck mutexes, and how to detect when a task is being skipped rather than executed.
 
-## How the mutex works
+## How Laravel withoutOverlapping() works
 
 When a scheduled task has `->withoutOverlapping()`, Laravel acquires a mutex (a lock) before the task runs and releases it when the task completes. If the lock already exists when the scheduler tries to run the task, it skips the execution entirely.
 
