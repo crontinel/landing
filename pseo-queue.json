@@ -1,7 +1,6 @@
 {
   "in_progress": [],
   "pending": [
-    "queue-worker-memory-limit",
     "laravel-deploy-zero-downtime-queue",
     "horizon-rebalancing-strategy",
     "crontinel-vs-cronsignal",
@@ -104,7 +103,8 @@
     "laravel-cron-monitoring-multi-microservices",
     "queue-worker-graceful-shutdown",
     "supervisor-queue-worker-config",
-    "schedule-run-boot-loop-detection"
+    "schedule-run-boot-loop-detection",
+    "queue-worker-memory-limit"
   ],
   "done": [
     "spatie-schedule-monitor-setup"
