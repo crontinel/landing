@@ -1,5 +1,4 @@
 <directory-slider class="directory-slider">
-  <button type="button" class="directory-slider-toggle" aria-pressed="false" aria-label="Pause directory slider">Pause</button>
   <div class="directory-slider-viewport" role="region" aria-label="Directory listings" tabindex="0">
     <div class="directory-slider-track">
       {[0, 1].map(copy => (
@@ -121,7 +120,6 @@
 
 <style>
   .directory-slider { display: block; margin-bottom: 2.5rem; }
-  .directory-slider-toggle { display: block; margin: 0 0 0.5rem auto; color: #a3a3a3; font-size: 0.75rem; cursor: pointer; }
   .directory-slider-viewport { overflow-x: auto; scrollbar-width: thin; }
   .directory-slider-track { display: flex; width: max-content; animation: directory-scroll 180s linear infinite; }
   .directory-slider-group { display: flex; flex: none; align-items: center; gap: 1.5rem; padding: 4px 1.5rem 4px 0; }
@@ -146,15 +144,14 @@
   .directory-slider-group > a > span > span:nth-child(2) { font-size: 15px !important; }
   .directory-slider-group > a > span > span:nth-child(3) { display: none; }
   .directory-slider-group > a:not(:has(img, svg)) { padding: 0 16px; border: 1px solid #333; border-radius: 8px; color: #d4d4d4; font-size: 14px; }
-  .directory-slider:hover .directory-slider-track,
-  .directory-slider[data-paused] .directory-slider-track { animation-play-state: paused; }
+  .directory-slider:hover .directory-slider-track { animation-play-state: paused; }
   .directory-slider-viewport:focus-within .directory-slider-track { animation: none; }
   .directory-slider-viewport:focus-within .directory-slider-group[aria-hidden] { display: none; }
-  a:focus-visible, button:focus-visible, .directory-slider-viewport:focus-visible { outline: 2px solid #4ade80; outline-offset: 2px; }
+  a:focus-visible, .directory-slider-viewport:focus-visible { outline: 2px solid #4ade80; outline-offset: 2px; }
   @keyframes directory-scroll { to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) {
     .directory-slider-track { animation: none; }
-    .directory-slider-group[aria-hidden], .directory-slider-toggle { display: none; }
+    .directory-slider-group[aria-hidden] { display: none; }
   }
 </style>
 
@@ -162,15 +159,6 @@
   class DirectorySlider extends HTMLElement {
     connectedCallback() {
       this.querySelectorAll('.directory-slider-group[aria-hidden] a').forEach(link => link.setAttribute('tabindex', '-1'));
-      const button = this.querySelector('button');
-      if (!button || button.dataset.ready) return;
-      button.dataset.ready = 'true';
-      button.addEventListener('click', () => {
-        const paused = this.toggleAttribute('data-paused');
-        button.setAttribute('aria-pressed', String(paused));
-        button.setAttribute('aria-label', paused ? 'Resume directory slider' : 'Pause directory slider');
-        button.textContent = paused ? 'Resume' : 'Pause';
-      });
     }
   }
   if (!customElements.get('directory-slider')) customElements.define('directory-slider', DirectorySlider);
