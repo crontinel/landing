@@ -1,4 +1,9 @@
-<div class="flex flex-wrap items-center justify-center gap-4 mb-10">
+<directory-slider class="directory-slider">
+  <button type="button" class="directory-slider-toggle" aria-pressed="false" aria-label="Pause directory slider">Pause</button>
+  <div class="directory-slider-viewport" role="region" aria-label="Directory listings" tabindex="0">
+    <div class="directory-slider-track">
+      {[0, 1].map(copy => (
+        <div class="directory-slider-group" aria-hidden={copy === 1 ? 'true' : undefined}>
   <a href="https://launchigniter.com/product/crontinel?ref=badge-crontinel" target="_blank" rel="noopener noreferrer">
     <img src="https://launchigniter.com/api/badge/crontinel?theme=light" alt="Featured on LaunchIgniter" width="212" height="55" />
   </a>
@@ -9,10 +14,10 @@
   <a href="https://www.tinystartups.com/startup/crontinel" target="_blank" rel="noopener"
      style="display:inline-flex;align-items:center;gap:14px;padding:14px 22px 14px 18px;border-radius:14px;text-decoration:none;font-family:'Inter',system-ui,sans-serif;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#3525E6,#D81FE0,#22B8F0) border-box;border:2px solid transparent;color:#0E0B1F">
     <svg width="56" height="56" viewBox="0 0 100 100">
-      <defs><linearGradient id="tsg" x1=".1" y1="0" x2=".9" y2="1">
+       <defs><linearGradient id={`tsg-${copy}`} x1=".1" y1="0" x2=".9" y2="1">
         <stop offset="0%" stop-color="#3525E6"/><stop offset="55%" stop-color="#D81FE0"/><stop offset="100%" stop-color="#22B8F0"/>
       </linearGradient></defs>
-      <path d="M50 6C52 32 68 48 94 50C68 52 52 68 50 94C48 68 32 52 6 50C32 48 48 32 50 6Z" fill="url(#tsg)"/>
+      <path d="M50 6C52 32 68 48 94 50C68 52 52 68 50 94C48 68 32 52 6 50C32 48 48 32 50 6Z" fill={`url(#tsg-${copy})`}/>
     </svg>
     <span style="display:flex;flex-direction:column;line-height:1.15">
       <span style="font-family:monospace;font-size:9px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;color:#6A6585">Launched on</span>
@@ -73,7 +78,7 @@
   <a href="https://nextbigproduct.com/product/crontinel" target="_blank" rel="noopener noreferrer"><img src="https://nextbigproduct.com/assets/badge/crontinel.svg?theme=light" alt="Featured on NextBigProduct" width="250" height="54" /></a>
   <a href="https://fazier.com/launches/crontinel.com" target="_blank"><img src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=launched&theme=light" width="120" alt="Fazier badge" /></a>
 
-  Featured on <a href="https://aitoolsmarketer.com/">AI Tools for Marketers</a>
+  <a href="https://aitoolsmarketer.com/">Featured on AI Tools for Marketers</a>
   <a href="https://toolradar.com/tools/crontinel" target="_blank" rel="noopener"><img src="https://toolradar.com/api/badge/crontinel?type=review&format=png&v=4" alt="Crontinel on Toolradar" width="280" height="80" /></a>
   <a href="https://sideprojects.net/projects/crontinel"><img src="https://sideprojects.net/projects/crontinel/badge.svg" alt="Launched on sideprojects.net" height="58"></a>
   <a href="https://www.techtrendin.com/products/crontinel" target="_blank"><img src="https://www.techtrendin.com/badges/featured-light.png" alt="Featured on TechTrendin'" style="width: auto; height: 52px;" /></a>
@@ -108,4 +113,65 @@
   <a href="https://saasfame.com/item/crontinel" target="_blank" rel="noopener noreferrer">
     <img src="https://saasfame.com/badge-light.svg" alt="Featured on saasfame.com" style="height: 54px; width: auto;" />
   </a>
-</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</directory-slider>
+
+<style>
+  .directory-slider { display: block; margin-bottom: 2.5rem; }
+  .directory-slider-toggle { display: block; margin: 0 0 0.5rem auto; color: #a3a3a3; font-size: 0.75rem; cursor: pointer; }
+  .directory-slider-viewport { overflow-x: auto; scrollbar-width: thin; }
+  .directory-slider-track { display: flex; width: max-content; animation: directory-scroll 180s linear infinite; }
+  .directory-slider-group { display: flex; flex: none; align-items: center; gap: 1.5rem; padding: 4px 1.5rem 4px 0; }
+  .directory-slider-group > a {
+    display: inline-flex !important;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    height: 48px;
+    white-space: nowrap;
+  }
+  .directory-slider-group > a > img:only-child {
+    display: block;
+    height: 48px !important;
+    width: auto !important;
+    max-width: none !important;
+    object-fit: contain;
+  }
+  .directory-slider-group > a:has(> span) { padding: 4px 12px !important; gap: 8px !important; }
+  .directory-slider-group > a > svg { width: 32px; height: 32px; flex: none; }
+  .directory-slider-group > a > span > span:nth-child(2) { font-size: 15px !important; }
+  .directory-slider-group > a > span > span:nth-child(3) { display: none; }
+  .directory-slider-group > a:not(:has(img, svg)) { padding: 0 16px; border: 1px solid #333; border-radius: 8px; color: #d4d4d4; font-size: 14px; }
+  .directory-slider:hover .directory-slider-track,
+  .directory-slider[data-paused] .directory-slider-track { animation-play-state: paused; }
+  .directory-slider-viewport:focus-within .directory-slider-track { animation: none; }
+  .directory-slider-viewport:focus-within .directory-slider-group[aria-hidden] { display: none; }
+  a:focus-visible, button:focus-visible, .directory-slider-viewport:focus-visible { outline: 2px solid #4ade80; outline-offset: 2px; }
+  @keyframes directory-scroll { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) {
+    .directory-slider-track { animation: none; }
+    .directory-slider-group[aria-hidden], .directory-slider-toggle { display: none; }
+  }
+</style>
+
+<script>
+  class DirectorySlider extends HTMLElement {
+    connectedCallback() {
+      this.querySelectorAll('.directory-slider-group[aria-hidden] a').forEach(link => link.setAttribute('tabindex', '-1'));
+      const button = this.querySelector('button');
+      if (!button || button.dataset.ready) return;
+      button.dataset.ready = 'true';
+      button.addEventListener('click', () => {
+        const paused = this.toggleAttribute('data-paused');
+        button.setAttribute('aria-pressed', String(paused));
+        button.setAttribute('aria-label', paused ? 'Resume directory slider' : 'Pause directory slider');
+        button.textContent = paused ? 'Resume' : 'Pause';
+      });
+    }
+  }
+  if (!customElements.get('directory-slider')) customElements.define('directory-slider', DirectorySlider);
+</script>
