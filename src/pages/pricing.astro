@@ -5,404 +5,47 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Base
-  title="Cron & Queue Monitoring - Pricing | Crontinel"
-  description="Free Laravel cron and queue monitoring for 1 app. Get Slack and email alerts, self-hosted monitoring, and a 14-day Pro trial with no credit card."
+  title="Pricing | Crontinel"
+  description="Crontinel's Free plan is available now. Paid plans are being prepared."
 >
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Crontinel",
-  "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "Web",
-  "description": "Laravel-native cron job and queue monitoring. Monitor Horizon supervisors, queue depth, and scheduled tasks. Open source and self-hostable.",
-  "url": "https://crontinel.com",
-  "offers": [
-    {
-      "@type": "Offer",
-      "name": "Free",
-      "description": "1 app, 5 monitors, 7-day history, Slack/email/Discord/Teams/Telegram/webhook alerts. No credit card required.",
-      "price": "0",
-      "priceCurrency": "USD",
-      "availability": "https://schema.org/InStock",
-      "url": "https://app.crontinel.com/register"
-    },
-    {
-      "@type": "Offer",
-      "name": "Pro",
-      "description": "5 apps, unlimited monitors, 90-day history, Slack/email/PagerDuty/webhook alerts. 14-day free trial.",
-      "price": "19.99",
-      "priceCurrency": "USD",
-      "priceSpecification": {
-        "@type": "UnitPriceSpecification",
-        "price": "19.99",
-        "priceCurrency": "USD",
-        "unitCode": "MON",
-        "referenceQuantity": { "@type": "QuantitativeValue", "value": "1", "unitCode": "MON" }
-      },
-      "availability": "https://schema.org/InStock",
-      "url": "https://app.crontinel.com/register"
-    },
-    {
-      "@type": "Offer",
-      "name": "Team",
-      "description": "Unlimited apps and monitors, 1-year history, unlimited team members, custom alert rules, priority support. 14-day free trial.",
-      "price": "49.99",
-      "priceCurrency": "USD",
-      "priceSpecification": {
-        "@type": "UnitPriceSpecification",
-        "price": "49.99",
-        "priceCurrency": "USD",
-        "unitCode": "MON",
-        "referenceQuantity": { "@type": "QuantitativeValue", "value": "1", "unitCode": "MON" }
-      },
-      "availability": "https://schema.org/InStock",
-      "url": "https://app.crontinel.com/register"
-    }
-  ]
-}
-</script>
-
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": ["WebPage", "PricePage"],
-  "url": "https://crontinel.com/pricing/",
-  "name": "Pricing - Crontinel",
-  "breadcrumb": {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://crontinel.com" },
-      { "@type": "ListItem", "position": 2, "name": "Pricing", "item": "https://crontinel.com/pricing/" }
-    ]
-  }
-}
-</script>
-
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "AggregateOffer",
-  "url": "https://crontinel.com/pricing/",
-  "priceCurrency": "USD",
-  "lowPrice": "0",
-  "highPrice": "49.99",
-  "offerCount": "3",
-  "offers": [
-    {
-      "@type": "Offer",
-      "name": "Free",
-      "price": "0",
-      "priceCurrency": "USD",
-      "availability": "https://schema.org/InStock",
-      "url": "https://app.crontinel.com/register"
-    },
-    {
-      "@type": "Offer",
-      "name": "Pro",
-      "price": "19.99",
-      "priceCurrency": "USD",
-      "billingIncrement": "1",
-      "unitCode": "MON",
-      "availability": "https://schema.org/InStock",
-      "url": "https://app.crontinel.com/register"
-    },
-    {
-      "@type": "Offer",
-      "name": "Team",
-      "price": "49.99",
-      "priceCurrency": "USD",
-      "billingIncrement": "1",
-      "unitCode": "MON",
-      "availability": "https://schema.org/InStock",
-      "url": "https://app.crontinel.com/register"
-    }
-  ]
-}
-</script>
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Crontinel',
+    applicationCategory: 'DeveloperApplication',
+    operatingSystem: 'Web',
+    url: 'https://crontinel.com',
+    offers: { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'USD', url: 'https://app.crontinel.com/register' },
+  })} />
 
   <Nav />
 
-  <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16" id="main-content">
-    <div class="text-center mb-12">
-      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Simple, transparent pricing</h1>
-      <p class="text-gray-400 mb-8">14-day Pro trial on every signup. No credit card required.</p>
-
-      <!-- Billing toggle -->
-      <div class="inline-flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-full p-1">
-        <button
-          id="toggle-monthly"
-          class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors bg-white text-black"
-        >
-          Monthly
-        </button>
-        <button
-          id="toggle-yearly"
-          class="px-4 py-1.5 rounded-full text-sm font-medium transition-colors text-gray-400 hover:text-white"
-        >
-          Yearly <span class="text-green-400 ml-1">−20%</span>
-        </button>
-      </div>
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-20" id="main-content">
+    <div class="max-w-2xl mb-12">
+      <p class="text-sm text-green-400 mb-3">Pricing</p>
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Start free. Paid plans are being prepared.</h1>
+      <p class="text-gray-400">We are checking the paid billing flow and usage limits before opening paid signups. This page will carry the final terms when they are ready.</p>
     </div>
 
-    <div class="grid sm:grid-cols-3 gap-6 mb-12">
-      <!-- Free -->
-      <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
-        <div class="mb-6">
-          <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Free</div>
-          <div class="text-4xl font-bold text-white">$0</div>
-          <div class="text-sm text-gray-400 mt-1">forever</div>
-        </div>
-        <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 app</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 5 monitors per app</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 7-day history retention</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 team member (owner)</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Slack, email, Discord, Teams, Telegram, webhook alerts</li>
-          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">PagerDuty / SMS alerts</span></li>
-          <li class="flex gap-2.5 items-start"><span class="text-gray-600 mt-0.5">✗</span> <span class="text-gray-600">REST API access</span></li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 public status page</li>
+    <div class="grid md:grid-cols-2 gap-6">
+      <section class="bg-gray-900 border border-gray-800 rounded-xl p-7">
+        <h2 class="text-xl font-semibold text-white mb-2">Free</h2>
+        <p class="text-3xl font-bold text-white mb-5">$0</p>
+        <ul class="text-sm text-gray-300 space-y-2 mb-7">
+          <li>One connected app</li>
+          <li>Five monitors per app</li>
+          <li>Seven days of cron run and monitor event history</li>
         </ul>
-        <a href="https://app.crontinel.com/register" class="block text-center border border-gray-700 hover:border-gray-500 text-gray-300 font-medium py-2.5 rounded-lg transition-colors">
-          Get started free
-        </a>
-      </div>
+        <a href="https://app.crontinel.com/register" class="inline-block bg-green-500 hover:bg-green-400 text-black font-semibold px-5 py-2.5 rounded-lg transition-colors">Get started free</a>
+      </section>
 
-      <!-- Pro -->
-      <div class="bg-gray-900 rounded-xl p-6 border border-green-500/40 flex flex-col relative">
-        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-black text-xs font-semibold px-3 py-0.5 rounded-full whitespace-nowrap">
-          Most popular
-        </div>
-        <div class="mb-6">
-          <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Pro</div>
-          <div class="flex items-end gap-2">
-            <div class="text-4xl font-bold text-white">
-              <span id="pro-price">$19.99</span>
-            </div>
-            <div class="text-gray-400 mb-1" id="pro-period">/mo</div>
-          </div>
-          <div class="text-sm mt-1 h-5">
-            <span id="pro-note" class="text-green-400"></span>
-          </div>
-        </div>
-        <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 5 apps</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited monitors</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 90-day history retention</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 3 team members</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Slack, email, PagerDuty, Discord, Teams, Telegram, webhook alerts</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> REST API access</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> MCP server access</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1 status page per app</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 14-day free trial</li>
-        </ul>
-        <a href="https://app.crontinel.com/register" class="block text-center bg-green-500 hover:bg-green-400 text-black font-semibold py-2.5 rounded-lg transition-colors">
-          Start 14-day trial
-        </a>
-      </div>
-
-      <!-- Team -->
-      <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex flex-col">
-        <div class="mb-6">
-          <div class="text-sm text-gray-400 uppercase tracking-wide mb-1">Team</div>
-          <div class="flex items-end gap-2">
-            <div class="text-4xl font-bold text-white">
-              <span id="team-price">$49.99</span>
-            </div>
-            <div class="text-gray-400 mb-1" id="team-period">/mo</div>
-          </div>
-          <div class="text-sm mt-1 h-5">
-            <span id="team-note" class="text-green-400"></span>
-          </div>
-        </div>
-        <ul class="space-y-3 text-sm text-gray-400 flex-1 mb-8">
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited apps</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited monitors</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 1-year history retention</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited team members</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> All alert channels</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Unlimited status pages</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Custom alert rules</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> Priority support (24h email)</li>
-          <li class="flex gap-2.5 items-start"><span class="text-green-400 mt-0.5">✓</span> 14-day free trial</li>
-        </ul>
-        <a href="https://app.crontinel.com/register" class="block text-center border border-gray-700 hover:border-gray-500 text-gray-300 font-medium py-2.5 rounded-lg transition-colors">
-          Start 14-day trial
-        </a>
-      </div>
-    </div>
-
-    <!-- Lifetime deal callout -->
-    <div class="bg-green-500/5 border border-green-500/20 rounded-xl p-6 text-center max-w-2xl mx-auto mb-8">
-      <p class="text-sm text-green-400 font-medium mb-1">Lifetime deal available</p>
-      <p class="text-sm text-gray-400 mb-3">Pay once, get Crontinel Pro or Team forever. Limited to 250 codes.</p>
-      <a href="/lifetime-deal/" class="inline-block text-sm bg-green-500 hover:bg-green-400 text-black font-semibold px-5 py-2 rounded-lg transition-colors">
-        View lifetime deal
-      </a>
-    </div>
-
-    <!-- Self-host note -->
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center max-w-2xl mx-auto">
-      <h2 class="font-semibold text-white mb-2">Want full control? Self-host for free.</h2>
-      <p class="text-sm text-gray-400 mb-4">
-        The MIT package includes the Blade dashboard, CLI health check, Horizon monitoring, and Slack alerts,
-        with no SaaS required.
-      </p>
-      <div class="relative">
-        <code class="block bg-gray-950 text-green-400 text-sm rounded px-4 py-2.5 pr-16">
-          composer require crontinel/laravel
-        </code>
-        <button role="button" aria-label="Copy to clipboard" onclick="navigator.clipboard.writeText('composer require crontinel/laravel'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-1.5 right-2 text-xs text-gray-400 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
-      </div>
-    </div>
-
-    <!-- FAQ -->
-    <div class="mt-16 max-w-2xl mx-auto">
-      <h2 class="text-xl font-bold text-white mb-8 text-center">Common questions</h2>
-      <div class="space-y-6">
-        {[
-          {
-            q: 'Is there a free tier?',
-            a: 'Yes. The free plan covers one app with up to five monitors, seven days of history, and Slack, email, Discord, Teams, Telegram, and webhook alerts. No credit card required.',
-          },
-          {
-            q: 'Can I self-host?',
-            a: 'Yes. The Laravel package ships with a built-in dashboard at /crontinel. Run it entirely offline with no external dependencies.',
-          },
-          {
-            q: 'Is my data safe?',
-            a: 'The OSS package never sends your app data anywhere unless you configure the SaaS reporter. With SaaS reporting disabled, everything stays on your server.',
-          },
-          {
-            q: 'How do I cancel?',
-            a: 'There\'s nothing to cancel. The free tier has no commitments. For paid plans, you cancel in your account settings and your plan stays active until the end of the billing period.',
-          },
-          {
-            q: 'Do I need a credit card to start?',
-            a: 'No. The free tier and the 14-day Pro trial both require zero payment information.',
-          },
-          {
-            q: 'What happens when my trial ends?',
-            a: 'Your account drops to the free tier automatically. No charge, no cancellation needed.',
-          },
-          {
-            q: 'Can I upgrade or downgrade at any time?',
-            a: 'Yes. Upgrades take effect immediately. Downgrades take effect at the end of the current billing period.',
-          },
-          {
-            q: 'What\'s the difference between the OSS package and SaaS?',
-            a: 'The OSS package is a Laravel package you install in your app. It has a Blade dashboard, CLI check, and local alerts. The SaaS adds a hosted multi-app dashboard, longer history, team access, and cross-app monitoring from one place.',
-          },
-          {
-            q: 'Is there an annual discount?',
-            a: 'Yes, 20% off when you pay annually. Pro goes from $19.99/mo to $199.90/yr ($16.66/mo). Team goes from $49.99/mo to $499.90/yr ($41.66/mo).',
-          },
-          {
-            q: 'Can I get Pro as a one-time purchase instead of a subscription?',
-            a: 'Yes. Pro is also available as a Lifetime Deal - a one-time $149 payment for permanent access. No renewals, no subscriptions. All future Pro features are included automatically. See the lifetime deal page.',
-            href: '/lifetime-deal/',
-          },
-        ].map((item) => (
-          <div class="border-b border-gray-800 pb-6">
-            <h3 class="font-medium text-white mb-2">{item.q}</h3>
-            <p class="text-sm text-gray-400">{item.a}</p>
-          </div>
-        ))}
-      </div>
+      <section class="bg-gray-900 border border-gray-800 rounded-xl p-7">
+        <h2 class="text-xl font-semibold text-white mb-2">Paid plans</h2>
+        <p class="text-gray-400 mb-5">Starter, Pro, and Max are planned. Their checkout flow and final usage terms are still under review.</p>
+        <p class="text-sm text-gray-400">For a self-hosted option, install the <a href="https://docs.crontinel.com/" class="text-green-400 underline">Laravel package</a>.</p>
+      </section>
     </div>
   </main>
 
   <Footer />
-
-<script>
-  const monthly = { pro: '$19.99', team: '$49.99', period: '/mo/', proNote: '', teamNote: '' };
-  const yearly  = { pro: '$16.66', team: '$41.66', period: '/mo/', proNote: '$199.90 billed yearly', teamNote: '$499.90 billed yearly' };
-
-  const btnMonthly = document.getElementById('toggle-monthly')!;
-  const btnYearly  = document.getElementById('toggle-yearly')!;
-  const proPrice   = document.getElementById('pro-price')!;
-  const teamPrice  = document.getElementById('team-price')!;
-  const proPeriod  = document.getElementById('pro-period')!;
-  const teamPeriod = document.getElementById('team-period')!;
-  const proNote    = document.getElementById('pro-note')!;
-  const teamNote   = document.getElementById('team-note')!;
-
-  function setMonthly() {
-    proPrice.textContent   = monthly.pro;
-    teamPrice.textContent  = monthly.team;
-    proPeriod.textContent  = monthly.period;
-    teamPeriod.textContent = monthly.period;
-    proNote.textContent    = monthly.proNote;
-    teamNote.textContent   = monthly.teamNote;
-    btnMonthly.classList.add('bg-white', 'text-black');
-    btnMonthly.classList.remove('text-gray-400', 'hover:text-white');
-    btnYearly.classList.remove('bg-white', 'text-black');
-    btnYearly.classList.add('text-gray-400', 'hover:text-white');
-  }
-
-  function setYearly() {
-    proPrice.textContent   = yearly.pro;
-    teamPrice.textContent  = yearly.team;
-    proPeriod.textContent  = yearly.period;
-    teamPeriod.textContent = yearly.period;
-    proNote.textContent    = yearly.proNote;
-    teamNote.textContent   = yearly.teamNote;
-    btnYearly.classList.add('bg-white', 'text-black');
-    btnYearly.classList.remove('text-gray-400', 'hover:text-white');
-    btnMonthly.classList.remove('bg-white', 'text-black');
-    btnMonthly.classList.add('text-gray-400', 'hover:text-white');
-  }
-
-  btnMonthly.addEventListener('click', setMonthly);
-  btnYearly.addEventListener('click', setYearly);
-</script>
-
-<script type="application/ld+json" slot="head">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Do I need a credit card to start?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No. The free tier and the 14-day Pro trial both require zero payment information."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What happens when my trial ends?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Your account drops to the free tier automatically. No charge, no cancellation needed."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Can I upgrade or downgrade at any time?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes. Upgrades take effect immediately. Downgrades take effect at the end of the current billing period."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What is the difference between the OSS package and the SaaS?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The OSS package is a Laravel package you install in your app. It has a Blade dashboard, CLI check, and local alerts. The SaaS adds a hosted multi-app dashboard, longer history, team access, and cross-app monitoring from one place."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Is there an annual discount?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes, 20% off when you pay annually. Pro goes from $19.99/mo to $199.90/yr ($16.66/mo). Team goes from $49.99/mo to $499.90/yr ($41.66/mo)."
-      }
-    }
-  ]
-}
-</script>
 </Base>
