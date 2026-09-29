@@ -263,9 +263,9 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
     <div class="hero-left">
       <span class="hero-status">
         <span class="ping"></span>
-        <span class="mono">all.systems.operational</span>
+        <span class="mono">Laravel monitoring</span>
         <span class="sep">·</span>
-        <span class="mono" id="hero-uptime">99.987% last 30d</span>
+        <span class="mono" id="hero-uptime">Product preview</span>
       </span>
 
       <h1 class="display h1" id="headline">
@@ -707,8 +707,8 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         </div>
         <div class="proof-div"></div>
         <div class="proof-stat">
-          <span class="proof-n">14-day</span>
-          <span class="proof-l">Pro trial included</span>
+          <span class="proof-n">Free</span>
+          <span class="proof-l">plan available</span>
         </div>
       </div>
     </div>
@@ -719,63 +719,30 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow">Pricing</span>
-      <h2 class="display h2">Free for one app.<br/>Generous for teams.</h2>
-      <div class="billing-toggle" role="tablist" aria-label="Billing period">
-        <button type="button" class="on" data-bill="monthly">Monthly</button>
-        <button type="button" data-bill="yearly">Yearly<span class="save">&#8722;20%</span></button>
-      </div>
+      <h2 class="display h2">Start free.<br/>Paid plans are being prepared.</h2>
+      <p class="body">We are checking paid billing and usage limits before opening paid signups.</p>
     </div>
 
-    <div class="pricing">
+    <div class="pricing" style="grid-template-columns:repeat(auto-fit,minmax(260px,1fr))">
       <article class="card price reveal">
         <h3>Free</h3>
-        <p class="tag">For one app. Forever.</p>
+        <p class="tag">For one app.</p>
         <div class="cost"><span class="amt">$0</span><span class="per">/mo</span></div>
         <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 connected app</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 5 monitors per app</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 7 days of run history</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 team member (owner)</li>
-          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Slack / email alerts</li>
-          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Team access</li>
-          <li class="off"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Audit log</li>
+          <li>1 connected app</li>
+          <li>5 monitors per app</li>
+          <li>7 days of cron run and monitor event history</li>
         </ul>
         <a class="btn btn-ghost" href="https://app.crontinel.com/register">Start free</a>
       </article>
 
-      <article class="card price pro reveal" style="position:relative">
-        <span class="badge">most teams</span>
-        <h3>Pro</h3>
-        <p class="tag">For the team with real pagers.</p>
-        <div class="cost"><span class="amt" data-monthly="19.99" data-yearly="16.66">$19.99</span><span class="per">/mo</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 5 connected apps</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 90 days of history</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> PagerDuty, Slack, webhook</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Quiet hours &amp; routing</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> MCP server access</li>
-        </ul>
-        <a class="btn btn-primary" href="https://app.crontinel.com/register">Start Pro trial</a>
-      </article>
-
       <article class="card price reveal">
-        <h3>Team</h3>
-        <p class="tag">Unlimited apps, teammates, history.</p>
-        <div class="cost"><span class="amt" data-monthly="49.99" data-yearly="41.66">$49.99</span><span class="per">/mo</span></div>
-        <ul>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited apps</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> 1 year of history</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Unlimited teammates</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Audit log, SSO (soon)</li>
-          <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg> Priority support</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://app.crontinel.com">Start Team trial</a>
+        <h3>Paid plans</h3>
+        <p class="tag">Starter, Pro, and Max are planned.</p>
+        <p class="body-sm">Their checkout flow and final usage terms are still under review.</p>
+        <a class="btn btn-ghost" href="/pricing/">See current availability</a>
       </article>
     </div>
-
-    <p class="body reveal" style="text-align:center;margin-top:1.5rem">
-      Prefer to pay once? <a href="/lifetime-deal/">Pro is also available as a $149 one-time Lifetime Deal</a>, with no renewals or subscription.
-    </p>
   </div>
 </section>
 
@@ -1120,7 +1087,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 
     <div class="footer-bottom">
       <span>&#169; 2026 Crontinel · MIT-licensed packages</span>
-      <span class="mono">uptime: 99.987% · last 30d</span>
+      <a href="https://status.crontinel.com">Service status</a>
     </div>
   </div>
 </footer>

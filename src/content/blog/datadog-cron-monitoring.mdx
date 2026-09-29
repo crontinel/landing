@@ -53,7 +53,7 @@ Datadog is a strong platform for infrastructure, APM, and logs. Cron monitoring 
 
 **Agent overhead for teams that don't already run Datadog.** If cron monitoring is the only reason you'd install Datadog, you're taking on an infrastructure agent, API key management, and a second dashboard for a problem that a single Composer package can solve.
 
-**Cost that scales with your whole Datadog footprint, not your cron jobs.** Cron monitoring isn't a separate line item. It inherits whatever you already pay for hosts, custom metrics, and synthetic checks. A team with ten scheduled tasks and a modest infrastructure footprint can end up paying for Datadog's broader platform just to get visibility into jobs that a $19/month tool would cover directly.
+**Cost that scales with your whole Datadog footprint, not your cron jobs.** Cron monitoring isn't a separate line item. It inherits whatever you already pay for hosts, custom metrics, and synthetic checks. Check the current plan terms before comparing that total with a dedicated cron monitor.
 
 ## How Crontinel fills the gaps
 
@@ -72,7 +72,7 @@ There's no agent to run and no per-job wrapper to write. From there:
 - **Horizon supervisor monitoring.** Crontinel reads Horizon's own internals directly, so a paused supervisor or a process count drop shows up as a specific alert instead of a silent gap in a generic dashboard.
 - **Queue depth and oldest job age.** Each queue's current depth and oldest pending job age are tracked automatically, so a stalled worker or a backed-up payments queue surfaces before customers notice, without you writing custom metrics code.
 - **Cron Command Summary and history.** A per-command breakdown of runs, exit codes, and durations over time, so you can see which scheduled task is flaky without grepping logs.
-- **Flat, predictable pricing.** Free for one app, $19/month for the Pro plan (multiple apps, longer retention, Slack/email/PagerDuty/webhook alerts), and $49/month for Team (unlimited apps, team seats). No per-host billing, no custom metric line items, no synthetic test credits to track.
+- **Free plan.** One app and five monitors are available now. Paid plan terms are under review.
 
 ## Datadog vs Crontinel for cron monitoring
 

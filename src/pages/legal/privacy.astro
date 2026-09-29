@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 
-const updated = '2026-04-05';
+const updated = '2026-09-29';
 ---
 
 <Base
@@ -38,9 +38,10 @@ const updated = '2026-04-05';
         <h2 class="text-white font-semibold text-base mb-2">What we collect</h2>
         <ul class="list-disc pl-5 space-y-1">
           <li><strong class="text-gray-300">Account data:</strong> email address, name, password hash (bcrypt)</li>
-          <li><strong class="text-gray-300">Monitoring data:</strong> cron run history, queue depth snapshots, Horizon status, sent from your app via the Crontinel package</li>
+          <li><strong class="text-gray-300">Monitoring data:</strong> cron runs, queue and Horizon status, monitor settings, and any command output your app sends to Crontinel</li>
           <li><strong class="text-gray-300">Billing data:</strong> subscription status. Payment details are handled directly by Stripe; we never see your card number</li>
-          <li><strong class="text-gray-300">Server logs:</strong> IP addresses and request logs (standard nginx/server logging, not stored in our database)</li>
+          <li><strong class="text-gray-300">Service logs:</strong> request and diagnostic data, which can include IP addresses</li>
+          <li><strong class="text-gray-300">Hosted AI:</strong> if you turn on AI investigations, selected monitoring evidence is sent to Cloudflare Workers AI to generate an analysis</li>
           <li><strong class="text-gray-300">Analytics:</strong> page views and clicks on crontinel.com via Google Analytics 4, only if you consent via the cookie banner</li>
         </ul>
       </section>
@@ -66,9 +67,9 @@ const updated = '2026-04-05';
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Data retention</h2>
         <ul class="list-disc pl-5 space-y-1">
-          <li>Monitoring events are retained per your plan (7 days / 90 days / 1 year)</li>
-          <li>Account data is retained until you delete your account</li>
-          <li>On account deletion, all personal data is purged within 30 days</li>
+          <li>Cron runs, monitor events, and resolved alerts are pruned under the applicable plan's 7, 30, 90, or 365-day history limit. Open alerts can remain while the issue is active.</li>
+          <li>When an organization closes, its configuration and invitations become eligible for cleanup after 30 days, once billing closure is verified. A hold can delay cleanup.</li>
+          <li>Audit and billing records, monitoring history, and database backups can remain after account closure. Their separate retention periods have not been finalized. Contact us about a specific deletion request.</li>
         </ul>
       </section>
 
@@ -77,15 +78,15 @@ const updated = '2026-04-05';
         <p>If you are in the EU/EEA, you have the right to:</p>
         <ul class="list-disc pl-5 space-y-1 mt-2">
           <li><strong class="text-gray-300">Access</strong> the data we hold about you</li>
-          <li><strong class="text-gray-300">Export</strong> your data as JSON from your profile settings</li>
-          <li><strong class="text-gray-300">Delete</strong> your account and all associated data</li>
+          <li><strong class="text-gray-300">Export</strong> your profile, organization, app, and monitor settings as JSON from your profile settings</li>
+          <li><strong class="text-gray-300">Request deletion</strong> through your profile settings or by contacting us. Owner deletion closes the organization and its billing when billing can be reconciled; it does not immediately erase all records.</li>
           <li><strong class="text-gray-300">Object</strong> to processing: contact us at support@crontinel.com</li>
         </ul>
       </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Data location</h2>
-        <p>Data is stored in the EU (Hetzner or AWS eu-central-1). We do not transfer data outside the EU/EEA.</p>
+        <p>Crontinel uses Railway for the application and database, and Cloudflare for site delivery and optional hosted AI. These services can process data outside the EU/EEA. We do not offer an EU-only processing commitment.</p>
       </section>
 
       <section>
@@ -93,6 +94,8 @@ const updated = '2026-04-05';
         <ul class="list-disc pl-5 space-y-1">
           <li><strong class="text-gray-300">Stripe</strong>, payment processing. Subject to Stripe's privacy policy.</li>
           <li><strong class="text-gray-300">Resend</strong>, transactional email delivery.</li>
+          <li><strong class="text-gray-300">Railway</strong>, application and database hosting.</li>
+          <li><strong class="text-gray-300">Cloudflare</strong>, site delivery and optional Workers AI investigations.</li>
           <li><strong class="text-gray-300">Google Analytics</strong>, landing page analytics, consent-gated.</li>
         </ul>
       </section>

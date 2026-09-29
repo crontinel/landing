@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 
-const updated = '2026-04-11';
+const updated = '2026-09-29';
 ---
 
 <Base
@@ -30,45 +30,43 @@ const updated = '2026-04-11';
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Responsible Disclosure</h2>
-        <p>If you discover a security vulnerability, we encourage you to report it responsibly. Please email us at <a href="mailto:security@crontinel.com" class="text-gray-300 hover:text-white">security@crontinel.com</a> with details. We aim to acknowledge reports within 48 hours and will work with you to address the issue promptly.</p>
+        <p>If you discover a security vulnerability, email <a href="mailto:security@crontinel.com" class="text-gray-300 hover:text-white">security@crontinel.com</a> with details. We will investigate the report and coordinate a fix with you.</p>
         <p class="mt-2">We ask that you do not publicly disclose any vulnerability without our explicit permission. Once the issue is resolved, we welcome coordinated disclosure.</p>
       </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Data Security</h2>
         <ul class="list-disc pl-5 space-y-1">
-          <li><strong class="text-gray-300">Encryption in transit:</strong> All data between your servers, the Crontinel package, and our API is transmitted over HTTPS using TLS 1.2 or higher.</li>
-          <li><strong class="text-gray-300">Encryption at rest:</strong> Database storage is encrypted at the disk level. Sensitive fields such as API keys are hashed using bcrypt before storage.</li>
-          <li><strong class="text-gray-300">Access control:</strong> Internal systems enforce role-based access control (RBAC). Staff access to production systems requires MFA and is logged.</li>
-          <li><strong class="text-gray-300">Backups:</strong> Database backups are encrypted and retained for up to 30 days. Backups are tested periodically for integrity.</li>
+          <li><strong class="text-gray-300">Transport:</strong> The public API uses HTTPS. Keep your app key private and revoke it if it is exposed.</li>
+          <li><strong class="text-gray-300">Access control:</strong> Organization and app permissions limit who can manage monitors and read operational data.</li>
+          <li><strong class="text-gray-300">Recovery:</strong> We have not completed a hosted restore drill or verified a recovery window. Backup copies may outlive records removed from the live database.</li>
         </ul>
       </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Infrastructure</h2>
-        <p>Crontinel is hosted on <strong class="text-gray-300">Railway</strong>. Cloudflare sits in front of our infrastructure as a proxy, providing DDoS protection and TLS termination at the edge - your application never connects directly to our origin server; all traffic flows through Cloudflare's proxy first.</p>
-        <p class="mt-2">There is no raw database exposure to the public internet. All database access is restricted to application-layer queries behind authenticated API endpoints.</p>
+        <p>Crontinel's application and PostgreSQL database run on <strong class="text-gray-300">Railway</strong>. Cloudflare serves the public site and hosts optional AI investigations. See the <a href="/legal/privacy/" class="text-gray-300 hover:text-white">Privacy Policy</a> for the data we send to service providers.</p>
       </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Compliance</h2>
         <ul class="list-disc pl-5 space-y-1">
-          <li><strong class="text-gray-300">GDPR:</strong> Crontinel is GDPR ready. We collect only what is necessary, support data export and deletion, and process data under a compliant legal basis. See our <a href="/legal/privacy/" class="text-gray-300 hover:text-white">Privacy Policy</a> for full details.</li>
-          <li><strong class="text-gray-300">SOC 2:</strong> SOC 2 Type II audit is not yet completed. We are evaluating certification paths.</li>
+          <li><strong class="text-gray-300">Data requests:</strong> Profile export and deletion controls are available. Account deletion does not immediately remove every retained record. See the <a href="/legal/privacy/" class="text-gray-300 hover:text-white">Privacy Policy</a>.</li>
+          <li><strong class="text-gray-300">SOC 2:</strong> Crontinel has not completed a SOC 2 audit.</li>
         </ul>
       </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Authentication</h2>
         <ul class="list-disc pl-5 space-y-1">
-          <li><strong class="text-gray-300">API keys:</strong> All API keys are hashed (bcrypt) before storage. We store only the hash, never the plaintext key.</li>
+          <li><strong class="text-gray-300">API keys:</strong> Keys can be scoped to an app and revoked. Treat a copied key as a credential until it is revoked.</li>
           <li><strong class="text-gray-300">Dashboard 2FA:</strong> Two-factor authentication via TOTP is available for all dashboard accounts. We strongly recommend enabling it.</li>
         </ul>
       </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">Incident Response</h2>
-        <p>In the event of a confirmed data breach or security incident affecting your data, we will notify affected users by email within <strong class="text-gray-300">72 hours</strong> of our awareness of the incident, in accordance with GDPR Article 33. Notifications will include a description of the incident, the data involved, and the steps we are taking.</p>
+        <p>If an incident affects your data, we will assess its impact and notify affected people and authorities when required by applicable law. GDPR Article 33 concerns notice to a supervisory authority; Article 34 covers notice to affected people.</p>
         <p class="mt-2">We maintain an internal incident response plan that covers containment, investigation, communication, and remediation steps.</p>
       </section>
 
