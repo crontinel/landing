@@ -11,42 +11,42 @@ export const prerender = true;
 const products = [
   {
     name: 'CloudPloy', url: 'https://cloudploy.com', logo: 'cloudploy.svg',
-    category: 'Cloud & AI', status: 'Waitlist open', color: '#eaf0fc',
+    category: 'Cloud & AI', status: 'Waitlist open', color: '#111b28',
     tagline: 'Your next deploy starts with a prompt.',
     description: 'Deploy to your own cloud from Claude Code, Cursor, or any MCP client. Connect your AI tools and put deployment into your existing workflow.',
     tags: ['Cloud deployment', 'MCP', 'DevOps'],
   },
   {
     name: 'SkaleAgents', url: 'https://skaleagents.com', logo: 'skaleagents.svg',
-    category: 'Cloud & AI', color: '#f0ebf8',
+    category: 'Cloud & AI', color: '#1b1728',
     tagline: 'A second pair of eyes for your infrastructure.',
     description: 'An AI DevOps control plane for code and infrastructure reviews. Find specialist agents, reuse prompts, and bring findings back to your editor through MCP.',
     tags: ['AI agents', 'Infrastructure', 'MCP'],
   },
   {
     name: 'Toolblip', url: 'https://toolblip.com', logo: 'toolblip.svg',
-    category: 'Developer tools', color: '#e8f1eb',
+    category: 'Developer tools', color: '#111f1b',
     tagline: 'Small tools. Less friction.',
     description: 'Free, browser-based tools for the jobs you do every day. Format JSON, convert files, work with text, and more. No signup required.',
     tags: ['Browser tools', 'Free', 'Privacy-first'],
   },
   {
     name: 'AmazingPlugins', url: 'https://amazingplugins.com', logo: 'amazingplugins.jpg',
-    category: 'Commerce', color: '#f7ece0',
+    category: 'Commerce', color: '#241b15',
     tagline: 'Quiet plugins. Better stores.',
     description: 'Focused, free plugins for WooCommerce store owners. Starting with accessibility, each plugin tackles a specific problem in your store.',
     tags: ['WooCommerce', 'WordPress', 'Free plugins'],
   },
   {
     name: 'Appnary', url: 'https://appnary.com', logo: 'appnary.png',
-    category: 'Commerce', status: 'Coming soon', color: '#edf0fb',
+    category: 'Commerce', status: 'Coming soon', color: '#171c2c',
     tagline: 'Shopify apps built around your day.',
     description: 'Simple, affordable apps for Shopify merchants. Pixel Tracker brings Facebook, Google, TikTok, and more tracking pixels into one dashboard.',
     tags: ['Shopify', 'Pixel tracking', 'E-commerce'],
   },
   {
     name: 'harun.dev', url: 'https://harun.dev', logo: 'harun.svg',
-    category: 'More from us', color: '#eeece5',
+    category: 'More from us', color: '#1c1e1b',
     tagline: 'Meet the engineer behind the work.',
     description: 'Harun R. Rayhan’s home on the web. Software engineering, cloud architecture, and DevOps consulting, with notes from the work along the way.',
     tags: ['Engineering', 'Consulting', 'Writing'],
@@ -185,7 +185,7 @@ const categories = ['All products', 'Cloud & AI', 'Developer tools', 'Commerce',
   .product-filters { display: flex; flex-wrap: wrap; gap: 5px; }
   .product-filters button { padding: 10px 12px; min-height: 44px; border: 1px solid transparent; border-radius: 5px; color: #b0b0b0; font-size: 12px; cursor: pointer; }
   .product-filters button:hover { background: #1c1c1c; color: white; }
-  .product-filters button[aria-pressed='true'] { background: #e9eee9; color: #142218; }
+  .product-filters button[aria-pressed='true'] { background: #142d1c; color: #86efac; }
   .total { margin-left: 9px; font-size: 10px; }
   .product-search { display: flex; align-items: center; gap: 8px; border: 1px solid #343434; border-radius: 5px; padding: 0 12px; color: #a3a3a3; min-height: 44px; }
   .product-search input { width: 170px; min-width: 0; padding: 12px 0; color: white; font-size: 13px; background: transparent; }
@@ -196,13 +196,13 @@ const categories = ['All products', 'Cloud & AI', 'Developer tools', 'Commerce',
   .product-card:hover { border-color: #777; }
   .product-card-link { display: flex; flex-direction: column; height: 100%; }
   .product-card-link:focus-visible { outline-offset: -4px; }
-  .product-art { background: var(--product-background); position: relative; overflow: hidden; color: #405064; }
+  .product-art { background: var(--product-background); position: relative; overflow: hidden; color: #bbc5d3; border-bottom: 1px solid #ffffff0c; }
   .product-art-top { position: absolute; inset: 18px 22px auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; z-index: 1; }
-  .product-status { display: inline-flex; align-items: center; gap: 6px; background: #ffffffb3; padding: 4px 7px; border-radius: 4px; font-size: 10px; }
+  .product-status { display: inline-flex; align-items: center; gap: 6px; background: #ffffff0d; padding: 4px 7px; border-radius: 4px; font-size: 10px; }
   .product-status i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
   .product-card-body { display: flex; flex-direction: column; flex: 1; padding: 26px 28px 0; }
   .product-title { display: flex; align-items: center; gap: 11px; }
-  .product-logo { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; background: var(--product-background); border-radius: 8px; }
+  .product-logo { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; background: #202420; border-radius: 8px; }
   .product-logo img { object-fit: contain; }
   h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.035em; }
   .product-arrow { margin-left: auto; display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid #3a3a3a; border-radius: 50%; color: #a3a3a3; font-size: 20px; }
@@ -217,7 +217,7 @@ const categories = ['All products', 'Cloud & AI', 'Developer tools', 'Commerce',
   .catalog-endnote i { width: 5px; height: 5px; background: #4ade80; border-radius: 50%; }
   .empty-products { padding: 70px 20px; text-align: center; border: 1px dashed #404040; border-radius: 8px; }
   .empty-products p { margin: 12px 0 24px; color: #a3a3a3; }
-  .reset-products { background: #e9eee9; color: #142218; padding: 12px 18px; border-radius: 5px; cursor: pointer; }
+  .reset-products { background: #142d1c; color: #86efac; padding: 12px 18px; border-radius: 5px; cursor: pointer; }
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: reduce) { .product-card { transition: none; } }
   @media (max-width: 767px) {
