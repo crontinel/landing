@@ -1,0 +1,131 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+
+// Keep the collection in the same order as binarylabssoft.com/products,
+// excluding Crontinel: visitors are already on its website.
+const products = [
+  {
+    name: 'CloudPloy', url: 'https://cloudploy.com', logo: 'cloudploy.svg',
+    category: 'Cloud & AI', status: 'Waitlist open', color: '#eaf0fc',
+    tagline: 'Your next deploy starts with a prompt.',
+    description: 'Deploy to your own cloud from Claude Code, Cursor, or any MCP client. Connect your AI tools and put deployment into your existing workflow.',
+    tags: ['Cloud deployment', 'MCP', 'DevOps'],
+  },
+  {
+    name: 'SkaleAgents', url: 'https://skaleagents.com', logo: 'skaleagents.svg',
+    category: 'Cloud & AI', color: '#f0ebf8',
+    tagline: 'A second pair of eyes for your infrastructure.',
+    description: 'An AI DevOps control plane for code and infrastructure reviews. Find specialist agents, reuse prompts, and bring findings back to your editor through MCP.',
+    tags: ['AI agents', 'Infrastructure', 'MCP'],
+  },
+  {
+    name: 'Toolblip', url: 'https://toolblip.com', logo: 'toolblip.svg',
+    category: 'Developer tools', color: '#e8f1eb',
+    tagline: 'Small tools. Less friction.',
+    description: 'Free, browser-based tools for the jobs you do every day. Format JSON, convert files, work with text, and more. No signup required.',
+    tags: ['Browser tools', 'Free', 'Privacy-first'],
+  },
+  {
+    name: 'AmazingPlugins', url: 'https://amazingplugins.com', logo: 'amazingplugins.jpg',
+    category: 'Commerce', color: '#f7ece0',
+    tagline: 'Quiet plugins. Better stores.',
+    description: 'Focused, free plugins for WooCommerce store owners. Starting with accessibility, each plugin tackles a specific problem in your store.',
+    tags: ['WooCommerce', 'WordPress', 'Free plugins'],
+  },
+  {
+    name: 'Appnary', url: 'https://appnary.com', logo: 'appnary.png',
+    category: 'Commerce', status: 'Coming soon', color: '#edf0fb',
+    tagline: 'Shopify apps built around your day.',
+    description: 'Simple, affordable apps for Shopify merchants. Pixel Tracker brings Facebook, Google, TikTok, and more tracking pixels into one dashboard.',
+    tags: ['Shopify', 'Pixel tracking', 'E-commerce'],
+  },
+  {
+    name: 'harun.dev', url: 'https://harun.dev', logo: 'harun.svg',
+    category: 'More from us', color: '#eeece5',
+    tagline: 'Meet the engineer behind the work.',
+    description: 'Harun R. Rayhan’s home on the web. Software engineering, cloud architecture, and DevOps consulting, with notes from the work along the way.',
+    tags: ['Engineering', 'Consulting', 'Writing'],
+  },
+];
+---
+
+<Base
+  title="Our products | Crontinel"
+  description="Explore CloudPloy, SkaleAgents, Toolblip, AmazingPlugins, Appnary, and harun.dev. More products and projects from the team behind Crontinel."
+>
+  <Nav />
+  <main id="main-content" class="products-page max-w-5xl mx-auto px-4 sm:px-6">
+    <header class="page-intro">
+      <h1>Our products</h1>
+      <p>More from the team behind Crontinel. Tools for deploying software,
+        getting everyday work done, and running an online store.</p>
+      <a class="studio-link" href="https://binarylabssoft.com/products" target="_blank" rel="noopener noreferrer">
+        Built by Binary Labs
+        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17 17 7M7 7h10v10" /></svg>
+      </a>
+    </header>
+
+    <div class="product-grid">
+      {products.map(product => (
+        <article class="product-card">
+          <div class="card-heading">
+            <div class="product-logo" style={{ background: product.color }}>
+              <img src={`/products/${product.logo}`} alt="" width="48" height="48" loading="lazy" decoding="async" />
+            </div>
+            <div>
+              <p class="category">{product.category}</p>
+              <h2>{product.name}</h2>
+            </div>
+          </div>
+          <h3>{product.tagline}</h3>
+          <p class="description">{product.description}</p>
+          <ul class="product-tags" aria-label={`${product.name} topics`}>
+            {product.tags.map(tag => <li>{tag}</li>)}
+          </ul>
+          <div class="card-footer">
+            <a href={product.url} target="_blank" rel="noopener noreferrer">
+              Visit {product.name}
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17 17 7M7 7h10v10" /></svg>
+            </a>
+            {product.status && <span class="status">{product.status}</span>}
+          </div>
+        </article>
+      ))}
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .products-page { padding-top: 4rem; padding-bottom: 5rem; }
+  .page-intro { max-width: 42rem; margin-bottom: 3rem; }
+  h1 { font-size: clamp(2.25rem, 5vw, 3.25rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.15; }
+  .page-intro > p { margin-top: 1.25rem; color: var(--text-secondary); font-size: 1.125rem; line-height: 1.75; }
+  .studio-link { display: inline-flex; align-items: center; gap: 0.375rem; margin-top: 1.25rem; color: #4ade80; font-size: 0.875rem; }
+  .studio-link:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+  .product-card { display: flex; flex-direction: column; padding: 1.75rem; border: 1px solid var(--border-hover); border-radius: 12px; background: var(--bg-surface); }
+  .card-heading { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
+  .product-logo { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; }
+  .product-logo img { width: 48px; height: 48px; object-fit: contain; }
+  .category { color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 0.25rem; }
+  h2 { font-size: 1.375rem; font-weight: 650; letter-spacing: -0.025em; }
+  h3 { font-size: 1rem; font-weight: 600; line-height: 1.5; margin-bottom: 0.75rem; }
+  .description { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8; }
+  .product-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; margin-bottom: 1.75rem; }
+  .product-tags li { padding: 0.25rem 0.5rem; border: 1px solid var(--border-hover); border-radius: 4px; color: var(--text-secondary); font-size: 0.6875rem; }
+  .card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
+  .card-footer a { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 44px; color: #4ade80; font-size: 0.875rem; font-weight: 600; }
+  .card-footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  .status { color: var(--text-secondary); font-size: 0.75rem; }
+  @media (max-width: 639px) {
+    .products-page { padding-top: 2.75rem; padding-bottom: 3rem; }
+    .page-intro { margin-bottom: 2rem; }
+    .product-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .product-card { padding: 1.25rem; }
+  }
+</style>
