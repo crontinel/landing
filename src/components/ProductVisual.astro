@@ -1,13 +1,11 @@
 ---
 interface Props {
   name: string;
-  logo: string;
-  tags: string[];
 }
-const { name, logo, tags } = Astro.props;
+const { name } = Astro.props;
 ---
 
-<div class="product-visual" aria-hidden="true">
+<div class:list={["product-visual", { "scene-visual": !["CloudPloy", "Toolblip"].includes(name) }]} aria-hidden="true">
   {name === 'CloudPloy' ? (
     <>
       <div class="mini-terminal">
@@ -24,11 +22,11 @@ const { name, logo, tags } = Astro.props;
     </>
   ) : name === 'SkaleAgents' ? (
     <>
-      <svg class="agent-connectors" viewBox="0 0 540 270" preserveAspectRatio="none"><path d="M135 104 264 157 418 96M264 157l150 48" /></svg>
-      <span class="agent-hub"><img src={`/products/${logo}`} alt="" width="44" height="44" loading="lazy" /></span>
-      <span class="agent-chip agent-editor"><span>⌘</span> Your editor</span>
-      <span class="agent-chip agent-security"><i />Security review</span>
-      <span class="agent-chip agent-reliability"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12h5l3-8 4 16 3-8h5" /></svg>Reliability</span>
+      <div class="illustration-window review-window">
+        <div class="window-heading"><span>infrastructure.ts</span><span class="demo-label">Example review</span></div>
+        <div class="review-code"><span><i>01</i> <b>const</b> deployment = &#123;</span><span><i>02</i> &nbsp; replicas: <em>3</em>,</span><span><i>03</i> &nbsp; healthCheck: <em>true</em></span><span><i>04</i> &#125;;</span></div>
+        <div class="review-checks"><span><b>✓</b> Security</span><span><b>✓</b> Reliability</span></div>
+      </div>
       <span class="visual-caption">Specialist agents. Shared context.</span>
     </>
   ) : name === 'Toolblip' ? (
@@ -38,20 +36,43 @@ const { name, logo, tags } = Astro.props;
       </div>
       <span class="visual-caption">Open a tab. Get it done.</span>
     </>
+  ) : name === 'AmazingPlugins' ? (
+    <>
+      <div class="store-scene">
+        <div class="illustration-window store-window">
+          <div class="window-heading"><span>Your store</span><span>Cart (1)</span></div>
+          <div class="store-content"><div class="product-object"><svg width="48" height="60" viewBox="0 0 48 60" fill="none"><path d="M10 18h28l3 35H7l3-35Z" fill="#775938" stroke="#c69d6c" /><path d="M17 20v-8a7 7 0 0 1 14 0v8" stroke="#e1bd8c" stroke-width="2" /></svg></div><div class="store-copy"><span class="mock-line" /><span class="mock-line short" /><span class="store-price">$24.00</span><span class="mock-cart">Add to cart</span></div></div>
+        </div>
+        <div class="access-panel"><span class="access-title">Accessibility</span><span><b>Aa</b> Readable text <i>✓</i></span><span><b>◐</b> Contrast <i>✓</i></span><span><b>⌨</b> Keyboard <i>✓</i></span></div>
+      </div>
+      <span class="visual-caption">A more accessible storefront.</span>
+    </>
+  ) : name === 'Appnary' ? (
+    <>
+      <div class="illustration-window events-window">
+        <div class="window-heading"><span>Store events</span><span class="demo-label">Example activity</span></div>
+        <div class="events-chart">{[22, 34, 27, 43, 37, 53, 46, 63, 55, 74, 66, 84].map(height => <i style={{ height: `${height}%` }} />)}</div>
+        <div class="event-row"><span><i />Page view</span><span>Received</span></div>
+        <div class="event-row"><span><i />Add to cart</span><span>Received</span></div>
+        <div class="event-row"><span><i />Purchase</span><span>Received</span></div>
+      </div>
+      <span class="visual-caption">Your store. Your tracking. One place.</span>
+    </>
   ) : (
     <>
-      <div class="symbol-orbit" />
-      <div class="symbol-group">
-        <span class="large-symbol"><img src={`/products/${logo}`} alt="" width="66" height="66" loading="lazy" /></span>
-        <span class="symbol-label">{name === 'AmazingPlugins' ? 'Made for WooCommerce' : name === 'Appnary' ? 'Made for Shopify' : 'Notes from the work'}</span>
+      <div class="illustration-window notes-window">
+        <div class="window-heading"><span>engineering-notes.md</span><span>Markdown</span></div>
+        <div class="notes-content"><span class="note-heading"><b>#</b> Notes from the work</span><span class="note-comment">// build, learn, write it down</span><span><b>01</b> Software engineering</span><span><b>02</b> Cloud architecture</span><span><b>03</b> Lessons from production</span><span class="note-cursor">▌</span></div>
       </div>
-      <span class="visual-caption">{tags.join(' / ')}</span>
+      <span class="visual-caption">Engineering, consulting, and writing.</span>
     </>
+
   )}
 </div>
 
 <style>
   .product-visual { height: 280px; position: relative; display: flex; align-items: center; justify-content: center; padding-top: 20px; color: #b6c1cf; }
+  .scene-visual { padding-top: 0; }
   .visual-caption { position: absolute; bottom: 18px; left: 12px; right: 12px; text-align: center; font-size: 10px; letter-spacing: .06em; }
   .mini-terminal { width: 72%; background: #10151c; border: 1px solid #344153; border-radius: 7px; box-shadow: 0 12px 20px #00000033; transform: rotate(-3deg); }
   .terminal-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; font-size: 8px; border-bottom: 1px solid #2a3543; color: #a9b5c6; }
@@ -67,34 +88,66 @@ const { name, logo, tags } = Astro.props;
   .terminal-line { display: flex; gap: 6px; margin-top: 5px; font-size: 9px; }
   .terminal-line b { color: #86efac; }
   .deploy-pill { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding: 7px; border-radius: 3px; background: #142d21; color: #9dd5af; font-size: 8px; }
-  .deploy-pill i, .agent-security i { width: 4px; height: 4px; border-radius: 50%; background: #86efac; }
+  .deploy-pill i { width: 4px; height: 4px; border-radius: 50%; background: #86efac; }
   .deploy-pill > span { margin-left: auto; }
-  .agent-connectors { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: #6c5a8e; stroke-width: 1.5; stroke-dasharray: 3 3; }
-  .agent-hub { position: absolute; left: 43%; top: 42%; width: 78px; height: 78px; border: 1px solid #4a3b63; border-radius: 20px; background: #10151c; display: grid; place-items: center; transform: rotate(-7deg); }
-  .agent-chip { position: absolute; display: flex; align-items: center; gap: 9px; padding: 12px 14px; border: 1px solid #493d5d; border-radius: 6px; background: #241d31; color: #d5c4ed; font-size: 11px; box-shadow: 0 5px 15px #00000026; }
-  .agent-editor { top: 29%; left: 10%; transform: rotate(-5deg); }
-  .agent-editor > span { font-size: 17px; }
-  .agent-security { top: 29%; right: 7%; transform: rotate(4deg); }
-  .agent-reliability { top: 66%; right: 10%; transform: rotate(-3deg); }
   .tool-tiles { display: grid; grid-template-columns: repeat(3, 63px); gap: 10px; transform: rotate(-8deg); }
   .tool-tile { display: grid; place-items: center; width: 63px; height: 59px; border: 1px solid #395649; border-radius: 9px; background: #1a3025; color: #a2d5b5; font-family: var(--font-mono); font-size: 23px; }
   .tile-1, .tile-5 { background: #332a1b; border-color: #635236; color: #e0bf86; }
   .tile-2 { background: #2d2339; border-color: #564164; color: #d8b5e6; }
   .tile-3 { background: #1b2c3a; border-color: #365167; color: #a0cbe9; }
-  .symbol-orbit { position: absolute; width: 202px; height: 202px; border: 1px solid #b6c1cf1a; border-radius: 50%; }
-  .symbol-orbit::after { content: ''; position: absolute; inset: 23px; border: 1px dashed #b6c1cf26; border-radius: 50%; }
-  .symbol-group { display: flex; flex-direction: column; align-items: center; gap: 13px; position: relative; }
-  .large-symbol { display: grid; place-items: center; width: 100px; height: 100px; background: #252a2f; border-radius: 25px; transform: rotate(-8deg); box-shadow: 0 7px 17px #00000033; }
-  img { object-fit: contain; }
-  .symbol-label { padding: 5px 8px; border-radius: 4px; background: #252a2f; font-size: 10px; }
+  .illustration-window { width: 72%; border: 1px solid #39434f; border-radius: 7px; background: #12171d; box-shadow: 0 12px 24px #0003; overflow: hidden; }
+  .window-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid #ffffff12; padding: 8px 12px; font-size: 9px; color: #bac5d3; }
+  .demo-label { font-size: 8px; color: #a6b0bf; }
+  .review-window { transform: rotate(-2deg); border-color: #493d5d; background: #191620; }
+  .review-code { padding: 8px 18px; display: grid; gap: 2px; font: 10px/1.5 var(--font-mono); }
+  .review-code i { font-style: normal; color: #8b819a; margin-right: 12px; }
+  .review-code b { color: #d8b5e6; font-weight: 400; }
+  .review-code em { color: #a2d5b5; font-style: normal; }
+  .review-checks { display: flex; gap: 18px; padding: 8px 18px; border-top: 1px solid #ffffff12; font-size: 9px; background: #211d2b; }
+  .review-checks b { color: #86efac; margin-right: 5px; }
+  .store-scene { width: 80%; position: relative; padding-bottom: 14px; }
+  .store-window { width: 85%; background: #1e1915; border-color: #57412e; transform: rotate(-3deg); }
+  .store-content { display: flex; gap: 14px; padding: 16px; }
+  .product-object { display: grid; place-items: center; width: 40%; height: 96px; border-radius: 4px; background: #34281e; }
+  .store-copy { flex: 1; display: flex; flex-direction: column; gap: 7px; padding-top: 3px; }
+  .mock-line { display: block; height: 5px; width: 85%; background: #85705a; border-radius: 2px; }
+  .mock-line.short { width: 55%; background: #514436; }
+  .store-price { font-size: 11px; color: #e0c29b; }
+  .mock-cart { padding: 6px 8px; font-size: 9px; background: #384b36; color: #c8e2ba; border-radius: 3px; width: fit-content; }
+  .access-panel { position: absolute; right: 0; bottom: 0; width: 47%; border: 1px solid #6a543d; border-radius: 6px; padding: 10px; background: #2c231b; box-shadow: 0 6px 20px #0004; transform: rotate(3deg); }
+  .access-title { display: block; font-size: 10px; color: #e1c5a1; margin-bottom: 7px; }
+  .access-panel > span:not(.access-title) { display: flex; align-items: center; gap: 6px; font-size: 8px; padding: 4px 0; color: #dacbbb; }
+  .access-panel b { width: 16px; font-size: 11px; font-weight: 400; }
+  .access-panel i { margin-left: auto; color: #a2d5b5; font-style: normal; }
+  .events-window { width: 67%; background: #151b29; border-color: #3b4969; transform: rotate(2deg); }
+  .events-chart { display: flex; gap: 6px; align-items: end; height: 44px; margin: 8px 16px 6px; border-bottom: 1px solid #35415a; }
+  .events-chart i { flex: 1; background: #6e85bd; border-radius: 2px 2px 0 0; }
+  .events-chart i:nth-child(3n) { background: #99addc; }
+  .event-row { display: flex; justify-content: space-between; margin: 0 16px; padding: 4px 0; font-size: 9px; border-top: 1px solid #ffffff0b; }
+  .event-row:last-child { margin-bottom: 8px; }
+  .event-row > span:first-child { display: flex; align-items: center; gap: 6px; }
+  .event-row i { width: 4px; height: 4px; border-radius: 50%; background: #a2d5b5; }
+  .event-row > span:last-child { color: #a2d5b5; font-size: 8px; }
+  .notes-window { transform: rotate(-3deg); border-color: #464a40; background: #181c18; }
+  .notes-content { display: grid; gap: 5px; padding: 10px 18px; font: 10px/1.4 var(--font-mono); }
+  .note-heading { color: #e0e5d8; font-size: 12px; }
+  .notes-content b { color: #9fbc89; font-weight: 400; margin-right: 7px; }
+  .note-comment { color: #a0aa99; font-size: 9px; margin-bottom: 3px; }
+  .note-cursor { color: #9fbc89; font-size: 10px; }
   @media (max-width: 767px) {
     .product-visual { height: 250px; }
     .mini-terminal { width: 82%; }
-    .agent-hub { width: 64px; height: 64px; left: 40%; top: 43%; }
-    .agent-chip { font-size: 9px; padding: 10px; gap: 6px; }
-    .agent-editor { left: 7%; }
-    .agent-security { right: 5%; }
-    .agent-reliability { right: 8%; }
+    .illustration-window { width: 82%; }
+    .store-window { width: 85%; }
+    .store-scene { width: 86%; }
+    .store-content { padding: 12px; gap: 10px; }
+    .product-object { height: 84px; }
+    .access-panel { width: 51%; padding: 8px; }
+    .review-code { font-size: 9px; padding: 11px 12px; }
+    .review-code i { margin-right: 7px; }
+    .notes-content { padding: 12px; font-size: 9px; gap: 6px; }
+    .note-heading { font-size: 10px; }
+    .note-comment { font-size: 8px; }
     .visual-caption { font-size: 8px; }
     .terminal-body { font-size: 9px; padding: 11px 12px; }
     .terminal-line, .terminal-muted { font-size: 8px; }
