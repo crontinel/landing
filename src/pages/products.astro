@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import ProductVisual from '../components/ProductVisual.astro';
 
 export const prerender = true;
 
@@ -51,6 +52,7 @@ const products = [
     tags: ['Engineering', 'Consulting', 'Writing'],
   },
 ];
+const categories = ['All products', 'Cloud & AI', 'Developer tools', 'Commerce', 'More from us'];
 ---
 
 <Base
@@ -58,74 +60,177 @@ const products = [
   description="Explore CloudPloy, SkaleAgents, Toolblip, AmazingPlugins, Appnary, and harun.dev. More products and projects from the team behind Crontinel."
 >
   <Nav />
-  <main id="main-content" class="products-page max-w-5xl mx-auto px-4 sm:px-6">
+  <main id="main-content" class="products-page">
     <header class="page-intro">
-      <h1>Our products</h1>
-      <p>More from the team behind Crontinel. Tools for deploying software,
-        getting everyday work done, and running an online store.</p>
-      <a class="studio-link" href="https://binarylabssoft.com/products" target="_blank" rel="noopener noreferrer">
-        Built by Binary Labs
-        <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17 17 7M7 7h10v10" /></svg>
-      </a>
+      <a class="studio-link" href="https://binarylabssoft.com/products" target="_blank" rel="noopener noreferrer">Our products, from Binary Labs <span aria-hidden="true">↗</span></a>
+      <h1>Built out of curiosity.<br />Made to be useful.</h1>
+      <p>Cloud tools, everyday utilities, and better ways to run a store.
+        More from the team behind Crontinel.</p>
     </header>
 
-    <div class="product-grid">
-      {products.map(product => (
-        <article class="product-card">
-          <div class="card-heading">
-            <div class="product-logo" style={{ background: product.color }}>
-              <img src={`/products/${product.logo}`} alt="" width="48" height="48" loading="lazy" decoding="async" />
-            </div>
-            <div>
-              <p class="category">{product.category}</p>
-              <h2>{product.name}</h2>
-            </div>
-          </div>
-          <h3>{product.tagline}</h3>
-          <p class="description">{product.description}</p>
-          <ul class="product-tags" aria-label={`${product.name} topics`}>
-            {product.tags.map(tag => <li>{tag}</li>)}
-          </ul>
-          <div class="card-footer">
-            <a href={product.url} target="_blank" rel="noopener noreferrer">
-              Visit {product.name}
-              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 17 17 7M7 7h10v10" /></svg>
+    <section aria-label="Product catalog" id="product-catalog">
+      <div class="catalog-controls" hidden>
+        <div class="product-filters" role="group" aria-label="Filter products by category">
+          {categories.map((category, index) => (
+            <button type="button" data-category={category} aria-pressed={index === 0}>
+              {category}{index === 0 && <span class="total">06</span>}
+            </button>
+          ))}
+        </div>
+        <div class="product-search">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4 4" /></svg>
+          <input type="search" aria-label="Search products" placeholder="Find your next tool…" />
+          <button type="button" aria-label="Clear search" class="clear-search" hidden>×</button>
+        </div>
+      </div>
+      <div class="product-grid">
+        {products.map(product => (
+          <article class="product-card" data-category={product.category} data-search={`${product.name} ${product.description} ${product.tags.join(' ')}`.toLowerCase()} style={{ '--product-background': product.color }}>
+            <a class="product-card-link" href={product.url} target="_blank" rel="noopener noreferrer" aria-label={`Explore ${product.name} (opens in a new tab)`}>
+              <div class="product-art">
+                <div class="product-art-top">
+                  <span>{product.category}</span>
+                  {product.status && <span class="product-status"><i />{product.status}</span>}
+                </div>
+                <ProductVisual name={product.name} logo={product.logo} tags={product.tags} />
+              </div>
+              <div class="product-card-body">
+                <div class="product-title">
+                  <span class="product-logo"><img src={`/products/${product.logo}`} alt="" width="24" height="24" loading="lazy" decoding="async" /></span>
+                  <h2>{product.name}</h2>
+                  <span class="product-arrow" aria-hidden="true">↗</span>
+                </div>
+                <h3>{product.tagline}</h3>
+                <p>{product.description}</p>
+                <div class="product-card-bottom">
+                  <span>{new URL(product.url).hostname}</span>
+                  <span>Explore <span aria-hidden="true">↗</span></span>
+                </div>
+              </div>
             </a>
-            {product.status && <span class="status">{product.status}</span>}
-          </div>
-        </article>
-      ))}
-    </div>
+          </article>
+        ))}
+      </div>
+      <div class="empty-products" hidden>
+        <h2>No products found.</h2>
+        <p>Try another search or explore the full collection.</p>
+        <button type="button" class="reset-products">Show all products</button>
+      </div>
+      <div class="catalog-endnote">
+        <span><i />Built here. Always evolving.</span>
+        <span role="status" aria-live="polite" aria-atomic="true" class="product-count">6 products shown</span>
+      </div>
+    </section>
   </main>
   <Footer />
 </Base>
 
+<script>
+  const catalog = document.querySelector<HTMLElement>('#product-catalog');
+  if (catalog) {
+    const controls = catalog.querySelector<HTMLElement>('.catalog-controls')!;
+    const buttons = Array.from(catalog.querySelectorAll<HTMLButtonElement>('button[data-category]'));
+    const cards = Array.from(catalog.querySelectorAll<HTMLElement>('.product-card'));
+    const search = catalog.querySelector<HTMLInputElement>('input[type="search"]')!;
+    const clear = catalog.querySelector<HTMLButtonElement>('.clear-search')!;
+    const empty = catalog.querySelector<HTMLElement>('.empty-products')!;
+    const count = catalog.querySelector<HTMLElement>('.product-count')!;
+    let category = 'All products';
+
+    const update = () => {
+      const query = search.value.trim().toLowerCase();
+      let shown = 0;
+      for (const card of cards) {
+        card.hidden = !(category === 'All products' || card.dataset.category === category)
+          || !card.dataset.search!.includes(query);
+        if (!card.hidden) shown++;
+      }
+      for (const button of buttons) {
+        button.setAttribute('aria-pressed', String(button.dataset.category === category));
+      }
+      clear.hidden = search.value.length === 0;
+      empty.hidden = shown !== 0;
+      count.textContent = `${shown} ${shown === 1 ? 'product' : 'products'} shown`;
+    };
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        category = button.dataset.category!;
+        update();
+      });
+    }
+    search.addEventListener('input', update);
+    clear.addEventListener('click', () => {
+      search.value = '';
+      update();
+      search.focus();
+    });
+    catalog.querySelector('.reset-products')!.addEventListener('click', () => {
+      category = 'All products';
+      search.value = '';
+      update();
+      buttons[0].focus();
+    });
+    controls.hidden = false;
+  }
+</script>
+
 <style>
-  .products-page { padding-top: 4rem; padding-bottom: 5rem; }
-  .page-intro { max-width: 42rem; margin-bottom: 3rem; }
-  h1 { font-size: clamp(2.25rem, 5vw, 3.25rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.15; }
-  .page-intro > p { margin-top: 1.25rem; color: var(--text-secondary); font-size: 1.125rem; line-height: 1.75; }
-  .studio-link { display: inline-flex; align-items: center; gap: 0.375rem; margin-top: 1.25rem; color: #4ade80; font-size: 0.875rem; }
-  .studio-link:hover { text-decoration: underline; text-underline-offset: 4px; }
-  .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
-  .product-card { display: flex; flex-direction: column; padding: 1.75rem; border: 1px solid var(--border-hover); border-radius: 12px; background: var(--bg-surface); }
-  .card-heading { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
-  .product-logo { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 14px; flex-shrink: 0; }
-  .product-logo img { width: 48px; height: 48px; object-fit: contain; }
-  .category { color: var(--text-secondary); font-size: 0.75rem; margin-bottom: 0.25rem; }
-  h2 { font-size: 1.375rem; font-weight: 650; letter-spacing: -0.025em; }
-  h3 { font-size: 1rem; font-weight: 600; line-height: 1.5; margin-bottom: 0.75rem; }
-  .description { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8; }
-  .product-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; margin-bottom: 1.75rem; }
-  .product-tags li { padding: 0.25rem 0.5rem; border: 1px solid var(--border-hover); border-radius: 4px; color: var(--text-secondary); font-size: 0.6875rem; }
-  .card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.5rem 1rem; margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); }
-  .card-footer a { display: inline-flex; align-items: center; gap: 0.375rem; min-height: 44px; color: #4ade80; font-size: 0.875rem; font-weight: 600; }
-  .card-footer a:hover { text-decoration: underline; text-underline-offset: 4px; }
-  .status { color: var(--text-secondary); font-size: 0.75rem; }
-  @media (max-width: 639px) {
-    .products-page { padding-top: 2.75rem; padding-bottom: 3rem; }
-    .page-intro { margin-bottom: 2rem; }
-    .product-grid { grid-template-columns: 1fr; gap: 1rem; }
-    .product-card { padding: 1.25rem; }
+  .products-page { width: min(1200px, calc(100% - 64px)); margin: 0 auto; padding: 80px 0 88px; }
+  .page-intro { padding-bottom: 56px; margin-bottom: 32px; border-bottom: 1px solid #282828; }
+  .studio-link { display: inline-flex; align-items: center; gap: 12px; color: #a3a3a3; font-size: 13px; }
+  .studio-link:hover { color: #4ade80; }
+  h1 { font-size: clamp(38px, 5vw, 66px); font-weight: 600; letter-spacing: -0.055em; line-height: 1.1; margin: 25px 0; }
+  .page-intro > p { max-width: 510px; font-size: 16px; line-height: 1.8; color: #a3a3a3; }
+  .catalog-controls { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 28px; }
+  .product-filters { display: flex; flex-wrap: wrap; gap: 5px; }
+  .product-filters button { padding: 10px 12px; min-height: 44px; border: 1px solid transparent; border-radius: 5px; color: #b0b0b0; font-size: 12px; cursor: pointer; }
+  .product-filters button:hover { background: #1c1c1c; color: white; }
+  .product-filters button[aria-pressed='true'] { background: #e9eee9; color: #142218; }
+  .total { margin-left: 9px; font-size: 10px; }
+  .product-search { display: flex; align-items: center; gap: 8px; border: 1px solid #343434; border-radius: 5px; padding: 0 12px; color: #a3a3a3; min-height: 44px; }
+  .product-search input { width: 170px; min-width: 0; padding: 12px 0; color: white; font-size: 13px; background: transparent; }
+  .product-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+  .clear-search { min-width: 32px; min-height: 44px; font-size: 24px; cursor: pointer; }
+  .product-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; }
+  .product-card { border: 1px solid #303030; border-radius: 10px; overflow: hidden; background: #0c0c0c; transition: border-color .2s; }
+  .product-card:hover { border-color: #777; }
+  .product-card-link { display: flex; flex-direction: column; height: 100%; }
+  .product-card-link:focus-visible { outline-offset: -4px; }
+  .product-art { background: var(--product-background); position: relative; overflow: hidden; color: #405064; }
+  .product-art-top { position: absolute; inset: 18px 22px auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; z-index: 1; }
+  .product-status { display: inline-flex; align-items: center; gap: 6px; background: #ffffffb3; padding: 4px 7px; border-radius: 4px; font-size: 10px; }
+  .product-status i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+  .product-card-body { display: flex; flex-direction: column; flex: 1; padding: 26px 28px 0; }
+  .product-title { display: flex; align-items: center; gap: 11px; }
+  .product-logo { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; background: var(--product-background); border-radius: 8px; }
+  .product-logo img { object-fit: contain; }
+  h2 { font-size: 23px; font-weight: 600; letter-spacing: -0.035em; }
+  .product-arrow { margin-left: auto; display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid #3a3a3a; border-radius: 50%; color: #a3a3a3; font-size: 20px; }
+  .product-card-link:hover .product-arrow { color: #4ade80; border-color: #4ade80; }
+  h3 { font-size: 14px; font-weight: 600; line-height: 1.5; margin: 20px 0 9px; }
+  .product-card-body > p { color: #a3a3a3; font-size: 13px; line-height: 1.85; margin-bottom: 24px; }
+  .product-card-bottom { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 0; border-top: 1px solid #2a2a2a; margin-top: auto; font-size: 12px; }
+  .product-card-bottom > span:first-child { color: #a3a3a3; }
+  .product-card-bottom > span:last-child { display: flex; gap: 8px; align-items: center; color: #e6e6e6; }
+  .catalog-endnote { display: flex; justify-content: space-between; gap: 20px; color: #a3a3a3; font-size: 12px; padding-top: 28px; }
+  .catalog-endnote > span:first-child { display: flex; align-items: center; gap: 8px; }
+  .catalog-endnote i { width: 5px; height: 5px; background: #4ade80; border-radius: 50%; }
+  .empty-products { padding: 70px 20px; text-align: center; border: 1px dashed #404040; border-radius: 8px; }
+  .empty-products p { margin: 12px 0 24px; color: #a3a3a3; }
+  .reset-products { background: #e9eee9; color: #142218; padding: 12px 18px; border-radius: 5px; cursor: pointer; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { .product-card { transition: none; } }
+  @media (max-width: 767px) {
+    .products-page { width: calc(100% - 32px); padding: 42px 0 54px; }
+    .page-intro { padding-bottom: 32px; margin-bottom: 24px; }
+    h1 { margin: 20px 0; }
+    .page-intro > p { font-size: 14px; }
+    .product-grid { grid-template-columns: 1fr; gap: 24px; }
+    .product-search { width: 100%; }
+    .product-search input { width: 100%; font-size: 16px; }
+    .product-filters button { border-color: #303030; }
+    .product-card-body { padding: 22px 20px 0; }
+    h2 { font-size: 21px; }
+    .catalog-endnote { font-size: 10px; }
   }
 </style>
