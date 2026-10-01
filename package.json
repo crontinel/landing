@@ -5,12 +5,12 @@
   "private": true,
   "scripts": {
     "astro": "astro",
-    "build": "astro build",
-    "check": "wrangler types && astro build && tsc && wrangler deploy --dry-run",
+    "build": "node scripts/build-llms-txt.mjs && astro build",
+    "check": "node scripts/build-llms-txt.mjs && wrangler types && astro build && tsc && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
     "dev": "astro dev",
     "preview": "astro build && wrangler dev",
-    "test": "node --test tests/crawl-policy.test.mjs tests/indexnow.test.mjs && node tests/no-em-dash-and-hero-animation.mjs",
+    "test": "node --test tests/crawl-policy.test.mjs tests/indexnow.test.mjs tests/llms-txt.test.mjs && node tests/no-em-dash-and-hero-animation.mjs",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
