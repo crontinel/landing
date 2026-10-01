@@ -20,7 +20,7 @@ const aiBots = [
 
 test('marketing robots allows named AI and search crawlers', () => {
   for (const bot of aiBots) {
-    assert.match(robots, new RegExp(`User-agent: ${bot}\\nAllow: /`));
+    assert.match(robots, new RegExp(`User-agent: ${bot}\\nContent-Signal: search=yes, ai-train=yes, ai-input=yes\\nAllow: /`));
   }
   assert.match(robots, /Sitemap: https:\/\/crontinel\.com\/sitemap\.xml/);
   assert.match(robots, /LLMs\.txt: https:\/\/crontinel\.com\/llms\.txt/);

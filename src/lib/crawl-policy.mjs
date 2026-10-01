@@ -37,13 +37,17 @@ function looksLikeBrowser(userAgent) {
   return /(Chrome|Firefox|Safari|Edg|OPR)\//.test(userAgent);
 }
 
-function agentGroup(token, rule) {
-  return `User-agent: ${token}\n${rule}\n`;
+export const MARKETING_SIGNAL = 'search=yes, ai-train=yes, ai-input=yes';
+export const APP_CLOSED_SIGNAL = 'search=no, ai-train=no, ai-input=no';
+export const APP_PUBLIC_SIGNAL = 'search=yes, ai-train=no, ai-input=no';
+
+function agentGroup(token, rule, signal) {
+  return `User-agent: ${token}\nContent-Signal: ${signal}\n${rule}\n`;
 }
 
 export function renderMarketingRobots({ sitemap, llms }) {
   const named = [...AI_BOTS, ...SEARCH_BOTS]
-    .map((token) => agentGroup(token, 'Allow: /'))
+    .map((token) => agentGroup(token, 'Allow: /', MARKETING_SIGNAL))
     .join('\n');
 
   return [
@@ -52,6 +56,7 @@ export function renderMarketingRobots({ sitemap, llms }) {
     '',
     named,
     'User-agent: *',
+    `Content-Signal: ${MARKETING_SIGNAL}`,
     'Allow: /',
     '',
     `Sitemap: ${sitemap}`,
@@ -62,7 +67,7 @@ export function renderMarketingRobots({ sitemap, llms }) {
 
 export function renderAppRobots({ sitemap }) {
   const denied = AI_BOTS
-    .map((token) => agentGroup(token, 'Disallow: /'))
+    .map((token) => agentGroup(token, 'Disallow: /', APP_CLOSED_SIGNAL))
     .join('\n');
 
   return [
@@ -71,6 +76,7 @@ export function renderAppRobots({ sitemap }) {
     '',
     denied,
     'User-agent: *',
+    `Content-Signal: ${APP_PUBLIC_SIGNAL}`,
     'Allow: /status$',
     'Allow: /status/',
     'Allow: /waitlist$',
