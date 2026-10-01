@@ -43,3 +43,6 @@ jobs:
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
+
+      - name: Tell Bing about changed URLs
+        run: node scripts/ping-indexnow.mjs --host crontinel.com --sitemap https://crontinel.com/sitemap.xml --key-file public/b7e2c4a91f6d4c0e8a3b5d7f9c1e2a40.txt
