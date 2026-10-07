@@ -246,7 +246,7 @@
       tag  = app;
     } else {
       icon = '✕';
-      msg  = '<b>' + task + '</b> · <span style="color:#fca5a5">exit 1</span>';
+      msg  = '<b>' + task + '</b> · <span style="color:#fca5a5">exit 0 · 0 records</span>';
       tag  = app;
     }
     const row = document.createElement('div');

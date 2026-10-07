@@ -72,4 +72,4 @@ Production build emits **110+ prerendered routes** from MDX collections (counts 
 
 The original v1 plan in `SEO/CONTENT_PLAN.md` tracked **24** seed pages; the daily SEO pipeline and pSEO use-case generator expanded this. Run `find src/content -name '*.mdx' | wc -l` and `npm run build` to refresh counts.
 
-**Homepage positioning:** Hero and meta copy still lead with **Laravel** (primary ICP). The same page also surfaces **Node** and **Python** SDK install tabs (`index.astro` SDK section). Broader framework SEO lives on blog/use-case pages and package docs—not only the H1.
+**Homepage positioning:** The hero is "Completed is not done." The way in is one HTTP receipt. Laravel is named only for schedule attach, queue depth, and Horizon. Do not put unmaintained language packages back on the homepage.

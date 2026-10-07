@@ -4,9 +4,25 @@ import DirectoryBadges from '../components/DirectoryBadges.astro';
 
 export const prerender = true;
 
+const receiptSnippet = `await fetch("https://app.crontinel.com/api/v1/ingest/cron", {
+  method: "POST",
+  headers: {
+    Authorization: \`Bearer \${process.env.CRONTINEL_INGEST_KEY}\`,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    request_key: "run-1",
+    command: "reports:generate",
+    status: "completed",
+    exit_code: 0,
+    started_at: "2026-10-06T12:00:00Z",
+    finished_at: "2026-10-06T12:00:05Z",
+    outcomes: { metrics: { processed_records: 0 } },
+  }),
+});`;
 const canonicalURL = new URL('/', 'https://crontinel.com').toString();
-const title = 'Laravel Cron & Queue Monitoring | Crontinel';
-const description = 'Catch silent Laravel cron, queue, and Horizon failures before users do. The free plan sends Slack alerts, and the core package is open source.';
+const title = 'Completed is not done | Crontinel';
+const description = 'Crontinel tells you when a background job finished without doing the work. Any runtime sends one HTTP receipt. The email still goes out when the assistant is off.';
 ---
 
 <Base title={title} description={description} canonical={canonicalURL}>
@@ -28,10 +44,10 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
     "url": "https://app.crontinel.com/register"
   },
   "featureList": [
-    "Laravel scheduler monitoring",
-    "Laravel Horizon and queue monitoring",
-    "Worker health and missed-run alerts",
-    "Open-source self-hosted monitoring"
+    "Separate process status from the business result",
+    "HTTP receipt for any runtime",
+    "Email alert when a finished job did no work",
+    "Laravel package for schedule, queue depth, and Horizon"
   ],
   "provider": { "@id": "https://crontinel.com/#organization" }
 })} />
@@ -263,36 +279,35 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
     <div class="hero-left">
       <span class="hero-status">
         <span class="ping"></span>
-        <span class="mono">Laravel monitoring</span>
+        <span class="mono">Outcome monitor</span>
         <span class="sep">·</span>
         <span class="mono" id="hero-uptime">Product preview</span>
       </span>
 
       <h1 class="display h1" id="headline">
-        Your cron<br/>
-        is <span class="accent">lying</span><br/>
-        to you.<span class="cursor"></span>
+        Completed<br/>
+        is not <span class="accent">done</span>.<span class="cursor"></span>
       </h1>
 
       <p class="hero-sub" id="sub">
-        Crontinel watches your Laravel scheduler, Horizon queues, workers, backups, and agent runs,
-        so you hear about the failure <em>before</em> your users do. Also works with Node.js and Python.
+        A background job can exit 0 and still do nothing. Crontinel keeps those as two states.
+        Any runtime sends one HTTP receipt. The email still goes out when the assistant is off.
       </p>
 
       <div class="hero-ctas">
         <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free <span class="arrow-i">&#8599;</span></a>
         <a class="btn btn-ghost" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
-          View on GitHub
+          Laravel package
         </a>
       </div>
 
       <div class="hero-trust mono">
-        <span>Laravel-first, SDKs for other languages · open core</span>
+        <span>HTTP receipt for every runtime</span>
         <span class="sep">·</span>
-        <span>MIT licensed</span>
+        <span>Laravel for schedule, queue, and Horizon</span>
         <span class="sep">·</span>
-        <span>free tier, no card</span>
+        <span>free to start, no card</span>
       </div>
     </div>
 
@@ -335,9 +350,9 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
       </div>
 
       <div class="hero-captions mono">
-        <span><span class="status-dot ok"></span>heartbeat · every 60s</span>
-        <span><span class="status-dot fail"></span>failure · detected in <b>&lt; 60s</b></span>
-        <span><span class="status-dot warn"></span>drift · scheduler out of sync</span>
+        <span><span class="status-dot ok"></span>exit 0 · process finished</span>
+        <span><span class="status-dot fail"></span>0 records · outcome failed</span>
+        <span><span class="status-dot warn"></span>missing count · not healthy</span>
       </div>
     </div>
   </div>
@@ -348,20 +363,20 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
   <div class="container">
     <div class="metrics reveal">
       <div class="metric">
-        <div class="n" data-count="62"><span class="val">0</span><span class="unit">s</span></div>
-        <div class="l">avg time to detect<br/>a silent cron failure</div>
+        <div class="n"><span>exit 0</span></div>
+        <div class="l">can still open<br/>an incident</div>
       </div>
       <div class="metric">
-        <div class="n" data-count="14"><span class="val">0</span><span class="unit">%</span></div>
-        <div class="l">of production apps<br/>run a silently broken job</div>
+        <div class="n"><span>0</span></div>
+        <div class="l">records is a real<br/>result, not a pass</div>
       </div>
       <div class="metric">
-        <div class="n"><span>2</span><span class="unit"> cmds</span></div>
-        <div class="l">to monitor jobs,<br/>queues, workers &amp; agents</div>
+        <div class="n"><span>HTTP</span></div>
+        <div class="l">one receipt<br/>for any runtime</div>
       </div>
       <div class="metric">
-        <div class="n">$<span class="val" data-count="19">0</span><span class="unit">/mo</span></div>
-        <div class="l">starts at, or<br/>self-host for free</div>
+        <div class="n"><span>email</span></div>
+        <div class="l">still sends with<br/>the model off</div>
       </div>
     </div>
   </div>
@@ -375,18 +390,17 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
       <div class="pain-callout-body">
-        <p class="pain-callout-headline">Your Laravel scheduler isn't running. Your dashboard shows <span class="ok-green">green</span>. <span class="accent">Crontinel</span> knows.</p>
-        <p class="pain-callout-copy">Uptime checks and status pages only confirm that a URL responds. They never look inside <code class="mono">artisan schedule:run</code> or Horizon, so a cron entry a deploy silently removed, a stuck overlap lock, or a queue worker that's technically "running" but not draining anything all still read as a clean, all-green dashboard. Crontinel hooks into the scheduler and queue directly and alerts on the one signal that actually matters: the run that should have happened and didn't.</p>
+        <p class="pain-callout-headline">The job exited 0. It processed nothing. The run still looks <span class="ok-green">green</span>.</p>
+        <p class="pain-callout-copy">A URL returning 200 does not tell you the job did the work. Crontinel stores the process status and the business result separately. A missing count is not healthy. A later receipt with a passing result clears the incident.</p>
       </div>
     </div>
     <div class="section-head reveal section-head--split">
       <div class="section-head-copy">
         <span class="eyebrow">The gap</span>
-        <h2 class="display h2">Your uptime monitor says <span class="ok-green">green</span>.<br/>Your queue disagrees.</h2>
+        <h2 class="display h2">The process finished.<br/>The work did not.</h2>
         <p class="body">
-          A URL responding 200 doesn't mean your cron ran. It doesn't mean your workers are draining.
-          It doesn't mean your <span class="mono accent">invoices</span> queue isn't 6,000 deep, or that your agent isn't looping on a broken tool call.
-          Generic monitors can't tell you any of that.
+          Exit 0 stays exit 0. If the rule required records and the receipt says 0, the check fails.
+          The email names that gap. It does not invent a cause.
         </p>
       </div>
       <aside class="section-head-aside">
@@ -405,7 +419,7 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
             <div class="gap-col-h"><span class="mono t-mute">crontinel</span><span class="pill pill-bad">3 silent failures</span></div>
             <ul class="gap-list">
               <li><span class="dot fail"></span> <span class="mono">schedule:run</span> <span class="t-mute">17h late</span></li>
-              <li><span class="dot fail"></span> <span class="mono">agent.run.874</span> <span class="t-mute">42m loop</span></li>
+              <li><span class="dot fail"></span> <span class="mono">processed_records</span> <span class="t-mute">0</span></li>
               <li><span class="dot warn"></span> <span class="mono">queue:invoices</span> <span class="t-mute">6.2k deep</span></li>
               <li><span class="dot ok"></span> <span class="mono">worker.main</span> <span class="t-mute">ok</span></li>
             </ul>
@@ -422,11 +436,11 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
 <span class="bad">schedule:run        · 17h ago</span></pre>
       </article>
       <article class="card problem reveal">
-        <div class="pico"><span class="dot fail"></span> <span class="mono">agent.loop</span></div>
-        <h3>The agent loops. The bill climbs.</h3>
-        <p class="body-sm">A model retry storm or a tool-call loop runs for 40 minutes. The endpoint returns 200 for every request. You find out from billing.</p>
-        <pre class="mock"><span class="good">api.status          200 ok</span>
-<span class="bad">agent.run.874       42m · 318 tool calls</span></pre>
+        <div class="pico"><span class="dot fail"></span> <span class="mono">outcome.failed</span></div>
+        <h3>Exit 0. Zero records.</h3>
+        <p class="body-sm"><code class="mono">reports:generate</code> finished clean. <code class="mono">processed_records</code> is 0. The rule wanted at least 1. Crontinel opens the incident anyway.</p>
+        <pre class="mock"><span class="good">status              completed · exit 0</span>
+<span class="bad">processed_records   0 · failed</span></pre>
       </article>
       <article class="card problem reveal">
         <div class="pico"><span class="dot fail"></span> <span class="mono">worker.crash</span></div>
@@ -443,9 +457,9 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
 <section class="section" id="features">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow">Everything uptime tools miss</span>
-      <h2 class="display h2">Paranoid monitoring,<br/>without the instrumentation.</h2>
-      <p class="body">One SDK hooks into your scheduler, queue driver and agent runner. It watches job runs, queue depth, worker state, model latency and agent tool calls, end to end. No endpoint pings. No per-task wrapping. No missed instrumentation.</p>
+      <span class="eyebrow">The receipt</span>
+      <h2 class="display h2">Finished is not<br/>the same as done.</h2>
+      <p class="body">Any runtime posts one JSON receipt. Crontinel compares the count with the rule. The Laravel package attaches that receipt from the scheduler, and can add queue depth and Horizon freshness.</p>
     </div>
 
     <div class="bento">
@@ -462,9 +476,9 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
 
       <article class="card b b-md b-viz reveal">
         <div>
-          <span class="b-eyebrow">Heartbeat</span>
-          <h3 class="b-title">60-second detection.</h3>
-          <p class="b-desc">Every scheduled task registers a run attempt, exit code, and duration. Missed runs trip an alert before the next cron tick.</p>
+          <span class="b-eyebrow">Missing evidence</span>
+          <h3 class="b-title">A missing count fails.</h3>
+          <p class="b-desc">Zero is a real result. A receipt that omits the count is not treated as healthy.</p>
         </div>
         <div class="viz-ping">
           <span>pulse</span>
@@ -474,54 +488,49 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
       </article>
 
       <article class="card b b-sm b-text reveal">
-        <span class="b-eyebrow">Zero wrap</span>
-        <h3 class="b-title">No per-task instrumentation.</h3>
-        <p class="b-desc">Hooks into your framework's events, not your code.</p>
+        <span class="b-eyebrow">Any runtime</span>
+        <h3 class="b-title">One body. No second SDK.</h3>
+        <p class="b-desc">curl, or the same JSON from Node. The ingest key is not the MCP key.</p>
       </article>
 
       <article class="card b b-sm b-text reveal">
-        <span class="b-eyebrow">Self-hosted</span>
-        <h3 class="b-title">Works offline. MIT.</h3>
-        <p class="b-desc">OSS first. Local dashboard, CLI, no SaaS needed.</p>
+        <span class="b-eyebrow">Hosted</span>
+        <h3 class="b-title">The check outlives the job.</h3>
+        <p class="b-desc">An alert on the same machine dies with the host. Crontinel reads the receipt after the process exits.</p>
       </article>
 
       <article class="card b b-md b-viz reveal">
         <div>
           <span class="b-eyebrow">Alerts</span>
-          <h3 class="b-title">Route once, quiet forever.</h3>
-          <p class="b-desc">One alert fans out to the channels your team actually watches - per-service routing, quiet hours, auto-resolve.</p>
+          <h3 class="b-title">Email, with the model off.</h3>
+          <p class="b-desc">The zero-work alert and the later recovery both send by email. Slack and webhooks are not on the public card yet.</p>
         </div>
         <div class="viz-channels">
-          <span class="pill"><span class="dot"></span>Slack</span>
-          <span class="pill"><span class="dot"></span>PagerDuty</span>
-          <span class="pill"><span class="dot"></span>Webhook</span>
           <span class="pill"><span class="dot"></span>Email</span>
         </div>
       </article>
 
       <article class="card b b-md b-viz reveal">
         <div>
-          <span class="b-eyebrow">CI/CD</span>
-          <h3 class="b-title">crontinel:check in your deploy hook.</h3>
-          <p class="b-desc">One command verifies scheduler, supervisors and queues after each deploy. Zero-downtime monitoring that fails loud.</p>
+          <span class="b-eyebrow">The body</span>
+          <h3 class="b-title">Same JSON from any runtime.</h3>
+          <p class="b-desc">Status stays completed when the process exits 0. The outcome rule is a separate check.</p>
         </div>
-        <pre class="viz-log"><span class="kw">$</span> crontinel check
-<span class="ok">✓</span> scheduler           last run 00:00:12 ago
-<span class="ok">✓</span> workers.default     2 supervisors · running
-<span class="ok">✓</span> queue.invoices      127 pending · 2m oldest
-<span class="ok">✓</span> agents.support      12 runs · p95 8.2s
-<span class="bad">✗</span> queue.emails        backpressure · 6,413 pending</pre>
+        <pre class="viz-log"><span class="ok">status</span>              completed
+<span class="ok">exit_code</span>           0
+<span class="bad">processed_records</span>   0
+<span class="bad">outcome</span>             failed</pre>
       </article>
 
       <article class="card b b-wide b-viz reveal">
         <div>
-          <span class="b-eyebrow">Agents &amp; models</span>
-          <h3 class="b-title">Monitor the agent like any other worker.</h3>
-          <p class="b-desc">Track runs, tool calls, token spend, model latency and loop detection. Ask via MCP, so your own agent can answer "are any queues or agents backing up?" with real data.</p>
+          <span class="b-eyebrow">Your assistant</span>
+          <h3 class="b-title">The packet cites the zero count.</h3>
+          <p class="b-desc">Cursor, Claude Code, or Codex can read the same incident. The packet says completion is not business success. It does not mark the job healthy.</p>
         </div>
         <div class="viz-mcp">
-          <div class="q">&#x203A; are any queues backing up?</div>
-          <div class="a">Yes · <b>emails</b> is at 6,413 and rising. Oldest job 12m 04s. <b>invoices</b> is healthy.</div>
+          <div class="q">&#x203A; did reports:generate succeed?</div>
+          <div class="a">Process completed, exit 0. Outcome failed: <b>processed_records</b> is 0. Do not mark the job healthy.</div>
         </div>
       </article>
     </div>
@@ -533,36 +542,31 @@ const description = 'Catch silent Laravel cron, queue, and Horizon failures befo
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow">How it works</span>
-      <h2 class="display h2">Two commands.<br/>One source of truth.</h2>
+      <h2 class="display h2">One receipt.<br/>Two states.</h2>
     </div>
     <div class="steps reveal">
       <div class="step">
-        <div class="n">01 · INSTALL</div>
-        <h3>One SDK, your stack</h3>
-        <p>Drop the SDK in. No scheduler wrapping. No per-job decorators. No changes to existing jobs.</p>
-        <pre><span class="cmt"># pick your runtime</span>
-<span class="ok">$</span> npm i @crontinel/node
-<span class="ok">$</span> pip install git+https://github.com/crontinel/python.git
-<span class="ok">$</span> go get github.com/crontinel/go
-<span class="ok">$</span> gem install crontinel
-<span class="ok">$</span> composer require crontinel/laravel
-<span class="ok">$</span> dotnet add package Crontinel</pre>
+        <div class="n">01 · POST</div>
+        <h3>Send the HTTP receipt</h3>
+        <p>Any runtime posts the same body. Use the ingest key, not an MCP key. The shell expands <code class="mono">$CRONTINEL_INGEST_KEY</code>.</p>
+        <pre><span class="cmt"># Node. curl sends this same JSON.</span>
+<span class="ok">status</span>: "completed"
+<span class="ok">exit_code</span>: 0
+<span class="bad">processed_records</span>: 0</pre>
       </div>
       <div class="step">
-        <div class="n">02 · ROUTE ALERTS</div>
-        <h3>Pick a channel</h3>
-        <p>Slack, PagerDuty, email, webhook. HMAC-signed payloads. Quiet hours. Route once, in .env.</p>
-        <pre><span class="cmt"># .env</span>
-CRONTINEL_ALERT_CHANNEL=<span class="ok">slack</span>
-CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
+        <div class="n">02 · CHECK</div>
+        <h3>Exit 0 can still fail</h3>
+        <p>The server keeps the process status. The outcome rule is separate. A minimum of 1 fails a zero count.</p>
+        <pre><span class="ok">run</span>       completed · exit 0
+<span class="bad">outcome</span>   failed · actual 0</pre>
       </div>
       <div class="step">
-        <div class="n">03 · SLEEP</div>
-        <h3>Listen instead of watch</h3>
-        <p>We read scheduler events, worker state, queue internals and agent traces. When something drifts, you hear from us, not a user.</p>
-        <pre><span class="cmt"># ci/cd deploy hook</span>
-<span class="ok">$</span> crontinel check
-<span class="ok">✓ 47 jobs · 3 workers · 2 queues · 4 agents</span></pre>
+        <div class="n">03 · CLEAR</div>
+        <h3>A later count closes it</h3>
+        <p>The email goes out with the model off. A later receipt that passes the rule resolves the incident.</p>
+        <pre><span class="ok">processed_records</span>  1
+<span class="ok">outcome</span>            passed</pre>
       </div>
     </div>
   </div>
@@ -573,8 +577,8 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow">The dashboard</span>
-      <h2 class="display h2">Not a heartbeat ping chart.<br/>The inside of your queue.</h2>
-      <p class="body">Every scheduled task with its last run, duration and exit code. Every worker with its state. Every queue with depth, oldest job, and failure rate. Every agent run with its tool calls and token spend.</p>
+      <h2 class="display h2">The run stays completed.<br/>The outcome can fail.</h2>
+      <p class="body">Run history keeps exit 0. The outcome column is the business result. On Laravel, queue depth and Horizon freshness show up only when that snapshot was reported.</p>
     </div>
 
     <div class="dashboard reveal">
@@ -621,7 +625,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
                 <tbody>
                   <tr><td><span class="status-dot ok"></span>generate:daily-invoices</td><td class="mono">2m ago</td><td class="mono">1.82s</td><td class="mono">ok</td></tr>
                   <tr><td><span class="status-dot ok"></span>dunning:send-reminders</td><td class="mono">14m ago</td><td class="mono">940ms</td><td class="mono">ok</td></tr>
-                  <tr class="fail"><td><span class="status-dot fail"></span>sync:stripe-webhooks</td><td class="mono danger">17m ago</td><td class="mono">...</td><td class="mono danger">exit 1</td></tr>
+                  <tr class="fail"><td><span class="status-dot fail"></span>reports:generate</td><td class="mono danger">17m ago</td><td class="mono">1.2s</td><td class="mono danger">exit 0 · 0 records</td></tr>
                   <tr><td><span class="status-dot ok"></span>export:accounting-feed</td><td class="mono">29m ago</td><td class="mono">4.1s</td><td class="mono">ok</td></tr>
                   <tr><td><span class="status-dot warn"></span>telemetry:roll-up</td><td class="mono">1h 02m ago</td><td class="mono">12.4s</td><td class="mono">slow</td></tr>
                   <tr><td><span class="status-dot ok"></span>cleanup:stale-sessions</td><td class="mono">3h ago</td><td class="mono">220ms</td><td class="mono">ok</td></tr>
@@ -663,26 +667,15 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 <section class="section" id="sec-integrations">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow">Routed, not noisy</span>
-      <h2 class="display h2">Alerts go where you listen.</h2>
+      <span class="eyebrow">Alert</span>
+      <h2 class="display h2">The email still goes out.</h2>
+      <p class="body">Slack and customer webhooks stay off this page until a paid account receives the same failure and recovery.</p>
     </div>
     <div class="integrations">
       <div class="card int-group reveal">
-        <h4>Native · shipping</h4>
+        <h4>Checked path</h4>
         <div class="int-pills">
-          <span class="int-pill">Slack</span>
-          <span class="int-pill">PagerDuty</span>
-          <span class="int-pill">Email / SES</span>
-          <span class="int-pill">Webhook · HMAC</span>
-          <span class="int-pill">MCP · any agent</span>
-        </div>
-      </div>
-      <div class="card int-group reveal">
-        <h4>Coming soon</h4>
-        <div class="int-pills">
-          <span class="int-pill soon">Opsgenie</span>
-          <span class="int-pill soon">Linear</span>
-          <span class="int-pill soon">Zapier</span>
+          <span class="int-pill">Email</span>
         </div>
       </div>
     </div>
@@ -694,21 +687,21 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 <section class="section section-muted" id="sec-proof">
   <div class="container">
     <div class="proof-strip reveal">
-      <p class="proof-label mono">Trusted by developers worldwide</p>
+      <p class="proof-label mono">What is checked today</p>
       <div class="proof-stats">
         <div class="proof-stat">
-          <span class="proof-n" id="social-dev-count"> - </span>
-          <span class="proof-l">developers</span>
+          <span class="proof-n">exit 0</span>
+          <span class="proof-l">stays separate from the outcome</span>
         </div>
         <div class="proof-div"></div>
         <div class="proof-stat">
-          <span class="proof-n">MIT</span>
-          <span class="proof-l">open-source license</span>
+          <span class="proof-n">email</span>
+          <span class="proof-l">sends with the model off</span>
         </div>
         <div class="proof-div"></div>
         <div class="proof-stat">
-          <span class="proof-n">Free</span>
-          <span class="proof-l">plan available</span>
+          <span class="proof-n">HTTP</span>
+          <span class="proof-l">receipt for any runtime</span>
         </div>
       </div>
     </div>
@@ -729,9 +722,8 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
         <p class="tag">For one app.</p>
         <div class="cost"><span class="amt">$0</span><span class="per">/mo</span></div>
         <ul>
-          <li>1 connected app</li>
-          <li>5 monitors per app</li>
-          <li>7 days of cron run and monitor event history</li>
+          <li>Email when a finished job did no work</li>
+          <li>The same incident for the assistant you already use</li>
         </ul>
         <a class="btn btn-ghost" href="https://app.crontinel.com/register">Start free</a>
       </article>
@@ -750,138 +742,22 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 <section class="section" id="sec-oss">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow">Open by default</span>
-      <h2 class="display h2">A family of open-source packages.</h2>
-      <p class="body">Crontinel is SDKs and a CLI, not a vendor lock-in. Every runtime has its own MIT-licensed package that works against your own database. The cloud dashboard is an <em>option</em> layered on top, not a dependency.</p>
+      <span class="eyebrow">How you connect</span>
+      <h2 class="display h2">One receipt. One Laravel package.</h2>
+      <p class="body">Other language repositories are not a supported install path. Post the HTTP body. On Laravel, the package attaches that receipt from the scheduler and can add queue depth and Horizon freshness. That attach is on GitHub main. Packagist is still on the older release.</p>
     </div>
 
     <div class="pkg-grid reveal">
-      <a class="pkg" href="https://github.com/crontinel/node" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-node">TS</span><span class="pkg-meta mono">TypeScript</span></div>
-        <div class="pkg-name mono">crontinel/node</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Node runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/python" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-py">PY</span><span class="pkg-meta mono">Python</span></div>
-        <div class="pkg-name mono">crontinel/python</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Python runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/go" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-go">GO</span><span class="pkg-meta mono">Go</span></div>
-        <div class="pkg-name mono">crontinel/go</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Go runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/rust" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · MIT</span></div>
-        <div class="pkg-name mono">crontinel/rust</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Rust runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/php" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-php">PHP</span><span class="pkg-meta mono">PHP · MIT</span></div>
-        <div class="pkg-name mono">crontinel/php</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for PHP runtimes.</p>
+      <a class="pkg" href="#sec-install">
+        <div class="pkg-top"><span class="lang lang-node">HTTP</span><span class="pkg-meta mono">any runtime</span></div>
+        <div class="pkg-name mono">POST /api/v1/ingest/cron</div>
+        <p class="pkg-desc">The same JSON from curl or Node. This is the way in.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-php">LA</span><span class="pkg-meta mono">PHP · MIT</span></div>
+        <div class="pkg-top"><span class="lang lang-php">LA</span><span class="pkg-meta mono">Laravel</span></div>
         <div class="pkg-name mono">crontinel/laravel</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection, zero wrap.</p>
+        <p class="pkg-desc">Schedule attach, queue depth, and Horizon. Not a second product for other languages.</p>
       </a>
-      <a class="pkg" href="https://github.com/crontinel/ruby" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-rb">RB</span><span class="pkg-meta mono">Ruby · MIT</span></div>
-        <div class="pkg-name mono">crontinel/ruby</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Ruby runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/ruby-on-rails" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-rb">RA</span><span class="pkg-meta mono">Ruby · MIT</span></div>
-        <div class="pkg-name mono">crontinel/ruby-on-rails</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for Rails runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/crontinel" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-rs">RS</span><span class="pkg-meta mono">Rust · core</span></div>
-        <div class="pkg-name mono">crontinel/crontinel</div>
-        <p class="pkg-desc">Rust core. The recorder, agent and shared wire format.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/cli" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-cli">SH</span><span class="pkg-meta mono">Go</span></div>
-        <div class="pkg-name mono">crontinel/cli</div>
-        <p class="pkg-desc">Language-agnostic. Wrap any cron, Docker, or K8s job.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/dotnet-sdk" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-cs">C#</span><span class="pkg-meta mono">.NET · MIT</span></div>
-        <div class="pkg-name mono">crontinel/dotnet-sdk</div>
-        <p class="pkg-desc">Queue &amp; scheduler auto-detection for .NET runtimes.</p>
-      </a>
-      <a class="pkg" href="https://github.com/crontinel/mcp-server" target="_blank" rel="noopener">
-        <div class="pkg-top"><span class="lang lang-ai">AI</span><span class="pkg-meta mono">TypeScript · MIT</span></div>
-        <div class="pkg-name mono">@crontinel/mcp-server</div>
-        <p class="pkg-desc">MCP server. Let your agent query jobs, queues and runs.</p>
-      </a>
-    </div>
-
-    <div class="oss-compare reveal">
-      <h3 class="display h3">Self-hosted or fully managed?</h3>
-      <p class="body">The open-source package is free forever. The SaaS adds the things you would have to build yourself.</p>
-      <div class="oss-compare-grid">
-        <div class="oss-compare-col">
-          <div class="oss-compare-head">Self-hosted <span class="tag tag-free">free, MIT</span></div>
-          <ul class="oss-compare-list">
-            <li class="yes">Full queue and cron visibility</li>
-            <li class="yes">Blade dashboard on your own server</li>
-            <li class="yes">Slack alerts built in</li>
-            <li class="yes">Your data, your infra</li>
-            <li class="no">No hosted dashboard</li>
-            <li class="no">No team access or roles</li>
-            <li class="no">7-day history max</li>
-            <li class="no">You manage the server</li>
-          </ul>
-        </div>
-        <div class="oss-compare-col oss-compare-col--saas">
-          <div class="oss-compare-head">Crontinel SaaS</div>
-          <ul class="oss-compare-list">
-            <li class="yes">Everything in the open-source package</li>
-            <li class="yes">Hosted dashboard at app.crontinel.com</li>
-            <li class="yes">Team access with roles</li>
-            <li class="yes">Up to 1-year run history</li>
-            <li class="yes">Multi-app overview in one place</li>
-            <li class="yes">PagerDuty, webhooks, status pages</li>
-            <li class="yes">REST API and MCP server access</li>
-            <li class="yes">Zero server management</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <div class="oss-cloud reveal">
-      <div class="oss-cloud-copy">
-        <span class="chip"><span class="dot"></span>Hosted · app.crontinel.com</span>
-        <h3>Crontinel Cloud</h3>
-        <p>Everything the OSS packages do, plus multi-app dashboards, team access, long-horizon history, an MCP server, and routing rules. You keep the self-hosted SDKs; we handle the rest.</p>
-      </div>
-      <ul class="oss-cloud-list">
-        <li><span class="ok-mark">&#10003;</span> Multi-app view &amp; search</li>
-        <li><span class="ok-mark">&#10003;</span> History retention (90d &#8594; 1y)</li>
-        <li><span class="ok-mark">&#10003;</span> Team access, audit log, SSO (soon)</li>
-        <li><span class="ok-mark">&#10003;</span> MCP server for agents</li>
-      </ul>
-    </div>
-
-    <div class="oss-callout reveal">
-      <div class="oss-callout-icon" aria-hidden="true">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      </div>
-      <div class="oss-callout-body">
-        <h3>Prefer to self-host? Every package is free forever.</h3>
-        <p>MIT licensed. Every SDK works standalone - Blade dashboard, CLI health check, Slack alerts, queue and cron monitoring. No SaaS required. Own your data.</p>
-        <div class="oss-callout-cmd">
-          <div class="oss-pkgs">
-            <code class="mono">npm i @crontinel/node</code>
-            <code class="mono">pip install git+https://github.com/crontinel/python.git</code>
-            <code class="mono">go get github.com/crontinel/go</code>
-            <code class="mono">composer require crontinel/laravel</code>
-            <code class="mono">gem install crontinel</code>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </section>
@@ -890,61 +766,16 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 <section class="section" id="sec-install">
   <div class="container">
     <div class="section-head reveal">
-      <span class="eyebrow">Install</span>
-      <h2 class="display h2">Two commands. No pings.</h2>
+      <span class="eyebrow">Receipt</span>
+      <h2 class="display h2">Post this body.</h2>
+      <p class="body">curl sends the same JSON. <code class="mono">CRONTINEL_INGEST_KEY</code> is the app ingest key. It is not an assistant key.</p>
     </div>
-    <div class="sdk-tabs reveal" id="sdk-tabs">
-      <div class="sdk-tablist" role="tablist">
-        <button class="sdk-tab on" data-sdk="node">Node</button>
-        <button class="sdk-tab" data-sdk="python">Python</button>
-        <button class="sdk-tab" data-sdk="go">Go</button>
-        <button class="sdk-tab" data-sdk="rust">Rust</button>
-        <button class="sdk-tab" data-sdk="php">PHP</button>
-        <button class="sdk-tab" data-sdk="ruby">Ruby</button>
-        <button class="sdk-tab" data-sdk="rails">Rails</button>
-        <button class="sdk-tab" data-sdk="cli">CLI / Docker</button>
+    <div class="reveal" id="receipt">
+      <div class="install-cmd">
+        <span>Node fetch. curl posts this same JSON.</span>
+        <button class="copy" data-copy={receiptSnippet}>COPY</button>
       </div>
-
-      <div class="sdk-panel" data-for="node">
-        <div class="install-cmd"><span><span class="prompt">$</span> npm i @crontinel/node</span><button class="copy" data-copy="npm i @crontinel/node">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel init</span><button class="copy" data-copy="npx crontinel init">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> npx crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="npx crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="python" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> pip install git+https://github.com/crontinel/python.git</span><button class="copy" data-copy="pip install git+https://github.com/crontinel/python.git">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel init</span><button class="copy" data-copy="crontinel init">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="go" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> go get github.com/crontinel/go</span><button class="copy" data-copy="go get github.com/crontinel/go">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> go run github.com/crontinel/go/cmd/crontinel init</span><button class="copy" data-copy="go run github.com/crontinel/go/cmd/crontinel init">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="rust" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> cargo add crontinel-rust</span><button class="copy" data-copy="cargo add crontinel-rust">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> cargo install crontinel-cli</span><button class="copy" data-copy="cargo install crontinel-cli">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="php" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/php</span><button class="copy" data-copy="composer require crontinel/php">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> composer require crontinel/laravel   <span style="color:var(--text-3)"># or for PHP</span></span><button class="copy" data-copy="composer require crontinel/laravel">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> vendor/bin/crontinel check</span><button class="copy" data-copy="vendor/bin/crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="cli" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> brew install crontinel/homebrew-tap/crontinel</span><button class="copy" data-copy="brew install crontinel/homebrew-tap/crontinel">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> curl -sSL https://raw.githubusercontent.com/crontinel/cli/main/install.sh | sh</span><button class="copy" data-copy="curl -sSL https://raw.githubusercontent.com/crontinel/cli/main/install.sh | sh">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="ruby" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> gem install crontinel</span><button class="copy" data-copy="gem install crontinel">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel init</span><button class="copy" data-copy="crontinel init">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="crontinel check">COPY</button></div>
-      </div>
-      <div class="sdk-panel" data-for="rails" hidden>
-        <div class="install-cmd"><span><span class="prompt">$</span> gem install crontinel-rails</span><button class="copy" data-copy="gem install crontinel-rails">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> rails generate crontinel:install</span><button class="copy" data-copy="rails generate crontinel:install">COPY</button></div>
-        <div class="install-cmd"><span><span class="prompt">$</span> bundle exec crontinel check   <span style="color:var(--text-3)"># add to your CI</span></span><button class="copy" data-copy="bundle exec crontinel check">COPY</button></div>
-      </div>
+      <pre class="viz-log">{receiptSnippet}</pre>
     </div>
   </div>
 </section>
@@ -979,11 +810,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
       </a>
       <a class="seo-link-card" href="/use-cases/incident-alert-system/">
         <h3>Incident alert system</h3>
-        <p>Route the right failures to Slack, PagerDuty, or webhooks without drowning the team in noise.</p>
-      </a>
-      <a class="seo-link-card" href="/use-cases/open-source-self-hosted-status-page/">
-        <h3>Open source and self hosted status pages</h3>
-        <p>Publish a simple public incident page for cron, queue, and webhook problems you control.</p>
+        <p>The checked alert is email. Slack and webhooks are not listed here until a paid account receives the same failure and recovery.</p>
       </a>
     </div>
     <div class="mt-6 text-center">
@@ -998,10 +825,10 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     <div class="final reveal">
       <span class="eyebrow" style="justify-content:center">Ready?</span>
       <h2 class="display h2">Stop finding out<br/>from your users.</h2>
-      <p class="body">Free plan, no credit card. Two commands to install. Slack alert in under five minutes.</p>
+      <p class="body">Free to start, no card. Post one receipt. The email names a finished job that did no work.</p>
       <div class="actions">
         <a class="btn btn-primary" href="https://app.crontinel.com/register">Start monitoring free <span class="arrow-i">&#8599;</span></a>
-        <a class="btn btn-ghost" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">Read the source</a>
+        <a class="btn btn-ghost" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">Laravel package</a>
       </div>
     </div>
   </div>
@@ -1017,7 +844,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
           <img class="mark" src="/logo.png" alt="Crontinel" aria-hidden="true"/>
           <span>crontinel</span>
         </a>
-        <p class="footer-tag">Know when jobs, queues, workers and agents drift, before your users do.</p>
+        <p class="footer-tag">Completed is not done. One HTTP receipt for the background job.</p>
         <div class="footer-status mono">
           <span class="ping"></span>
           <span>all.systems.operational</span>
@@ -1036,16 +863,11 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
 
       <div class="footer-cols">
         <div>
-          <h5>Packages</h5>
+          <h5>Connect</h5>
           <ul>
-            <li><a href="https://github.com/crontinel/node">@crontinel/node</a></li>
-            <li><a href="https://github.com/crontinel/python">crontinel/python</a></li>
-            <li><a href="https://github.com/crontinel/go">crontinel/go</a></li>
-            <li><a href="https://github.com/crontinel/rust">crontinel/rust</a></li>
-            <li><a href="https://github.com/crontinel/php">crontinel/php</a></li>
+            <li><a href="#sec-install">HTTP receipt</a></li>
             <li><a href="https://github.com/crontinel/laravel">crontinel/laravel</a></li>
-            <li><a href="https://github.com/crontinel/cli">crontinel/cli</a></li>
-            <li><a href="https://github.com/crontinel/mcp-server">@crontinel/mcp-server</a></li>
+            <li><a href="https://docs.crontinel.com">Docs</a></li>
           </ul>
         </div>
         <div>
@@ -1087,7 +909,7 @@ CRONTINEL_SLACK_WEBHOOK=<span class="ok">...</span></pre>
     <div class="footer-wordmark" aria-hidden="true">crontinel</div>
 
     <div class="footer-bottom">
-      <span>&#169; 2026 Crontinel · MIT-licensed packages</span>
+      <span>&#169; 2026 Crontinel</span>
       <a href="https://status.crontinel.com">Service status</a>
     </div>
   </div>
