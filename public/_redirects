@@ -1,29 +1,28 @@
 # Cloudflare Pages redirects
 # Format: source destination status
+# The Worker applies this same table before assets run. Keep it in sync with
+# src/lib/edge-redirects.mjs. Do not add a catch-all slash rule here: it
+# rewrites files such as /logo.png into a missing slash URL.
 
-# Specific rules FIRST (must come before catch-all)
 /register          https://app.crontinel.com/register  301
 /register/         https://app.crontinel.com/register  301
 /signup            https://app.crontinel.com/register  301
 /signup/           https://app.crontinel.com/register  301
+/docs              https://docs.crontinel.com/introduction/  301
+/docs/             https://docs.crontinel.com/introduction/  301
 
-# NOTE: Removed catch-all /:slug /:slug/ 301 redirect
-# It was redirecting /logo.png to /logo.png/ which 404s
-# Astro's trailingSlash: 'already handles trailing slashes at build time
-
-# Old duplicate /vs/ pages superseded by the content-collection versions
-/vs/datadog          /vs/crontinel-vs-datadog          301
-/vs/datadog/         /vs/crontinel-vs-datadog/         301
-/vs/cronitor         /vs/crontinel-vs-cronitor         301
-/vs/cronitor/        /vs/crontinel-vs-cronitor/        301
-/vs/better-stack     /vs/crontinel-vs-better-stack     301
-/vs/better-stack/    /vs/crontinel-vs-better-stack/    301
-/vs/healthchecksio   /vs/crontinel-vs-healthchecks-io  301
-/vs/healthchecksio/  /vs/crontinel-vs-healthchecks-io/ 301
-
-# Dead internal links found via link audit - never real pages, other posts linked to them by mistake
+/vs/datadog          /vs/crontinel-vs-datadog/          301
+/vs/datadog/         /vs/crontinel-vs-datadog/          301
+/vs/cronitor         /vs/crontinel-vs-cronitor/         301
+/vs/cronitor/        /vs/crontinel-vs-cronitor/         301
+/vs/better-stack     /vs/crontinel-vs-better-stack/     301
+/vs/better-stack/    /vs/crontinel-vs-better-stack/     301
+/vs/healthchecksio   /vs/crontinel-vs-healthchecks-io/  301
+/vs/healthchecksio/  /vs/crontinel-vs-healthchecks-io/  301
 /vs/horizon                     /use-cases/laravel-horizon-monitoring/        301
 /vs/horizon/                    /use-cases/laravel-horizon-monitoring/        301
+/vs/crontinel-vs-betteruptime   /vs/crontinel-vs-better-stack/                301
+/vs/crontinel-vs-betteruptime/  /vs/crontinel-vs-better-stack/                301
 /blog/horizon-monitoring        /blog/how-to-monitor-horizon-jobs-production/ 301
 /blog/horizon-monitoring/       /blog/how-to-monitor-horizon-jobs-production/ 301
 /blog/bull-queue-monitoring     /vs/crontinel-vs-cronitor/                    301

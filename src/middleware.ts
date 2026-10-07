@@ -1,4 +1,5 @@
 import { defineMiddleware } from 'astro:middleware';
+import { edgeRedirectResponse } from './lib/edge-redirects.mjs';
 
 export const onRequest = defineMiddleware(async (context, next) => {
   const url = new URL(context.request.url);
@@ -21,14 +22,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return Response.redirect(url.toString(), 301);
   }
 
-  // Keep canonical URLs on slash form to match the static site output and sitemap.
-  if (url.pathname !== '/' && url.pathname.endsWith('/')) {
-    return next();
-  }
-
-  // Redirect /docs to docs.crontinel.com
-  if (url.pathname === '/docs') {
-    return Response.redirect('https://docs.crontinel.com', 301);
+  const redirected = edgeRedirectResponse(url);
+  if (redirected) {
+    return redirected;
   }
 
   // Redirect /sitemap-index.xml (wrong GSC path) to correct sitemap

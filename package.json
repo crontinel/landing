@@ -10,7 +10,7 @@
     "deploy": "wrangler deploy",
     "dev": "astro dev",
     "preview": "astro build && wrangler dev",
-    "test": "node --test tests/crawl-policy.test.mjs tests/indexnow.test.mjs tests/llms-txt.test.mjs && node tests/no-em-dash-and-hero-animation.mjs",
+    "test": "node --test tests/crawl-policy.test.mjs tests/indexnow.test.mjs tests/llms-txt.test.mjs tests/edge-redirects.test.mjs && node tests/no-em-dash-and-hero-animation.mjs",
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
