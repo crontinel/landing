@@ -1434,6 +1434,7 @@
   /* Hero */
   .hero { padding: 64px 0 48px; }
   .hero h1.display { margin-top: 14px; }
+  .hero-ctas .btn { min-width: 0; width: 100%; }
 
   /* Nav brand wordmark */
   .nav .brand { font-size: 15px; }

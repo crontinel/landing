@@ -1,6 +1,6 @@
 # Crontinel
 
-> Open-source monitoring for cron jobs, queues, workers, and background tasks. Catch silent failures before users notice. Works with Laravel, Node.js, Python, PHP, and other stacks.
+> Completed is not done. Crontinel tells you when a background job finished without doing the work. Any runtime sends one HTTP receipt. The Laravel package attaches that receipt from the scheduler and can add queue depth and Horizon freshness.
 
 ## Core pages
 
@@ -202,12 +202,10 @@
 - [Docs home](https://docs.crontinel.com/): Documentation for installing and operating Crontinel
 - [Docs guide for assistants](https://docs.crontinel.com/llms.txt): Page index for the docs site
 
-## SDKs and packages
+## Connect
 
-- [Laravel package](https://packagist.org/packages/crontinel/laravel): composer require crontinel/laravel
-- [Node.js SDK](https://www.npmjs.com/package/@crontinel/node): npm install @crontinel/node
-- [PHP SDK](https://packagist.org/packages/crontinel/php): Standalone PHP package
-- [MCP server](https://www.npmjs.com/package/@crontinel/mcp-server): npm install @crontinel/mcp-server
+- [HTTP receipt](https://crontinel.com/#sec-install): POST /api/v1/ingest/cron with the app ingest key
+- [Laravel package](https://github.com/crontinel/laravel): Schedule attach, queue depth, and Horizon. Outcome metrics are on GitHub main, not the current Packagist release.
 
 ## Open source
 

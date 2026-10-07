@@ -104,12 +104,10 @@ export function marketingSections() {
       ],
     },
     {
-      heading: 'SDKs and packages',
+      heading: 'Connect',
       items: [
-        { title: 'Laravel package', url: 'https://packagist.org/packages/crontinel/laravel', description: 'composer require crontinel/laravel' },
-        { title: 'Node.js SDK', url: 'https://www.npmjs.com/package/@crontinel/node', description: 'npm install @crontinel/node' },
-        { title: 'PHP SDK', url: 'https://packagist.org/packages/crontinel/php', description: 'Standalone PHP package' },
-        { title: 'MCP server', url: 'https://www.npmjs.com/package/@crontinel/mcp-server', description: 'npm install @crontinel/mcp-server' },
+        { title: 'HTTP receipt', url: 'https://crontinel.com/#sec-install', description: 'POST /api/v1/ingest/cron with the app ingest key' },
+        { title: 'Laravel package', url: 'https://github.com/crontinel/laravel', description: 'Schedule attach, queue depth, and Horizon. Outcome metrics are on GitHub main, not the current Packagist release.' },
       ],
     },
     {
@@ -133,7 +131,7 @@ export function marketingSections() {
 export function marketingLlms() {
   return renderLlmsDocument({
     title: 'Crontinel',
-    summary: 'Open-source monitoring for cron jobs, queues, workers, and background tasks. Catch silent failures before users notice. Works with Laravel, Node.js, Python, PHP, and other stacks.',
+    summary: 'Completed is not done. Crontinel tells you when a background job finished without doing the work. Any runtime sends one HTTP receipt. The Laravel package attaches that receipt from the scheduler and can add queue depth and Horizon freshness.',
     sections: marketingSections(),
   });
 }
