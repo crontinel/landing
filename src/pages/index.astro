@@ -1,10 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
 import DirectoryBadges from '../components/DirectoryBadges.astro';
+import RuntimeStrip from '../components/RuntimeStrip.astro';
 
 export const prerender = true;
 
-const receiptSnippet = `await fetch("https://app.crontinel.com/api/v1/ingest/cron", {
+const receiptSnippets = {
+  curl: `curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \\
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{"request_key":"run-1","command":"reports:generate","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}'`,
+  node: `await fetch("https://app.crontinel.com/api/v1/ingest/cron", {
   method: "POST",
   headers: {
     Authorization: \`Bearer \${process.env.CRONTINEL_INGEST_KEY}\`,
@@ -19,10 +25,36 @@ const receiptSnippet = `await fetch("https://app.crontinel.com/api/v1/ingest/cro
     finished_at: "2026-10-06T12:00:05Z",
     outcomes: { metrics: { processed_records: 0 } },
   }),
-});`;
+});`,
+  python: `python3 outcome_checkin.py \\
+  --command reports:generate \\
+  --request-key run-1 \\
+  --exit-code 0 \\
+  --started-at 2026-10-06T12:00:00Z \\
+  --finished-at 2026-10-06T12:00:05Z \\
+  --records 0 \\
+  --url https://app.crontinel.com \\
+  --api-key "$CRONTINEL_INGEST_KEY"`,
+  sidekiq: `uri = URI("https://app.crontinel.com/api/v1/ingest/cron")
+req = Net::HTTP::Post.new(uri)
+req["Authorization"] = "Bearer #{ENV.fetch("CRONTINEL_INGEST_KEY")}"
+req["Content-Type"] = "application/json"
+req.body = { request_key: "sidekiq-#{jid}", command: "reports:generate", status: "completed", exit_code: 0, outcomes: { metrics: { processed_records: records } } }.to_json
+Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) } rescue nil`,
+  gha: `- name: Report outcome
+  env:
+    CRONTINEL_INGEST_KEY: \${{ secrets.CRONTINEL_INGEST_KEY }}
+  run: |
+    curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/cron" \\
+      -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \\
+      -H "Content-Type: application/json" \\
+      -d '{"request_key":"gha-run","command":"reports:generate","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}' \\
+      || true`,
+};
+const receiptSnippet = receiptSnippets.node;
 const canonicalURL = new URL('/', 'https://crontinel.com').toString();
 const title = 'Completed is not done | Crontinel';
-const description = 'Crontinel tells you when a background job finished without doing the work. Any runtime sends one HTTP receipt. The email still goes out when the assistant is off.';
+const description = 'Crontinel tells you when a background job finished without doing the work. Check in from curl, Node, Python, Sidekiq, or GitHub Actions with one HTTP receipt.';
 ---
 
 <Base title={title} description={description} canonical={canonicalURL}>
@@ -45,7 +77,7 @@ const description = 'Crontinel tells you when a background job finished without 
   },
   "featureList": [
     "Separate process status from the business result",
-    "HTTP receipt for any runtime",
+    "HTTP receipt for curl, Node, Python, Sidekiq, and GitHub Actions",
     "Email alert when a finished job did no work",
     "Laravel package for schedule, queue depth, and Horizon"
   ],
@@ -291,24 +323,24 @@ const description = 'Crontinel tells you when a background job finished without 
 
       <p class="hero-sub" id="sub">
         A background job can exit 0 and still do nothing. Crontinel keeps those as two states.
-        Any runtime sends one HTTP receipt. The email still goes out when the assistant is off.
+        Check in from curl, Node, Python, Sidekiq, or GitHub Actions. The email still goes out when the assistant is off.
       </p>
 
       <div class="hero-ctas">
         <a class="btn btn-primary" href="https://app.crontinel.com">Start monitoring free <span class="arrow-i">&#8599;</span></a>
-        <a class="btn btn-ghost" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
-          Laravel package
+        <a class="btn btn-ghost" href="https://docs.crontinel.com/check-in/recipes/">
+          Check-in recipes
         </a>
       </div>
 
       <div class="hero-trust mono">
-        <span>HTTP receipt for every runtime</span>
+        <span>curl · Node · Python · Sidekiq · GitHub Actions</span>
         <span class="sep">·</span>
-        <span>Laravel for schedule, queue, and Horizon</span>
+        <span>Laravel deep package optional</span>
         <span class="sep">·</span>
         <span>free to start, no card</span>
       </div>
+      <RuntimeStrip compact class="mt-4" />
     </div>
 
     <!-- HEARTBEAT MONITOR -->
@@ -743,20 +775,40 @@ const description = 'Crontinel tells you when a background job finished without 
   <div class="container">
     <div class="section-head reveal">
       <span class="eyebrow">How you connect</span>
-      <h2 class="display h2">One receipt. One Laravel package.</h2>
-      <p class="body">Other language repositories are not a supported install path. Post the HTTP body. On Laravel, the package attaches that receipt from the scheduler and can add queue depth and Horizon freshness. That attach is on GitHub main. Packagist is still on the older release.</p>
+      <h2 class="display h2">One receipt. Five runtimes.</h2>
+      <p class="body">Post the same HTTP body from curl, Node, Python, Sidekiq, or GitHub Actions. Unowned language SDKs are not a support claim. On Laravel, the Composer package attaches that receipt from the scheduler and can add queue depth and Horizon freshness.</p>
     </div>
 
     <div class="pkg-grid reveal">
       <a class="pkg" href="#sec-install">
-        <div class="pkg-top"><span class="lang lang-node">HTTP</span><span class="pkg-meta mono">any runtime</span></div>
-        <div class="pkg-name mono">POST /api/v1/ingest/cron</div>
-        <p class="pkg-desc">The same JSON from curl or Node. This is the way in.</p>
+        <div class="pkg-top"><span class="lang lang-node">sh</span><span class="pkg-meta mono">curl</span></div>
+        <div class="pkg-name mono">System cron</div>
+        <p class="pkg-desc">Wrap the job, post the receipt, keep monitoring from failing the job.</p>
+      </a>
+      <a class="pkg" href="#sec-install">
+        <div class="pkg-top"><span class="lang lang-node">JS</span><span class="pkg-meta mono">Node</span></div>
+        <div class="pkg-name mono">fetch / node-cron</div>
+        <p class="pkg-desc">Same JSON after the job finishes. No npm package required.</p>
+      </a>
+      <a class="pkg" href="#sec-install">
+        <div class="pkg-top"><span class="lang lang-py">PY</span><span class="pkg-meta mono">Python</span></div>
+        <div class="pkg-name mono">outcome_checkin.py</div>
+        <p class="pkg-desc">Script or Celery finally-block. No PyPI claim on this path.</p>
+      </a>
+      <a class="pkg" href="https://docs.crontinel.com/check-in/recipes/#sidekiq--ruby">
+        <div class="pkg-top"><span class="lang lang-rb">RB</span><span class="pkg-meta mono">Sidekiq</span></div>
+        <div class="pkg-name mono">Net::HTTP</div>
+        <p class="pkg-desc">Thin Ruby post after the job. No gem claim.</p>
+      </a>
+      <a class="pkg" href="https://docs.crontinel.com/check-in/recipes/#github-actions">
+        <div class="pkg-top"><span class="lang lang-node">GH</span><span class="pkg-meta mono">Actions</span></div>
+        <div class="pkg-name mono">Scheduled workflow</div>
+        <p class="pkg-desc">Secret + curl or Python after the job step.</p>
       </a>
       <a class="pkg" href="https://github.com/crontinel/laravel" target="_blank" rel="noopener">
         <div class="pkg-top"><span class="lang lang-php">LA</span><span class="pkg-meta mono">Laravel</span></div>
         <div class="pkg-name mono">crontinel/laravel</div>
-        <p class="pkg-desc">Schedule attach, queue depth, and Horizon. Not a second product for other languages.</p>
+        <p class="pkg-desc">Deep package: schedule attach, queue depth, and Horizon.</p>
       </a>
     </div>
   </div>
@@ -768,17 +820,60 @@ const description = 'Crontinel tells you when a background job finished without 
     <div class="section-head reveal">
       <span class="eyebrow">Receipt</span>
       <h2 class="display h2">Post this body.</h2>
-      <p class="body">curl sends the same JSON. <code class="mono">CRONTINEL_INGEST_KEY</code> is the app ingest key. It is not an assistant key.</p>
+      <p class="body">Same JSON from five runtimes. <code class="mono">CRONTINEL_INGEST_KEY</code> is the app ingest key. It is not an assistant key.</p>
     </div>
-    <div class="reveal" id="receipt">
-      <div class="install-cmd">
-        <span>Node fetch. curl posts this same JSON.</span>
-        <button class="copy" data-copy={receiptSnippet}>COPY</button>
+    <div class="reveal" id="receipt" data-home-receipt>
+      <div class="flex flex-wrap gap-1 mb-3" role="tablist" aria-label="Runtime examples">
+        {Object.entries({ curl: 'curl', node: 'Node', python: 'Python', sidekiq: 'Sidekiq', gha: 'GitHub Actions' }).map(([id, label], i) => (
+          <button
+            type="button"
+            class:list={['home-runtime-tab mono text-xs px-3 py-1.5 rounded border transition-colors', i === 1 ? 'border-green-500/50 text-green-400' : 'border-white/10 text-slate-400']}
+            data-home-runtime={id}
+            aria-selected={i === 1 ? 'true' : 'false'}
+          >{label}</button>
+        ))}
       </div>
-      <pre class="viz-log">{receiptSnippet}</pre>
+      <div class="install-cmd">
+        <span data-home-receipt-label>Node fetch. curl posts this same JSON.</span>
+        <button class="copy" data-copy={receiptSnippet} data-home-copy>COPY</button>
+      </div>
+      <pre class="viz-log" data-home-receipt-pre>{receiptSnippet}</pre>
     </div>
   </div>
 </section>
+<script define:vars={{ receiptSnippets }}>
+  const root = document.querySelector('[data-home-receipt]');
+  if (root) {
+    const pre = root.querySelector('[data-home-receipt-pre]');
+    const copy = root.querySelector('[data-home-copy]');
+    const label = root.querySelector('[data-home-receipt-label]');
+    const labels = {
+      curl: 'curl. Same JSON as every other tab.',
+      node: 'Node fetch. curl posts this same JSON.',
+      python: 'Python helper script. Same ingest body.',
+      sidekiq: 'Sidekiq / Ruby Net::HTTP. Rescue on failure.',
+      gha: 'GitHub Actions step after the job.',
+    };
+    root.querySelectorAll('[data-home-runtime]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-home-runtime');
+        const snip = receiptSnippets[id];
+        if (!snip || !pre) return;
+        pre.textContent = snip;
+        if (copy) copy.setAttribute('data-copy', snip);
+        if (label) label.textContent = labels[id] || '';
+        root.querySelectorAll('[data-home-runtime]').forEach((b) => {
+          const on = b === btn;
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+          b.classList.toggle('border-green-500/50', on);
+          b.classList.toggle('text-green-400', on);
+          b.classList.toggle('border-white/10', !on);
+          b.classList.toggle('text-slate-400', !on);
+        });
+      });
+    });
+  }
+</script>
 
 <section class="section" id="learn">
   <div class="container">
