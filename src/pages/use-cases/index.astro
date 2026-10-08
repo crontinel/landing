@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
+import HttpReceiptCta from '../../components/HttpReceiptCta.astro';
 import { getCollection } from 'astro:content';
 
 const useCases = (await getCollection('use-cases'))
@@ -32,11 +33,6 @@ for (const uc of useCases) {
   grouped[cat].push({ slug: uc.id, title: uc.data.title, desc: uc.data.description ?? '' });
 }
 const groupNames = Object.keys(grouped);
-
-const receiptSnippet = `curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \\
-  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"command":"nightly-import","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}'`;
 ---
 
 <Base
@@ -79,34 +75,7 @@ const receiptSnippet = `curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \\
       </section>
     ))}
 
-    <div class="bg-gray-900 border border-green-500/20 rounded-xl p-8 text-center">
-      <h2 class="text-xl font-bold text-white mb-2">Start with one HTTP receipt</h2>
-      <p class="text-gray-400 mb-6">Create an app, post the outcome when the job finishes, then verify a zero count and a recovery. Laravel apps can use the Composer package for schedule, queue, and Horizon.</p>
-      <div class="relative max-w-xl mx-auto mb-6" data-receipt={receiptSnippet}>
-        <pre class="bg-gray-950 rounded-lg p-4 pr-14 font-mono text-xs sm:text-sm text-green-400 text-left overflow-x-auto whitespace-pre-wrap m-0">{receiptSnippet}</pre>
-        <button
-          type="button"
-          role="button"
-          aria-label="Copy to clipboard"
-          class="absolute top-2 right-2 text-xs text-gray-400 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors"
-          onclick="const root=this.closest('[data-receipt]'); navigator.clipboard.writeText(root.dataset.receipt); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)"
-        >Copy</button>
-      </div>
-      <div class="flex flex-col sm:flex-row gap-3 justify-center">
-        <a
-          href="https://app.crontinel.com/register"
-          class="inline-block bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-2.5 rounded transition-colors"
-        >
-          Create an app
-        </a>
-        <a
-          href="https://docs.crontinel.com/check-in/recipes/"
-          class="inline-block border border-gray-600 hover:border-green-500/50 text-white font-semibold px-6 py-2.5 rounded transition-colors"
-        >
-          Check-in recipes
-        </a>
-      </div>
-    </div>
+    <HttpReceiptCta class="mt-0" />
 
   </main>
 

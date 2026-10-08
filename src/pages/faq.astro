@@ -6,46 +6,45 @@ import Footer from '../components/Footer.astro';
 const faqs = [
   {
     q: 'What exactly does Crontinel monitor?',
-    a: `Crontinel tracks three things in your Laravel app: scheduled tasks (cron jobs), queues, and Horizon. You get visibility into whether jobs ran on time, how long they took, whether they failed, and what your queue backlog looks like. It is not just a "did my server respond" ping. It actually understands your Laravel internals.`,
+    a: `Crontinel watches background jobs in whatever runtime already runs them. Every job can send an HTTP receipt with the exit code and a business result such as <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">processed_records</code>. Exit 0 can still fail when the work produced nothing. The Laravel package is the deep integration for schedule attach, queue depth, and Horizon freshness.`,
   },
   {
     q: 'How is this different from Healthchecks.io or Cronitor?',
-    a: `Healthchecks.io is a dead man's switch. It knows a ping didn't arrive, but it has no idea why your job failed or what your queue depth looks like. Cronitor works but it is expensive and treats Laravel like any other language, so you end up writing boilerplate to get useful data out. Crontinel is a first-class Laravel package that hooks directly into the scheduler, queue system, and Horizon with zero configuration beyond a service provider.`,
+    a: `Healthchecks.io is a strong dead man's switch. Cronitor covers broad job monitoring and custom metrics. Crontinel focuses on outcome rules: a completed process and a failed business result stay separate, missing evidence is never shown as healthy, and your coding assistant can read a cited evidence packet over MCP. Laravel depth (schedule, queues, Horizon) is optional on top of the same receipt.`,
   },
   {
     q: 'Does it work with frameworks other than Laravel?',
-    a: `There is a framework-agnostic PHP package (<code class="text-green-400 bg-gray-800 px-1 rounded text-xs">crontinel/php</code>) for vanilla PHP or other frameworks, and agent packages for Node.js and Python for scheduled/cron-style command execution. The richest experience, with full scheduler, queue, and Horizon internals, is Laravel 11, 12, and 13. Outside Laravel, Crontinel still monitors your scheduled jobs, just without the Laravel-specific depth. PHP 8.2 or higher is required for the PHP package.`,
+    a: `Yes. The supported general path is an HTTP check-in (curl, a short Python script, or Node <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">fetch</code>). See the <a href="https://docs.crontinel.com/check-in/recipes/" class="text-green-400 underline">check-in recipes</a>. Unowned language SDKs are not a support claim. Laravel remains the maintained deep package.`,
   },
   {
     q: 'Is there a free tier?',
-    a: `Yes. The free plan covers one app with up to five monitors, seven days of history, and Slack, email, Discord, Teams, Telegram, and webhook alerts. No credit card required. It is enough to monitor a side project or evaluate whether Crontinel fits your workflow before committing to a paid plan.`,
+    a: `Starter, Pro, and Max are the planned paid tiers. Public price-card details stay unpublished until billing acceptance. Sign up at app.crontinel.com to evaluate with a real job receipt.`,
   },
   {
     q: 'How do I get started?',
-    a: `Install the package with <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">composer require crontinel/laravel</code>, publish the config, and set your API key. The whole setup takes under two minutes. A self-hosted dashboard is included out of the box, so you can start seeing data immediately without sending anything to an external service.`,
+    a: `Create an app, copy the ingest key (not an MCP key), and POST a receipt to <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">/api/v1/ingest/cron</code> when the job finishes. Send <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">processed_records: 0</code>, confirm the outcome alert, then send a later count and confirm recovery. Laravel apps can additionally <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">composer require crontinel/laravel</code> for schedule, queue, and Horizon.`,
   },
   {
     q: 'What alert channels are supported?',
-    a: `Slack, email, PagerDuty, Discord, Microsoft Teams, Telegram, SMS, and webhooks. Webhooks support HMAC signature verification so you can trust the payload is actually from Crontinel. Slack, email, Discord, Teams, Telegram, and webhooks are available on every plan, including free; PagerDuty and SMS require a paid plan. You can scope channels per app if you want Slack alerts for non-critical apps and PagerDuty for the ones that wake people up.`,
+    a: `Email failure and recovery alerts are the verified launch path. Slack and customer webhooks are planned for paid tiers after the same failure/recovery checks pass. Do not treat SMS or on-call rotations as part of this offer.`,
   },
   {
     q: 'Can I self-host everything or do I need the SaaS?',
-    a: `The Laravel package ships with a built-in dashboard, so you can run entirely self-hosted with no external dependencies. The SaaS at app.crontinel.com is optional and exists for teams that want centralized monitoring across multiple apps, longer history retention, and managed alert routing. Neither option locks you in.`,
+    a: `Hosted detection is the product path for independent alerts when the customer's scheduler dies. A package that only alerts locally on the same host is not a substitute. The Laravel package is open source; outcome evaluation and alerting run on app.crontinel.com.`,
   },
   {
     q: 'What does pricing look like for a small team?',
-    a: `The Free plan covers one app and up to five monitors. Starter, Pro, and Max are planned, but their checkout flow and final usage terms are still under review. The earlier lifetime deal is closed.`,
+    a: `Planned public prices are Starter $9.99, Pro $19.99, and Max $49.99 monthly, with matching annual totals. Checkout and entitlement acceptance remain open before the public price card is the source of truth.`,
   },
   {
     q: 'What is the MCP server for?',
-    a: `The MCP server lets AI coding assistants (like Claude or Copilot) query your Crontinel data directly. Your AI assistant can check job status, look up recent failures, or inspect queue health without you switching context to a dashboard. It is useful if you already work with an AI assistant in your editor.`,
+    a: `Hosted MCP (OAuth first, scoped API key second) lets Cursor, Claude Code, or Codex read incidents and evidence. Ordinary reads do not spend the hosted AI allowance. The assistant must not declare the job healthy; a later passing receipt clears the incident.`,
   },
   {
     q: 'Is this package open source?',
-    a: `Yes, <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">crontinel/laravel</code> is MIT-licensed and fully open source. You can read every line of code, fork it, and contribute back. The SaaS layer at app.crontinel.com is a separate commercial product, but the core monitoring package and self-hosted dashboard are free and open.`,
+    a: `The Laravel package (<code class="text-green-400 bg-gray-800 px-1 rounded text-xs">crontinel/laravel</code>) is MIT-licensed. The hosted app at app.crontinel.com is the commercial product. Other language repos may exist on GitHub without being a supported install path for outcome receipts.`,
   },
-];
----
+];---
 
 <Base
   title="Crontinel FAQ: Pricing, Self-Hosting & Monitoring"
@@ -72,7 +71,7 @@ const faqs = [
       "name": "What exactly does Crontinel monitor?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Crontinel tracks three things in your Laravel app: scheduled tasks (cron jobs), queues, and Horizon. You get visibility into whether jobs ran on time, how long they took, whether they failed, and what your queue backlog looks like. It is not just a \"did my server respond\" ping. It actually understands your Laravel internals."
+        "text": "Crontinel watches background jobs in any runtime via an HTTP outcome receipt. Exit 0 can still fail when the business result is empty. The Laravel package adds schedule, queue, and Horizon evidence."
       }
     },
     {
@@ -80,7 +79,7 @@ const faqs = [
       "name": "How is this different from Healthchecks.io or Cronitor?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Healthchecks.io is a dead man's switch. It knows a ping didn't arrive, but it has no idea why your job failed or what your queue depth looks like. Cronitor works but it is expensive and treats Laravel like any other language, so you end up writing boilerplate to get useful data out. Crontinel is a first-class Laravel package that hooks directly into the scheduler, queue system, and Horizon with zero configuration beyond a service provider."
+        "text": "Healthchecks.io is a dead man's switch. Cronitor covers broad job monitoring. Crontinel separates process completion from business result, never treats missing evidence as healthy, and gives coding assistants a cited MCP evidence packet."
       }
     },
     {
@@ -88,7 +87,7 @@ const faqs = [
       "name": "Does it work with frameworks other than Laravel?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "There is a framework-agnostic PHP package (crontinel/php) for vanilla PHP or other frameworks, and agent packages for Node.js and Python for scheduled/cron-style command execution. The richest experience, with full scheduler, queue, and Horizon internals, is Laravel 11, 12, and 13. Outside Laravel, Crontinel still monitors your scheduled jobs, just without the Laravel-specific depth. PHP 8.2 or higher is required for the PHP package."
+        "text": "Yes. The supported general path is HTTP check-in (curl, Python script, or Node fetch). See docs.crontinel.com/check-in/recipes/. Laravel is the maintained deep package. Unowned language SDKs are not a support claim."
       }
     },
     {
@@ -96,7 +95,7 @@ const faqs = [
       "name": "Is there a free tier?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. The free plan covers one app with up to five monitors, seven days of history, and Slack, email, Discord, Teams, Telegram, and webhook alerts. No credit card required. It is enough to monitor a side project or evaluate whether Crontinel fits your workflow before committing to a paid plan."
+        "text": "Starter, Pro, and Max are the planned paid tiers. Public price-card details stay unpublished until billing acceptance. Sign up at app.crontinel.com to evaluate with a real job receipt."
       }
     },
     {
@@ -104,7 +103,7 @@ const faqs = [
       "name": "How do I get started?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Install the package with composer require crontinel/laravel, publish the config, and set your API key. The whole setup takes under two minutes. A self-hosted dashboard is included out of the box, so you can start seeing data immediately without sending anything to an external service."
+        "text": "Create an app, copy the ingest key, and POST a receipt to /api/v1/ingest/cron when the job finishes. Verify a zero count and a recovery. Laravel apps can use composer require crontinel/laravel for schedule, queue, and Horizon."
       }
     },
     {
@@ -112,7 +111,7 @@ const faqs = [
       "name": "What alert channels are supported?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Slack, email, PagerDuty, Discord, Microsoft Teams, Telegram, SMS, and webhooks. Webhooks support HMAC signature verification so you can trust the payload is actually from Crontinel. Slack, email, Discord, Teams, Telegram, and webhooks are available on every plan, including free; PagerDuty and SMS require a paid plan. You can scope channels per app if you want Slack alerts for non-critical apps and PagerDuty for the ones that wake people up."
+        "text": "Email failure and recovery alerts are the verified launch path. Slack and customer webhooks are planned for paid tiers after the same checks pass."
       }
     },
     {
@@ -120,7 +119,7 @@ const faqs = [
       "name": "Can I self-host everything or do I need the SaaS?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The Laravel package ships with a built-in dashboard, so you can run entirely self-hosted with no external dependencies. The SaaS at app.crontinel.com is optional and exists for teams that want centralized monitoring across multiple apps, longer history retention, and managed alert routing. Neither option locks you in."
+        "text": "Hosted detection is the product path for independent alerts. A local-only package is not a substitute when the same host dies. The Laravel package is open source; outcome evaluation runs on app.crontinel.com."
       }
     },
     {
@@ -128,7 +127,7 @@ const faqs = [
       "name": "What does pricing look like for a small team?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The Free plan covers one app and up to five monitors. Starter, Pro, and Max are planned, but their checkout flow and final usage terms are still under review. The earlier lifetime deal is closed."
+        "text": "Planned public prices are Starter $9.99, Pro $19.99, and Max $49.99 monthly. Checkout acceptance remains open before the public price card is final."
       }
     },
     {
@@ -136,7 +135,7 @@ const faqs = [
       "name": "What is the MCP server for?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "The MCP server lets AI coding assistants (like Claude or Copilot) query your Crontinel data directly. Your AI assistant can check job status, look up recent failures, or inspect queue health without you switching context to a dashboard. It is useful if you already work with an AI assistant in your editor."
+        "text": "Hosted MCP (OAuth first, scoped API key second) lets Cursor, Claude Code, or Codex read incidents and evidence. Ordinary reads do not spend the hosted AI allowance. The assistant must not declare the job healthy."
       }
     },
     {
@@ -144,7 +143,7 @@ const faqs = [
       "name": "Is this package open source?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes, crontinel/laravel is MIT-licensed and fully open source. You can read every line of code, fork it, and contribute back. The SaaS layer at app.crontinel.com is a separate commercial product, but the core monitoring package and self-hosted dashboard are free and open."
+        "text": "The Laravel package is MIT-licensed. The hosted app at app.crontinel.com is the commercial product. Other language repos may exist without being a supported outcome-receipt install path."
       }
     }
   ]
