@@ -36,7 +36,7 @@ const groupNames = Object.keys(grouped);
 
 <Base
   title="Use Cases - Crontinel"
-  description="Crontinel for SaaS billing jobs, Horizon-heavy apps, scheduled reports, and multi-tenant Laravel platforms."
+  description="Crontinel for billing jobs, scheduled reports, queue workers, and other background work that can exit clean and still do nothing."
 >
 <script type="application/ld+json" slot="head">
 {
@@ -54,9 +54,9 @@ const groupNames = Object.keys(grouped);
   <main class="max-w-4xl mx-auto px-4 sm:px-6 py-16" id="main-content">
 
     <div class="text-center mb-14">
-      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Built for production Laravel apps</h1>
+      <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Built for load-bearing background jobs</h1>
       <p class="text-gray-400 max-w-xl mx-auto">
-        Crontinel is most valuable when your background jobs are load-bearing: billing, data sync, reporting, communication. Here are all {useCases.length} use cases.
+        Crontinel watches the outcome of work you already schedule: billing, sync, reporting, digests. Any runtime sends one HTTP receipt. Laravel adds schedule attach, queue depth, and Horizon. Here are all {useCases.length} use cases.
       </p>
     </div>
 
@@ -75,21 +75,29 @@ const groupNames = Object.keys(grouped);
     ))}
 
     <div class="bg-gray-900 border border-green-500/20 rounded-xl p-8 text-center">
-      <h2 class="text-xl font-bold text-white mb-2">Start in two commands</h2>
-      <p class="text-gray-400 mb-6">No account needed. Crontinel works locally and in production from day one.</p>
-      <div class="relative max-w-sm mx-auto mb-6">
-        <div class="bg-gray-950 rounded-lg p-4 pr-14 font-mono text-sm text-green-400 text-left">
-          <div>composer require crontinel/laravel</div>
-          <div>php artisan crontinel:install</div>
-        </div>
-        <button role="button" aria-label="Copy to clipboard" onclick="navigator.clipboard.writeText('composer require crontinel/laravel\nphp artisan crontinel:install'); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-2 right-2 text-xs text-gray-400 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
+      <h2 class="text-xl font-bold text-white mb-2">Start with one HTTP receipt</h2>
+      <p class="text-gray-400 mb-6">Create an app, post the outcome when the job finishes, then verify a zero count and a recovery. Laravel apps can use the Composer package for schedule, queue, and Horizon.</p>
+      <div class="relative max-w-xl mx-auto mb-6">
+        <div class="bg-gray-950 rounded-lg p-4 pr-14 font-mono text-xs sm:text-sm text-green-400 text-left overflow-x-auto whitespace-pre-wrap">curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"command":"nightly-import","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}'</div>
+        <button role="button" aria-label="Copy to clipboard" onclick="navigator.clipboard.writeText('curl -X POST \"$CRONTINEL_API_URL/api/v1/ingest/cron\" -H \"Authorization: Bearer $CRONTINEL_INGEST_KEY\" -H \"Content-Type: application/json\" -d \'{\"command\":\"nightly-import\",\"status\":\"completed\",\"exit_code\":0,\"outcomes\":{\"metrics\":{\"processed_records\":0}}}\''); this.textContent='Copied!'; setTimeout(()=>this.textContent='Copy',1500)" class="absolute top-2 right-2 text-xs text-gray-400 hover:text-gray-300 bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded transition-colors">Copy</button>
       </div>
-      <a
-        href="https://app.crontinel.com/register"
-        class="inline-block bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-2.5 rounded transition-colors"
-      >
-        Get early access
-      </a>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a
+          href="https://app.crontinel.com/register"
+          class="inline-block bg-green-500 hover:bg-green-400 text-black font-semibold px-6 py-2.5 rounded transition-colors"
+        >
+          Create an app
+        </a>
+        <a
+          href="https://docs.crontinel.com/check-in/recipes/"
+          class="inline-block border border-gray-600 hover:border-green-500/50 text-white font-semibold px-6 py-2.5 rounded transition-colors"
+        >
+          Check-in recipes
+        </a>
+      </div>
     </div>
 
   </main>
