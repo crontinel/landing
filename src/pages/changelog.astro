@@ -6,7 +6,7 @@ import Footer from '../components/Footer.astro';
 
 <Base
   title="Crontinel Changelog: Product Updates"
-  description="Release notes for Crontinel's Laravel cron, queue, and worker monitoring product."
+  description="Release notes for Crontinel outcome monitoring — HTTP check-in, Laravel package, and hosted alerts."
 >
 <script type="application/ld+json" slot="head">
 {
@@ -25,8 +25,8 @@ import Footer from '../components/Footer.astro';
   "@type": "SoftwareApplication",
   "name": "Crontinel",
   "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "Laravel",
-  "description": "Laravel-native cron, scheduler, and background job monitoring. Monitors Horizon internals, queue depth, failed jobs, and cron run history.",
+  "operatingSystem": "Web, Linux",
+  "description": "Outcome monitor for background jobs. HTTP check-in from curl, Node, Python, Sidekiq, and GitHub Actions. Optional Laravel package for schedule, queue, and Horizon.",
   "url": "https://crontinel.com/changelog/",
   "version": "0.3.0",
   "offers": {
@@ -47,9 +47,22 @@ import Footer from '../components/Footer.astro';
 
   <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16" id="main-content">
     <h1 class="text-3xl font-bold text-white mb-2">Changelog</h1>
-    <p class="text-gray-400 mb-12">What's new in Crontinel.</p>
+    <p class="text-gray-400 mb-12">What's new in Crontinel. Outcome receipts work from curl, Node, Python, Sidekiq, and GitHub Actions; Laravel is the deep package path.</p>
 
     <div class="space-y-12">
+
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-sm font-mono text-gray-400">2026-10-09</span>
+          <span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 px-2 py-0.5 rounded-full">product</span>
+        </div>
+        <h2 class="text-lg font-semibold text-white mb-2">Five first-class check-in runtimes</h2>
+        <ul class="text-gray-400 text-sm space-y-1 list-disc list-inside">
+          <li>Landing, app setup, and docs lead with curl, Node, Python, Sidekiq, and GitHub Actions posting one HTTP outcome receipt.</li>
+          <li>Laravel package remains the deep integration for schedule attach, queue depth, and Horizon — not a requirement for outcome monitoring.</li>
+          <li>Public recipes: <a href="https://docs.crontinel.com/check-in/recipes/" class="text-green-400 underline">docs.crontinel.com/check-in/recipes/</a>.</li>
+        </ul>
+      </div>
 
       <div>
         <div class="flex items-center gap-3 mb-4">
