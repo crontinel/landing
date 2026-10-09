@@ -51,14 +51,17 @@ The gap most teams miss: a disabled rule or a cron expression that stops matchin
 
 ### The Crontinel approach
 
-Crontinel flips the default: instead of alarming on the absence of a metric, you send a heartbeat, and the absence of that heartbeat is the alert. The target (typically the Lambda function the rule invokes) pings Crontinel once it completes its work, using the Node, Python, or plain HTTP client, whichever matches the Lambda runtime:
+Crontinel flips the default: the Lambda (or other target) posts an HTTP outcome receipt when the work finishes. Exit code and business result stay separate. Prefer plain HTTP — do not treat `npm i @crontinel/node` or `pip install crontinel` as the supported path:
 
 ```bash
-npm i @crontinel/node
-pip install crontinel
+curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/cron" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"command":"nightly-export","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}' \
+  || true
 ```
 
-Crontinel expects a ping roughly matching the rule's own schedule. Configure the expected interval to line up with your `rate()` or `cron()` expression, and a missing invocation, whether caused by a disabled rule, a bad cron pattern, or an IAM failure that never reached your code, shows up as a missed heartbeat within minutes, without needing a correctly configured CloudWatch alarm on the AWS side first.
+Recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/). Configure the expected schedule in Crontinel to match your `rate()` or `cron()` expression. A missing receipt (disabled rule, bad cron, IAM failure that never ran your code) is the alert, without needing a CloudWatch “treat missing data as breaching” alarm first.
 
 ## Code examples for EventBridge rule health checks
 
