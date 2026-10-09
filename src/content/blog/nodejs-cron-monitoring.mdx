@@ -9,6 +9,8 @@ Node.js powers everything from API servers to real-time data pipelines. But unli
 
 This guide covers how to monitor Node.js scheduled tasks across every common setup, what to watch for beyond "did it run," and how to catch failures before they become customer-facing issues.
 
+> **Supported check-in today:** `fetch` the same HTTP outcome JSON as curl. Do not treat `npm i @crontinel/node` as parity with the Laravel package. Recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/).
+
 ## The Node.js Scheduling Landscape
 
 | Tool | Typical Use | Scheduling Model |
@@ -259,29 +261,28 @@ else
 fi
 ```
 
-## Node.js SDK Installation
-
-Crontinel provides a Node.js SDK that works with any scheduler:
-
-```bash
-npm i @crontinel/node
-```
+## HTTP check-in (supported path)
 
 ```javascript
-const Crontinel = require('@crontinel/node');
-
-const crontinel = new Crontinel({ apiKey: 'your-key' });
-
-// Simple heartbeat
-await crontinel.ping('my-task');
-// ... do work ...
-await crontinel.complete('my-task');
-
-// With context
-await crontinel.ping('my-task', { 
-  metadata: { env: 'production', region: 'us-east-1' } 
+await fetch('https://app.crontinel.com/api/v1/ingest/cron', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${process.env.CRONTINEL_INGEST_KEY}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    request_key: 'run-1',
+    command: 'my-task',
+    status: 'completed',
+    exit_code: 0,
+    started_at: '2026-10-06T02:00:00Z',
+    finished_at: '2026-10-06T02:00:04Z',
+    outcomes: { metrics: { processed_records: 0 } },
+  }),
 });
 ```
+
+Full recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/). Historical `@crontinel/node` ping/complete snippets elsewhere in older guides are not the supported outcome-receipt path.
 
 ## Quick Comparison
 

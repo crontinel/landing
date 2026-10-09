@@ -1,10 +1,12 @@
 ---
 title: "Crontinel Laravel Integration: Setup and Configuration"
-description: "Install Crontinel in a Laravel application. Configure the OSS package, publish migrations, set alert channels, and connect to the cloud dashboard quickly."
+description: "Optional Laravel deep package for schedule attach, queue depth, and Horizon. Outcome monitoring still uses the same HTTP receipt as curl, Node, Python, Sidekiq, and GitHub Actions."
 date: 2026-04-07
 ---
 
-Crontinel is a Laravel-native monitoring tool built as a Composer package. The OSS package runs inside your application and monitors scheduled tasks, Horizon workers, and queue state. Optionally, it reports to the Crontinel cloud dashboard for historical records and alert management.
+Outcome monitoring does not require Laravel. Any runtime posts one HTTP receipt when the job finishes — see the [check-in recipes](https://docs.crontinel.com/check-in/recipes/).
+
+On Laravel, `crontinel/laravel` is the deep package: it attaches that receipt from the scheduler and can add queue depth and Horizon freshness. The steps below are for that package path.
 
 ## Requirements
 

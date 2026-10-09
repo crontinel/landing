@@ -9,6 +9,8 @@ Python powers everything from data pipelines to background job processing. But u
 
 This guide covers how to monitor Python scheduled tasks across every common setup, what to watch for beyond "did it run," and how to catch failures before they become customer-facing issues.
 
+> **Supported check-in today:** post one HTTP outcome receipt (`outcome_checkin.py` or the same JSON body). Do not treat `pip install crontinel` as parity with the Laravel package. Recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/).
+
 ## The Python Scheduling Landscape
 
 Unlike PHP frameworks with built-in schedulers, Python teams typically use one of these:
@@ -231,27 +233,23 @@ exit $EXIT_CODE
 0 2 * * * cron-wrapper.sh daily-report python3 /app/manage.py daily_report
 ```
 
-## Python SDK Installation
+## HTTP check-in (supported path)
 
-Crontinel provides a Python SDK that works with any scheduler:
+Prefer the workspace script or the same JSON over PyPI:
 
 ```bash
-pip install crontinel
+python3 outcome_checkin.py \
+  --command my-task \
+  --request-key run-1 \
+  --exit-code 0 \
+  --started-at 2026-10-06T02:00:00Z \
+  --finished-at 2026-10-06T02:00:04Z \
+  --records 0 \
+  --url https://app.crontinel.com \
+  --api-key "$CRONTINEL_INGEST_KEY"
 ```
 
-```python
-from crontinel import Crontinel
-
-crontinel = Crontinel(api_key="your-key")
-
-# Simple heartbeat
-crontinel.ping("my-task")
-# ... do work ...
-crontinel.complete("my-task")
-
-# With context
-crontinel.ping("my-task", metadata={"env": "production", "region": "us-east-1"})
-```
+Full recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/). Historical `pip install crontinel` / `crontinel.ping` snippets elsewhere in older guides are not the supported outcome-receipt path.
 
 ## Quick Comparison
 
