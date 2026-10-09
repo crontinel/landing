@@ -1,4 +1,5 @@
 ---
+import { seoTitle } from '../../lib/seo-title';
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -66,7 +67,7 @@ const breadcrumb = {
 ---
 
 <Base
-  title={`${post.data.title} - Crontinel Blog`}
+  title={seoTitle(post.data.title, ' - Crontinel Blog')}
   description={post.data.description ?? post.data.title}
 >
   <Nav />
