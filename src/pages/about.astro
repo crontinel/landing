@@ -5,8 +5,8 @@ import Footer from '../components/Footer.astro';
 ---
 
 <Base
-  title="About Crontinel - Why We Built Open Source Cron Monitoring"
-  description="Crontinel is open-source monitoring for Laravel cron jobs, queues, and Horizon. Learn why we built it and how the project works."
+  title="About Crontinel - Why We Built Outcome Monitoring"
+  description="Crontinel is an outcome monitor for background jobs. Check in from curl, Node, Python, Sidekiq, or GitHub Actions. Laravel package optional for Horizon depth."
 >
 <script type="application/ld+json" slot="head">
 {
@@ -52,9 +52,7 @@ import Footer from '../components/Footer.astro';
       </p>
 
       <p>
-        Crontinel was built to fix that gap. It reads Horizon's Redis keys directly, the same data the Horizon dashboard shows you, and turns it into configurable
-        alerts. It also hooks into Laravel's scheduler events to record every cron run
-        with its exit code and duration, so you can see exactly what ran, when, and whether it succeeded.
+        Crontinel was built to fix that gap for every runtime. Every job posts one HTTP outcome receipt so exit code and business result stay separate. On Laravel, the package can also read Horizon's Redis keys and attach scheduler events. On curl, Node, Python, Sidekiq, and GitHub Actions, the same JSON receipt is the supported path.
       </p>
 
       <h2 class="text-white font-semibold text-base pt-4">Why not use existing tools?</h2>
@@ -64,11 +62,11 @@ import Footer from '../components/Footer.astro';
       </p>
 
       <p>
-        Datadog and other APM tools can instrument queue workers with enough configuration, but they are general-purpose platforms built around traces and metrics. Setting up queue depth alerts in Datadog means writing custom metrics pipelines, managing agents, and paying for ingestion at a scale that rarely makes sense for a single Laravel app. Crontinel is purpose-built: install one package, get a working dashboard.
+        Datadog and other APM tools can instrument workers with enough configuration, but they are general-purpose platforms built around traces and metrics. Crontinel is purpose-built for job outcomes: post a receipt, get an alert when the work did nothing, then optionally add Laravel Horizon depth when that stack is in play.
       </p>
 
       <p>
-        The gap these tools leave is not a monitoring gap, it is a Laravel internals gap. None of them understand what <code class="text-gray-300 bg-gray-900 px-1.5 py-0.5 rounded text-xs">horizon:supervisor</code> keys in Redis mean, or that a scheduler firing does not guarantee a job was processed. Crontinel was built specifically to close that gap.
+        The gap these tools leave is outcome monitoring. A scheduler firing or a process exiting 0 does not guarantee the job did the work. Crontinel keeps those as two states for every runtime, and adds Horizon internals only where the Laravel package reports them.
       </p>
 
       <h2 class="text-white font-semibold text-base pt-4">Open source first</h2>
@@ -82,7 +80,7 @@ import Footer from '../components/Footer.astro';
 
       <p>
         The hosted SaaS adds multi-app dashboards, longer history retention, team access,
-        and a REST API. It's for teams who manage more than one Laravel app and want
+        and a REST API. It's for teams who manage background jobs across runtimes and want
         a single pane of glass without running their own infrastructure.
       </p>
 
