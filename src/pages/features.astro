@@ -2,11 +2,13 @@
 import Base from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import RuntimeStrip from '../components/RuntimeStrip.astro';
+import HttpReceiptCta from '../components/HttpReceiptCta.astro';
 ---
 
 <Base
-  title="Queue & Cron Monitoring - Features | Crontinel"
-  description="Monitor Laravel Horizon, queues, scheduled tasks, and failed jobs. Get Slack, email, PagerDuty, and webhook alerts with a free plan."
+  title="Outcome monitoring for background jobs - Features | Crontinel"
+  description="Monitor job outcomes from curl, Node, Python, Sidekiq, and GitHub Actions. Optional Laravel package for schedule, queues, and Horizon. Slack, email, and webhook alerts."
 >
 <script type="application/ld+json" slot="head">
 {
@@ -14,8 +16,8 @@ import Footer from '../components/Footer.astro';
   "@type": "SoftwareApplication",
   "name": "Crontinel",
   "applicationCategory": "DeveloperApplication",
-  "operatingSystem": "Laravel",
-  "description": "Laravel-native cron, scheduler, and background job monitoring. Monitors Horizon internals, queue depth, failed jobs, and cron run history with Slack, email, PagerDuty, Discord, Microsoft Teams, Telegram, and webhook alerts.",
+  "operatingSystem": "Web, Linux",
+  "description": "Outcome monitor for background jobs. HTTP check-in from curl, Node, Python, Sidekiq, and GitHub Actions. Optional Laravel package for schedule attach, queue depth, and Horizon freshness.",
   "url": "https://crontinel.com/features/",
   "offers": {
     "@type": "AggregateOffer",
@@ -24,15 +26,13 @@ import Footer from '../components/Footer.astro';
     "priceCurrency": "USD"
   },
   "featureList": [
-    "Cron expression parsing and overdue detection",
-    "Laravel Horizon supervisor and job rate monitoring",
-    "Queue depth and oldest-job-age monitoring",
-    "Failed job counting and alerting",
+    "HTTP outcome receipt for curl, Node, Python, Sidekiq, and GitHub Actions",
+    "Separate process exit from business result (processed_records)",
+    "Optional Laravel package for schedule, queue depth, and Horizon",
     "Slack, email, PagerDuty, Discord, Microsoft Teams, Telegram, and webhook alert channels",
     "Multi-app hosted dashboard",
-    "Public status pages",
     "REST API for programmatic access",
-    "MIT-licensed self-hosted option"
+    "MCP evidence for coding assistants"
   ],
   "provider": {
     "@type": "Organization",
@@ -57,22 +57,50 @@ import Footer from '../components/Footer.astro';
   <main class="max-w-5xl mx-auto px-4 sm:px-6 py-16" id="main-content">
     <div class="text-center mb-16">
       <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">
-        The monitoring your Laravel app actually needs
+        Outcome monitoring for the jobs you already run
       </h1>
-      <p class="text-gray-400 max-w-xl mx-auto">
-        Not just "did it ping back." Crontinel reads Laravel internals to give you answers other tools can't.
+      <p class="text-gray-400 max-w-xl mx-auto mb-8">
+        Not just "did it ping back." A finished process can still do no work. Post one HTTP receipt from five common runtimes. Laravel Horizon depth is optional on top.
       </p>
+      <RuntimeStrip />
     </div>
 
     <div class="space-y-20">
 
-      <!-- Horizon monitoring -->
+      <!-- HTTP outcome receipt -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
         <div>
-          <div class="inline-block text-xs font-semibold text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 rounded-full mb-4">Unique to Crontinel</div>
-          <h2 class="text-2xl font-bold text-white mb-4">Horizon internals: not just "is it running?"</h2>
+          <div class="inline-block text-xs font-semibold text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 rounded-full mb-4">Works in every runtime</div>
+          <h2 class="text-2xl font-bold text-white mb-4">One HTTP receipt. Exit and outcome stay separate.</h2>
           <p class="text-gray-400 mb-4">
-            Crontinel reads Horizon's Redis keys directly. Not an HTTP ping. Actual supervisor states, actual queue depths, actual failed job rates per minute.
+            Post to <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">/api/v1/ingest/cron</code> when the job finishes. Include <code class="text-green-400 bg-gray-800 px-1 rounded text-xs">processed_records</code> when the business result can be a count. Exit 0 with zero records can still open an incident.
+          </p>
+          <ul class="space-y-2 text-sm text-gray-400">
+            <li class="flex gap-2"><span class="text-green-400">✓</span> curl / system cron</li>
+            <li class="flex gap-2"><span class="text-green-400">✓</span> Node (fetch / node-cron / Bull)</li>
+            <li class="flex gap-2"><span class="text-green-400">✓</span> Python (script / Celery)</li>
+            <li class="flex gap-2"><span class="text-green-400">✓</span> Sidekiq / Ruby</li>
+            <li class="flex gap-2"><span class="text-green-400">✓</span> GitHub Actions</li>
+          </ul>
+        </div>
+        <div class="bg-gray-900 rounded-xl border border-gray-800 p-5 font-mono text-xs">
+          <div class="text-gray-400 mb-3">Outcome receipt</div>
+          <div class="space-y-2">
+            <div class="flex justify-between"><span class="text-gray-400">status</span><span class="text-green-400">completed</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">exit_code</span><span class="text-green-400">0</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">processed_records</span><span class="text-red-400">0 ← alert</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">runtime</span><span class="text-gray-300">any of five</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Horizon monitoring (Laravel deep) -->
+      <div class="grid md:grid-cols-2 gap-10 items-center">
+        <div>
+          <div class="inline-block text-xs font-semibold text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-0.5 rounded-full mb-4">Laravel deep package</div>
+          <h2 class="text-2xl font-bold text-white mb-4">Horizon internals when you run Laravel</h2>
+          <p class="text-gray-400 mb-4">
+            The Composer package can read Horizon's Redis keys and attach schedule evidence. Not required for outcome monitoring on other runtimes.
           </p>
           <ul class="space-y-2 text-sm text-gray-400">
             <li class="flex gap-2"><span class="text-green-400">✓</span> Supervisor status per supervisor (not just "Horizon is running")</li>
@@ -124,14 +152,14 @@ import Footer from '../components/Footer.astro';
       <!-- Cron tracking -->
       <div class="grid md:grid-cols-2 gap-10 items-center">
         <div>
-          <h2 class="text-2xl font-bold text-white mb-4">Cron run history: every execution, every exit code</h2>
+          <h2 class="text-2xl font-bold text-white mb-4">Run history: exit code and business result</h2>
           <p class="text-gray-400 mb-4">
-            Hooks into Laravel's scheduler via built-in events. Every scheduled command run is recorded automatically. No wrapping needed.
+            Every receipt records status, exit code, and outcome metrics. On Laravel, the package can also attach scheduler events automatically. Everywhere else, wrap the job and POST the same JSON.
           </p>
           <ul class="space-y-2 text-sm text-gray-400">
             <li class="flex gap-2"><span class="text-green-400">✓</span> Exit code per run</li>
-            <li class="flex gap-2"><span class="text-green-400">✓</span> Execution duration</li>
-            <li class="flex gap-2"><span class="text-green-400">✓</span> "Late" detection when job doesn't run on schedule</li>
+            <li class="flex gap-2"><span class="text-green-400">✓</span> Outcome column separate from process status</li>
+            <li class="flex gap-2"><span class="text-green-400">✓</span> "Late" detection when named jobs miss the schedule</li>
             <li class="flex gap-2"><span class="text-green-400">✓</span> Historical chart per command</li>
           </ul>
         </div>
@@ -183,17 +211,18 @@ import Footer from '../components/Footer.astro';
 
       <!-- Integrations -->
       <div class="bg-gray-900/40 border border-gray-800 rounded-xl p-8">
-        <h2 class="text-2xl font-bold text-white mb-2 text-center">Deep integrations. REST API for everything else.</h2>
-        <p class="text-gray-400 text-center mb-8">Deep native integrations. REST API for any other stack.</p>
+        <h2 class="text-2xl font-bold text-white mb-2 text-center">Five runtimes. One ingest API. MCP for assistants.</h2>
+        <p class="text-gray-400 text-center mb-8">HTTP receipt for every stack. Laravel package when you want schedule and Horizon depth.</p>
         <div class="int-pills">
-          <span class="int-pill"><span class="dot ok"></span> Cron monitoring</span>
-          <span class="int-pill"><span class="dot ok"></span> Health monitoring</span>
-          <span class="int-pill"><span class="dot ok"></span> Background jobs</span>
+          <span class="int-pill"><span class="dot ok"></span> curl / cron</span>
+          <span class="int-pill"><span class="dot ok"></span> Node</span>
+          <span class="int-pill"><span class="dot ok"></span> Python</span>
+          <span class="int-pill"><span class="dot ok"></span> Sidekiq</span>
+          <span class="int-pill"><span class="dot ok"></span> GitHub Actions</span>
+          <span class="int-pill"><span class="dot ok"></span> Laravel package</span>
           <span class="int-pill"><span class="dot ok"></span> REST API</span>
-          <span class="int-pill"><span class="dot ok"></span> MCP server</span>
-          <span class="int-pill"><span class="dot ok"></span> Status pages</span>
+          <span class="int-pill"><span class="dot ok"></span> MCP</span>
           <span class="int-pill"><span class="dot ok"></span> Webhook alerts</span>
-          <span class="int-pill soon">HTTP endpoints <span class="t-mute" style="font-size:11px">(coming soon)</span></span>
         </div>
       </div>
 
@@ -205,8 +234,8 @@ import Footer from '../components/Footer.astro';
       <div class="space-y-4">
 
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 class="text-white font-semibold mb-2">Does Crontinel work without Laravel Horizon?</h3>
-          <p class="text-gray-400 text-sm">Yes. Queue monitoring and cron tracking are fully independent of Horizon. If you use the database queue driver, Crontinel monitors queue depths and failed jobs from your database tables. Cron tracking works via Laravel's scheduler events regardless of which queue driver you use. Horizon monitoring is an additional layer for apps that run it.</p>
+          <h3 class="text-white font-semibold mb-2">Does Crontinel work without Laravel?</h3>
+          <p class="text-gray-400 text-sm">Yes. Outcome monitoring uses one HTTP receipt. curl, Node, Python, Sidekiq, and GitHub Actions are first-class. Horizon and queue freshness are optional Laravel package features. Absence of a Horizon snapshot outside Laravel is normal, not an incident.</p>
         </div>
 
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
@@ -237,8 +266,10 @@ import Footer from '../components/Footer.astro';
       </div>
     </div>
 
+    <HttpReceiptCta heading="Advertise the receipt in your job" class="mt-20" />
+
     <!-- CTA -->
-    <div class="text-center mt-20">
+    <div class="text-center mt-12">
       <a href="https://app.crontinel.com/register" class="inline-block bg-green-500 hover:bg-green-400 text-black font-semibold px-8 py-3 rounded-lg transition-colors text-base">
         Start free, no credit card
       </a>
@@ -254,10 +285,10 @@ import Footer from '../components/Footer.astro';
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "Does Crontinel work without Laravel Horizon?",
+      "name": "Does Crontinel work without Laravel?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Queue monitoring and cron tracking are fully independent of Horizon. If you use the database queue driver, Crontinel monitors queue depths and failed jobs from your database tables. Cron tracking works via Laravel's scheduler events regardless of which queue driver you use. Horizon monitoring is an additional layer for apps that run it."
+        "text": "Yes. Outcome monitoring uses one HTTP receipt. curl, Node, Python, Sidekiq, and GitHub Actions are first-class. Horizon and queue freshness are optional Laravel package features."
       }
     },
     {
