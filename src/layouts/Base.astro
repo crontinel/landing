@@ -15,7 +15,7 @@ interface Props {
 
 const {
   title,
-  description = 'Free cron and queue monitoring. Catch worker stalls, queue spikes, and silent scheduler failures before customers notice.',
+  description = 'Outcome monitoring for background jobs. Check in from curl, Node, Python, Sidekiq, or GitHub Actions. Catch finished jobs that did no work.',
   canonical,
   ogImage = '/og-default.png',
 } = Astro.props;
@@ -81,7 +81,7 @@ const canonicalURL = new URL(canonicalPath, Astro.site).toString();
           "@id": "https://crontinel.com/#website",
           "url": "https://crontinel.com",
           "name": "Crontinel",
-          "description": "Cron, Scheduler & Background Job Monitoring",
+          "description": "Outcome monitoring for background jobs across common runtimes",
           "publisher": { "@id": "https://crontinel.com/#organization" }
         }
       ]

@@ -7,7 +7,7 @@ export async function GET(context: APIContext) {
 
   return rss({
     title: 'Crontinel Blog',
-    description: 'Horizon deep dives, queue architecture, and monitoring best practices for background job reliability.',
+    description: 'Outcome monitoring guides for background jobs — HTTP check-in recipes, silent failures, and optional Laravel Horizon depth.',
     site: context.site ?? 'https://crontinel.com',
     items: posts
       .sort((a, b) => b.data.date.getTime() - a.data.date.getTime())
