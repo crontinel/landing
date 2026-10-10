@@ -37,19 +37,34 @@ The foundation. Your task sends a signal when it starts or finishes. If the sign
 
 ```javascript
 const cron = require('node-cron');
-const Crontinel = require('@crontinel/node');
 
-const crontinel = new Crontinel({ apiKey: process.env.CRONTINEL_API_KEY });
+async function report(body) {
+  try {
+    await fetch('https://app.crontinel.com/api/v1/ingest/cron', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.CRONTINEL_INGEST_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ command: 'daily-report', ...body }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    // Monitoring must not fail the business job.
+  }
+}
 
 // Monitor a node-cron job
 cron.schedule('0 2 * * *', async () => {
-  await crontinel.ping('daily-report');
-  
+  const startedAt = new Date().toISOString();
+  const request_key = `daily-report-${startedAt}`;
+  await report({ request_key, status: 'running', started_at: startedAt });
+
   try {
     await generateReport();
-    await crontinel.complete('daily-report');
+    await report({ request_key, status: 'completed', exit_code: 0, started_at: startedAt, finished_at: new Date().toISOString() });
   } catch (error) {
-    await crontinel.fail('daily-report', { error: error.message });
+    await report({ request_key, status: 'failed', exit_code: 1, started_at: startedAt, finished_at: new Date().toISOString(), output: error.message });
     throw error;
   }
 });
