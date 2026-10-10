@@ -39,7 +39,7 @@ const receiptSnippets = {
 req = Net::HTTP::Post.new(uri)
 req["Authorization"] = "Bearer #{ENV.fetch("CRONTINEL_INGEST_KEY")}"
 req["Content-Type"] = "application/json"
-req.body = { request_key: "sidekiq-#{jid}", command: "reports:generate", status: "completed", exit_code: 0, outcomes: { metrics: { processed_records: records } } }.to_json
+req.body = { request_key: "sidekiq-#{jid}-#{started}", command: "reports:generate", status: "completed", exit_code: 0, outcomes: { metrics: { processed_records: records } } }.to_json
 Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) } rescue nil`,
   gha: `- name: Report outcome
   env:

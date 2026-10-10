@@ -49,7 +49,7 @@ req = Net::HTTP::Post.new(uri)
 req["Authorization"] = "Bearer #{ENV.fetch("CRONTINEL_INGEST_KEY")}"
 req["Content-Type"] = "application/json"
 req.body = {
-  request_key: "sidekiq-#{jid}",
+  request_key: "sidekiq-#{jid}-#{started}",
   command: "nightly-import",
   status: "completed",
   exit_code: 0,

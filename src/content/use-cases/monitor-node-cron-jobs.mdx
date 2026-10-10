@@ -1,0 +1,75 @@
+---
+title: "Monitor node-cron Jobs That Run and Produce Nothing"
+description: "node-cron runs inside your process, so a crash stops every job quietly. Wrap each job to post an HTTP receipt with a record count, and register the schedule to catch runs that never fire."
+date: 2026-10-10
+---
+
+node-cron runs in your application's process. When the process exits, the schedule exits with it, and there is no one left to log that a run was missed. When the process is alive and a job throws, you get a stack trace in a log nobody is reading.
+
+A third case is quieter. The job runs, calls an API that returns an empty list, and finishes without error.
+
+## Wrap the job
+
+```javascript
+import cron from "node-cron";
+
+async function postReceipt({ requestKey, command, exitCode, startedAt, records }) {
+  const body = {
+    request_key: requestKey,
+    command,
+    status: exitCode === 0 ? "completed" : "failed",
+    exit_code: exitCode,
+    started_at: startedAt,
+    finished_at: new Date().toISOString(),
+    outcomes: { metrics: { processed_records: records } },
+  };
+  try {
+    await fetch("https://app.crontinel.com/api/v1/ingest/cron", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.CRONTINEL_INGEST_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    // Monitoring must not fail the business job.
+  }
+}
+
+cron.schedule("0 3 * * *", async () => {
+  const startedAt = new Date().toISOString();
+  let exitCode = 0;
+  let records = 0;
+  try {
+    records = await generateReports();
+  } catch (error) {
+    exitCode = 1;
+    throw error;
+  } finally {
+    await postReceipt({ requestKey: `node-reports-${startedAt}`, command: "reports:generate", exitCode, startedAt, records });
+  }
+});
+```
+
+The `finally` block runs on success and on failure. The five-second timeout keeps a slow monitoring call from holding the job open.
+
+## Catch a process that died
+
+Register the job once with its expected schedule and a minimum count:
+
+```bash
+curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/schedule" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"source":"named_by_user","tasks":[{"command":"reports:generate","expression":"0 3 * * *","timezone":"UTC","grace_seconds":300,"counted_minimum":1}]}'
+```
+
+If the process is down at 03:00, no receipt arrives and Crontinel alerts that the run never started. The alert comes from outside your process, which is the only place that works when the process is the thing that failed.
+
+## What was tested
+
+The wrapper above ran under node-cron v4 on Node 26 against a local Crontinel app, firing every second. Each firing landed as a completed run. The register call and a skipped-run alert were exercised with the check-in script against a local app. BullMQ workers need a Redis server and were not run.
+
+See the [check-in recipes](https://docs.crontinel.com/check-in/recipes/) and the [schedule guide](https://docs.crontinel.com/check-in/schedule/).

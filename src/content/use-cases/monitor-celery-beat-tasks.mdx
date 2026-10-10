@@ -1,0 +1,52 @@
+---
+title: "Monitor Celery Beat Tasks That Succeed and Do Nothing"
+description: "A Celery task can return SUCCESS after processing zero rows. Send one HTTP receipt per run, register the schedule, and get alerted on empty runs and runs that never start."
+date: 2026-10-10
+---
+
+Celery marks a task `SUCCESS` when it returns without raising. A nightly import that finds no input file, a query that returns no rows, or an API that answers with an empty page all return cleanly. Flower stays green and nobody hears about it.
+
+Celery Beat adds a second problem. If the Beat process dies, no task is sent at all, and nothing in the worker logs says a task was missing.
+
+## Report the count with the run
+
+Wrap the task so it sends a receipt when it ends. The body has the command, the exit code, the timestamps, and a count of what the task did.
+
+```python
+from celery import shared_task
+
+@shared_task(bind=True)
+def reports_generate(self):
+    started, exit_code, records = now(), 0, 0
+    try:
+        records = run_reports()
+        return records
+    except Exception:
+        exit_code = 1
+        raise
+    finally:
+        post_receipt(f"celery-{self.request.id}-{started}", exit_code, started, records)
+```
+
+`post_receipt` builds the body with `build_receipt` from `outcome_checkin.py` and posts it to `/api/v1/ingest/cron` with a short timeout. If Crontinel is unreachable, the call is swallowed and the task still finishes. The full helper is in the [check-in recipes](https://docs.crontinel.com/check-in/recipes/).
+
+Set a rule that a run needs at least one `processed_records`. A run that exits 0 with a count of 0 then fails the rule and sends an alert.
+
+## Catch a Beat that stopped
+
+Crontinel does not read your Beat schedule. Tell it what to expect, once:
+
+```bash
+curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/schedule" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"source":"named_by_user","tasks":[{"command":"reports:generate","expression":"0 3 * * *","timezone":"UTC","grace_seconds":300,"counted_minimum":1}]}'
+```
+
+If no receipt for `reports:generate` arrives within five minutes of 03:00, a "cron never started" alert opens. It does not matter whether Beat died, the broker lost the message, or the worker was down.
+
+## What was tested
+
+The task above ran eagerly through Celery against a local Crontinel app and landed as a completed run in the run history. The Beat-stopped alert was exercised with a registered schedule and a skipped run. It was not run against a Redis or RabbitMQ broker.
+
+Start with the [HTTP check-in recipes](https://docs.crontinel.com/check-in/recipes/) and the [schedule registration guide](https://docs.crontinel.com/check-in/schedule/).

@@ -1,0 +1,62 @@
+---
+title: "Monitor Sidekiq Scheduled Jobs for Empty and Missed Runs"
+description: "Sidekiq reports a job as processed when perform returns. Post one HTTP receipt from the job with a record count, and register the schedule to catch runs that never enqueue."
+date: 2026-10-10
+---
+
+Sidekiq counts a job as processed when `perform` returns. Retries, the dead set, and the busy list tell you about exceptions. They say nothing about a job that ran, found nothing to do, and returned.
+
+Scheduled jobs add a second gap. Whether you use sidekiq-cron, sidekiq-scheduler, or a plain cron entry that enqueues, a stopped scheduler produces no errors. The job is simply never enqueued.
+
+## Post a receipt from the job
+
+Net::HTTP is enough. No gem is needed.
+
+```ruby
+require "json"
+require "net/http"
+require "time"
+require "uri"
+
+begin
+  uri = URI("https://app.crontinel.com/api/v1/ingest/cron")
+  req = Net::HTTP::Post.new(uri)
+  req["Authorization"] = "Bearer #{ENV.fetch("CRONTINEL_INGEST_KEY")}"
+  req["Content-Type"] = "application/json"
+  req.body = {
+    request_key: "sidekiq-#{jid}-#{started}",
+    command: "reports:generate",
+    status: "completed",
+    exit_code: 0,
+    started_at: started,
+    finished_at: Time.now.utc.iso8601,
+    outcomes: { metrics: { processed_records: records } },
+  }.to_json
+  Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req) }
+rescue StandardError
+  # Monitoring must not fail the business job.
+end
+```
+
+Capture `started = Time.now.utc.iso8601` at the top of `perform`, count what the job handled in `records`, and run the block in an `ensure`. The key joins `jid` and the start time. A retry keeps the `jid` but starts later, so it reports as its own run. A key reused after a run has finished is rejected, and a failed first attempt would otherwise block the successful retry from being recorded.
+
+The rescue matters. If Crontinel is slow or down, the job must not start failing and retrying because of it.
+
+## Alert on a job that was never enqueued
+
+Register the job with its schedule:
+
+```bash
+curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/schedule" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"source":"named_by_user","tasks":[{"command":"reports:generate","expression":"0 3 * * *","timezone":"UTC","grace_seconds":300,"counted_minimum":1}]}'
+```
+
+When no receipt arrives inside the grace window, Crontinel opens a "cron never started" alert. When a receipt arrives with fewer than one record, the outcome rule fails the run even though Sidekiq called it a success.
+
+## What was tested
+
+The snippet ran with plain Ruby against a local Crontinel app and landed as a completed run. Running it outside Rails showed it needs `require "time"` for `Time#iso8601`, which the version above includes. It was not run inside a Sidekiq process.
+
+See the [check-in recipes](https://docs.crontinel.com/check-in/recipes/) for the other runtimes.
