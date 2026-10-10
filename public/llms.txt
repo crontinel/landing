@@ -190,7 +190,7 @@
 
 - [Integrations](https://crontinel.com/integrations/): Alert channels and framework integrations
 - [Crontinel Discord Integration: Cron and Queue Alerts](https://crontinel.com/integrations/discord/): Route Crontinel Laravel alerts to Discord with a webhook URL. Get notified when scheduled tasks fail, queues back up, or Horizon supervisors pause.
-- [Crontinel Laravel Integration: Setup and Configuration](https://crontinel.com/integrations/laravel/): Install Crontinel in a Laravel application. Configure the OSS package, publish migrations, set alert channels, and connect to the cloud dashboard quickly.
+- [Crontinel Laravel Integration: Setup and Configuration](https://crontinel.com/integrations/laravel/): Optional Laravel deep package for schedule attach, queue depth, and Horizon. Outcome monitoring still uses the same HTTP receipt as curl, Node, Python, Sidekiq, and GitHub Actions.
 - [Crontinel Microsoft Teams Integration via Webhook](https://crontinel.com/integrations/microsoft-teams/): Send Crontinel Laravel monitoring alerts to Microsoft Teams using an Incoming Webhook connector on your team channel.
 - [Crontinel PagerDuty Integration for Laravel Monitoring](https://crontinel.com/integrations/pagerduty/): Create and auto-resolve PagerDuty incidents from Crontinel. Use Events API v2 with dedup keys to get one incident per failure, not a flood of alerts.
 - [Crontinel Slack Integration: Cron and Queue Alerts](https://crontinel.com/integrations/slack/): Send Crontinel alerts to Slack. Configure an incoming webhook, choose a channel, and get notified when a Laravel cron job fails or Horizon pauses.

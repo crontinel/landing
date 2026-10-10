@@ -48,7 +48,7 @@ Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(req
     curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/cron" \\
       -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \\
       -H "Content-Type: application/json" \\
-      -d '{"request_key":"gha-run","command":"reports:generate","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}' \\
+      -d "{\\"request_key\\":\\"gha-run\\",\\"command\\":\\"reports:generate\\",\\"status\\":\\"completed\\",\\"exit_code\\":0,\\"started_at\\":\\"$(date -u +%FT%TZ)\\",\\"outcomes\\":{\\"metrics\\":{\\"processed_records\\":0}}}" \\
       || true`,
 };
 const receiptSnippet = receiptSnippets.node;
