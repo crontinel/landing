@@ -38,15 +38,17 @@ The foundation. Your task sends a signal when it starts or finishes. If the sign
 ```javascript
 const cron = require('node-cron');
 
-async function report(body) {
+const ORIGIN = 'https://app.crontinel.com/api/v1/ingest';
+
+async function send(path, body) {
   try {
-    await fetch('https://app.crontinel.com/api/v1/ingest/cron', {
+    await fetch(`${ORIGIN}/${path}`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${process.env.CRONTINEL_INGEST_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ command: 'daily-report', ...body }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(5000),
     });
   } catch {
@@ -54,21 +56,32 @@ async function report(body) {
   }
 }
 
-// Monitor a node-cron job
-cron.schedule('0 2 * * *', async () => {
+// Wrap any job: a running receipt, then completed or failed with the same key.
+async function monitored(command, job) {
   const startedAt = new Date().toISOString();
-  const request_key = `daily-report-${startedAt}`;
-  await report({ request_key, status: 'running', started_at: startedAt });
-
+  const request_key = `${command}-${startedAt}`;
+  await send('cron', { command, request_key, status: 'running', started_at: startedAt });
   try {
-    await generateReport();
-    await report({ request_key, status: 'completed', exit_code: 0, started_at: startedAt, finished_at: new Date().toISOString() });
+    const records = await job();
+    await send('cron', {
+      command, request_key, status: 'completed', exit_code: 0,
+      started_at: startedAt, finished_at: new Date().toISOString(),
+      ...(typeof records === 'number' && { outcomes: { metrics: { processed_records: records } } }),
+    });
+    return records;
   } catch (error) {
-    await report({ request_key, status: 'failed', exit_code: 1, started_at: startedAt, finished_at: new Date().toISOString(), output: error.message });
+    await send('cron', {
+      command, request_key, status: 'failed', exit_code: 1,
+      started_at: startedAt, finished_at: new Date().toISOString(), output: error.message,
+    });
     throw error;
   }
-});
+}
+
+cron.schedule('0 2 * * *', () => monitored('daily-report', generateReport));
 ```
+
+The `running` receipt is what lets Crontinel alert when a job starts and never finishes. Register the job with its cron expression ([docs](https://docs.crontinel.com/check-in/schedule/)) and a run that never starts alerts too.
 
 ### 2. Duration — Is It Slow?
 
@@ -80,14 +93,8 @@ A job that usually takes 30 seconds suddenly takes 10 minutes. It still "works,"
 - Spike in duration correlating with traffic or data volume
 
 ```javascript
-// Duration tracking with Crontinel
-const start = Date.now();
-await crontinel.ping('process-data');
-
-await processData();
-
-const duration = Date.now() - start;
-await crontinel.complete('process-data', { duration });
+// Duration comes from started_at and finished_at on the receipt.
+await monitored('process-data', processData);
 ```
 
 ### 3. Exit Code — Did It Succeed?
@@ -102,14 +109,8 @@ try {
   console.error('Failed:', error); // Logged, but who's watching?
 }
 
-// Good: signal failure to monitoring
-try {
-  await processQueue();
-  await crontinel.complete('process-queue');
-} catch (error) {
-  await crontinel.fail('process-queue', { error: error.message });
-  throw;
-}
+// Good: the wrapper sends a failed receipt, then rethrows
+await monitored('process-queue', processQueue);
 ```
 
 ### 4. Queue Depth — Is Work Backing Up?
@@ -125,9 +126,10 @@ async function checkQueueDepth() {
   const counts = await queue.getJobCounts('waiting', 'active', 'completed', 'failed');
   
   if (counts.waiting > 1000) {
-    await crontinel.fail('queue-depth', { 
-      error: `Queue has ${counts.waiting} waiting jobs`,
-      counts 
+    await send('event', {
+      type: 'queue.backlog',
+      severity: 'warning',
+      payload: { queue: 'email-notifications', ...counts },
     });
   }
   
@@ -139,24 +141,13 @@ async function checkQueueDepth() {
 
 A task scheduled for 2:00am starts running at 2:15am because the previous run took too long. Or timezone changes cause jobs to fire at the wrong time.
 
-```javascript
-const cron = require('node-cron');
+Register the job with its cron expression and a grace period. Crontinel alerts when the start does not arrive inside the window, so the job does not have to measure its own drift.
 
-// Track schedule drift
-const expectedTime = new Date();
-expectedTime.setHours(2, 0, 0, 0);
-
-cron.schedule('0 2 * * *', async () => {
-  const now = new Date();
-  const drift = now - expectedTime;
-  
-  await crontinel.ping('daily-sync', {
-    expected: expectedTime.toISOString(),
-    drift: drift
-  });
-  
-  await runSync();
-});
+```bash
+curl -sS -X POST "https://app.crontinel.com/api/v1/ingest/schedule" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"source":"named_by_user","tasks":[{"command":"daily-sync","expression":"0 2 * * *","timezone":"UTC","grace_seconds":300}]}'
 ```
 
 ## Monitoring node-cron
@@ -166,22 +157,8 @@ node-cron is the most common choice for simple scheduling. It runs in-process, s
 ### Setup
 
 ```javascript
-const cron = require('node-cron');
-const Crontinel = require('@crontinel/node');
-
-const crontinel = new Crontinel({ apiKey: process.env.CRONTINEL_API_KEY });
-
-// Monitor with error handling
-cron.schedule('*/5 * * * *', async () => {
-  await crontinel.ping('health-check');
-  
-  try {
-    await checkServices();
-    await crontinel.complete('health-check');
-  } catch (error) {
-    await crontinel.fail('health-check', { error: error.message });
-  }
-});
+// Uses send() and monitored() from the first example.
+cron.schedule('*/5 * * * *', () => monitored('health-check', checkServices).catch(() => {}));
 ```
 
 ### Common Failures
@@ -198,9 +175,7 @@ Bull is a Redis-backed job queue with repeatable jobs. It's more resilient than 
 
 ```javascript
 const Queue = require('bull');
-const Crontinel = require('@crontinel/node');
 
-const crontinel = new Crontinel({ apiKey: process.env.CRONTINEL_API_KEY });
 const emailQueue = new Queue('emails');
 
 // Add repeatable job
@@ -210,31 +185,19 @@ await emailQueue.add('send-daily', {}, {
   removeOnFail: 50
 });
 
-// Monitor job processing
-emailQueue.process('send-daily', async (job) => {
-  await crontinel.ping('bull-send-daily');
-  
-  try {
-    await sendDailyEmails();
-    await crontinel.complete('bull-send-daily');
-  } catch (error) {
-    await crontinel.fail('bull-send-daily', { error: error.message });
-    throw error;
-  }
-});
+// Monitor job processing (monitored() is defined above)
+emailQueue.process('send-daily', () => monitored('bull-send-daily', sendDailyEmails));
 
 // Monitor queue health
-emailQueue.on('failed', async (job, error) => {
-  await crontinel.fail(`bull-job-${job.id}`, { error: error.message });
-});
+emailQueue.on('failed', (job, error) =>
+  send('event', { type: 'bull.job_failed', severity: 'warning', payload: { job: job.id, error: error.message } }));
 ```
 
 ### Watch for Redis Connection Issues
 
 ```javascript
-emailQueue.on('error', async (error) => {
-  await crontinel.fail('bull-redis', { error: 'Redis connection lost' });
-});
+emailQueue.on('error', () =>
+  send('event', { type: 'bull.redis_error', severity: 'critical', payload: { error: 'Redis connection lost' } }));
 ```
 
 ### Common Failures
@@ -268,12 +231,14 @@ module.exports = {
 # /usr/local/bin/pm2-health.sh
 
 STATUS=$(pm2 jlist | jq -r '.[0].pm2_env.status')
+NOW=$(date -u +%FT%TZ)
+RESULT=completed; CODE=0
+if [ "$STATUS" != "online" ]; then RESULT=failed; CODE=1; fi
 
-if [ "$STATUS" != "online" ]; then
-    crontinel fail pm2-cron-worker --error "Process status: $STATUS"
-else
-    crontinel complete pm2-cron-worker
-fi
+curl -sS -m 5 -X POST "https://app.crontinel.com/api/v1/ingest/cron" \
+  -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"command\":\"pm2-cron-worker\",\"status\":\"$RESULT\",\"exit_code\":$CODE,\"started_at\":\"$NOW\",\"finished_at\":\"$NOW\",\"output\":\"Process status: $STATUS\"}" || true
 ```
 
 ## HTTP check-in (supported path)
@@ -297,7 +262,7 @@ await fetch('https://app.crontinel.com/api/v1/ingest/cron', {
 });
 ```
 
-Full recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/). Historical `@crontinel/node` ping/complete snippets elsewhere in older guides are not the supported outcome-receipt path.
+Full recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/).
 
 ## Quick Comparison
 

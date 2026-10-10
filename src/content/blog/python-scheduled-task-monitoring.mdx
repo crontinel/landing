@@ -36,22 +36,68 @@ The foundation. Your task sends a signal when it starts or finishes. If the sign
 **With monitoring:** Alert fires at 2:05am. You fix it before anyone notices.
 
 ```python
-# APScheduler heartbeat example
+# crontinel_http.py: standard library only
+import json, os, urllib.request
+from datetime import datetime, timezone
+from functools import wraps
+
+ORIGIN = "https://app.crontinel.com/api/v1/ingest"
+
+def now():
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def send(path, body):
+    request = urllib.request.Request(
+        f"{ORIGIN}/{path}",
+        data=json.dumps(body).encode(),
+        headers={
+            "Authorization": "Bearer " + os.environ["CRONTINEL_INGEST_KEY"],
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        urllib.request.urlopen(request, timeout=5)
+    except Exception:
+        pass  # Monitoring must not fail the business job.
+
+def monitored(command):
+    """Send a running receipt, then completed or failed with the same request_key."""
+    def decorate(job):
+        @wraps(job)
+        def run(*args, **kwargs):
+            started = now()
+            key = f"{command}-{started}"
+            send("cron", {"command": command, "request_key": key, "status": "running", "started_at": started})
+            try:
+                records = job(*args, **kwargs)
+            except Exception as error:
+                send("cron", {"command": command, "request_key": key, "status": "failed", "exit_code": 1,
+                              "started_at": started, "finished_at": now(), "output": str(error)})
+                raise
+            body = {"command": command, "request_key": key, "status": "completed", "exit_code": 0,
+                    "started_at": started, "finished_at": now()}
+            if isinstance(records, (int, float)) and not isinstance(records, bool):
+                body["outcomes"] = {"metrics": {"processed_records": records}}
+            send("cron", body)
+            return records
+        return run
+    return decorate
+```
+
+```python
+# APScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 
 scheduler = BlockingScheduler()
 
 @scheduler.scheduled_job('cron', hour=2, minute=0)
+@monitored("daily-report")
 def daily_report():
-    # Signal that we're alive
-    crontinel.ping("daily-report")
-    
-    # Do the work
-    generate_report()
-    
-    # Signal completion
-    crontinel.complete("daily-report")
+    return generate_report()  # return the number of records produced
 ```
+
+The `running` receipt lets Crontinel alert when a job starts and never finishes. Register the job with its cron expression ([docs](https://docs.crontinel.com/check-in/schedule/)) and a run that never starts alerts too.
 
 ### 2. Duration — Is It Slow?
 
@@ -73,13 +119,10 @@ try:
 except Exception as e:
     logger.error(f"Failed: {e}")  # Logged, but who's watching?
 
-# Good: signal failure to monitoring
-try:
-    process_data()
-    crontinel.complete("process-data")
-except Exception as e:
-    crontinel.fail("process-data", error=str(e))
-    raise
+# Good: the decorator sends a failed receipt, then re-raises
+@monitored("process-data")
+def process():
+    return process_data()
 ```
 
 ### 4. Queue Depth — Is Work Backing Up?
@@ -96,7 +139,8 @@ r = redis.Redis()
 def check_queue_depth(queue_name="celery"):
     depth = r.llen(queue_name)
     if depth > 1000:
-        alert(f"Queue {queue_name} has {depth} pending jobs")
+        send("event", {"type": "queue.backlog", "severity": "warning",
+                       "payload": {"queue": queue_name, "depth": depth}})
     return depth
 ```
 
@@ -106,14 +150,12 @@ A task scheduled for 2:00am starts running at 2:15am because the previous run to
 
 **With APScheduler:**
 
-```python
-scheduler = BlockingScheduler()
+Register the job with its cron expression and a grace period. Crontinel alerts when the start does not arrive in the window, so the job does not need to measure its own drift.
 
-@scheduler.scheduled_job('cron', hour=2, minute=0, misfire_grace_time=300)
-def daily_sync():
-    # If this fires at 2:20am instead of 2:00am, something is wrong
-    crontinel.track("daily-sync", expected="02:00")
-    run_sync()
+```python
+send("schedule", {"source": "named_by_user", "tasks": [
+    {"command": "daily-sync", "expression": "0 2 * * *", "timezone": "UTC", "grace_seconds": 300},
+]})
 ```
 
 ## Monitoring APScheduler
@@ -129,20 +171,21 @@ from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MISSED
 scheduler = AsyncIOScheduler()
 
 def on_job_error(event):
-    crontinel.fail(f"job-{event.job_id}", error=str(event.exception))
+    send("event", {"type": "apscheduler.job_error", "severity": "critical",
+                   "payload": {"job": event.job_id, "error": str(event.exception)}})
 
 def on_job_missed(event):
-    crontinel.fail(f"job-{event.job_id}", error="Missed scheduled run")
+    send("event", {"type": "apscheduler.job_missed", "severity": "warning",
+                   "payload": {"job": event.job_id}})
 
 scheduler.add_listener(on_job_error, EVENT_JOB_ERROR)
 scheduler.add_listener(on_job_missed, EVENT_JOB_MISSED)
 
-# Add jobs with heartbeat
+# Wrap each job so it sends receipts (monitored() is defined above)
 @scheduler.scheduled_job('interval', minutes=5, id='health-check')
+@monitored("health-check")
 def health_check():
-    crontinel.ping("health-check")
     check_services()
-    crontinel.complete("health-check")
 
 scheduler.start()
 ```
@@ -160,24 +203,18 @@ Celery Beat is a separate process that enqueues tasks on schedule. If Beat stops
 ### Setup
 
 ```python
-# celery.py
+# tasks.py (monitored() and send() are defined above)
 from celery import Celery
-from celery.signals import task_success, task_failure, task_prerun
 
 app = Celery('myapp')
 
-@task_prerun.connect
-def task_prerun(sender, task_id, **kwargs):
-    crontinel.ping(f"celery-{sender.name}")
-
-@task_success.connect
-def task_success(sender, result, **kwargs):
-    crontinel.complete(f"celery-{sender.name}")
-
-@task_failure.connect
-def task_failure(sender, task_id, exception, **kwargs):
-    crontinel.fail(f"celery-{sender.name}", error=str(exception))
+@app.task(name='reports.daily')
+@monitored("celery-reports-daily")
+def daily_report():
+    return generate_report()
 ```
+
+Celery Beat only schedules the task. Register the same name with its cron expression so a skipped Beat run alerts.
 
 ### Watch for Beat Process Health
 
@@ -215,15 +252,21 @@ System cron is the simplest but least observable. Jobs run as shell commands. If
 JOB_NAME=$1
 shift
 
-crontinel ping "$JOB_NAME"
+STARTED=$(date -u +%FT%TZ)
+KEY="$JOB_NAME-$STARTED"
+post() {
+    curl -sS -m 5 -X POST "https://app.crontinel.com/api/v1/ingest/cron" \
+        -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+        -H "Content-Type: application/json" -d "$1" || true
+}
+
+post "{\"command\":\"$JOB_NAME\",\"request_key\":\"$KEY\",\"status\":\"running\",\"started_at\":\"$STARTED\"}"
 "$@"
 EXIT_CODE=$?
 
-if [ $EXIT_CODE -eq 0 ]; then
-    crontinel complete "$JOB_NAME"
-else
-    crontinel fail "$JOB_NAME" --error "Exit code: $EXIT_CODE"
-fi
+STATUS=completed
+[ $EXIT_CODE -ne 0 ] && STATUS=failed
+post "{\"command\":\"$JOB_NAME\",\"request_key\":\"$KEY\",\"status\":\"$STATUS\",\"exit_code\":$EXIT_CODE,\"started_at\":\"$STARTED\",\"finished_at\":\"$(date -u +%FT%TZ)\"}"
 
 exit $EXIT_CODE
 ```
@@ -249,7 +292,7 @@ python3 outcome_checkin.py \
   --api-key "$CRONTINEL_INGEST_KEY"
 ```
 
-Full recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/). Historical `pip install crontinel` / `crontinel.ping` snippets elsewhere in older guides are not the supported outcome-receipt path.
+Full recipes: [docs.crontinel.com/check-in/recipes/](https://docs.crontinel.com/check-in/recipes/).
 
 ## Quick Comparison
 
