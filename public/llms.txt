@@ -11,6 +11,7 @@
 - [About](https://crontinel.com/about/): The product and the team
 - [Products](https://crontinel.com/products/): Products in the Crontinel catalog
 - [Agent](https://crontinel.com/agent/): Using Crontinel from an AI agent
+- [Full context](https://crontinel.com/llms-full.txt): Detailed plain-text context for AI assistants
 - [Changelog](https://crontinel.com/changelog/): Product changes
 - [Security](https://crontinel.com/security/): Security practices and data handling
 - [Privacy](https://crontinel.com/legal/privacy/): Privacy policy
