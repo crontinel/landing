@@ -86,3 +86,7 @@ Then point a [Crontinel monitor](https://crontinel.com) at the scheduler heartbe
 ## The short version
 
 Octane serves requests. It does not run the scheduler, it does not restart the scheduler, and `octane:reload` does not refresh it. Run `schedule:run` or `schedule:work` as a separately supervised process, restart it on every deploy, and watch its heartbeat from outside. The teams that get burned are the ones that checked the server, saw green, and never checked the one process Octane does not own.
+
+## Related reading
+
+- [Detect Laravel schedule:run boot loops before cron stops](/blog/schedule-run-boot-loop-detection/)

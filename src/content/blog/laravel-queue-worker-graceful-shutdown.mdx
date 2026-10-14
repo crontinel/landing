@@ -175,3 +175,7 @@ If you see jobs that start but never complete, your workers are being killed bef
 The single most impactful change: **set `stopwaitsecs` in Supervisor (or equivalent) to at least 90 seconds**, and use `--timeout=60` on your queue workers. This gives workers enough time to finish any job before being killed, and ensures deployments never lose work.
 
 With Crontinel, you get alerts when workers stop processing jobs — so if a deployment does go wrong, you know within seconds, not hours.
+
+## Related reading
+
+- [Laravel queue worker memory limits without restart loops](/blog/queue-worker-memory-limit/)

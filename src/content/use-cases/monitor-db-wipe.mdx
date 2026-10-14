@@ -140,3 +140,7 @@ Yes. PostgreSQL also drops sequences and custom types when `--drop-types` is pas
 
 **How do I prevent db:wipe from being run in production altogether?**  
 Remove it from the production-server `artisan` binary path entirely. Rename `artisan` to `artisan.bin` and replace it with a wrapper that blocks `db:wipe` and `db:wipe --force` outright. This is the only guarantee.
+
+## Related reading
+
+- [Monitoring php artisan db:seed in production](/use-cases/monitor-db-seed/)
