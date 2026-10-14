@@ -1,17 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import DirectoryBadges from '../components/DirectoryBadges.astro';
+import AskAiRows from '../components/AskAiRows.astro';
 import RuntimeStrip from '../components/RuntimeStrip.astro';
 
 export const prerender = true;
 
-const askQuestion = encodeURIComponent('What is Crontinel (crontinel.com), and how does it monitor background jobs, cron, and queues?');
-const askAi = [
-  { href: `https://chatgpt.com/?q=${askQuestion}`, label: 'ChatGPT' },
-  { href: `https://claude.ai/new?q=${askQuestion}`, label: 'Claude' },
-  { href: `https://www.perplexity.ai/search?q=${askQuestion}`, label: 'Perplexity' },
-  { href: `https://grok.com/?q=${askQuestion}`, label: 'Grok' },
-];
 
 const receiptSnippets = {
   curl: `curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \\
@@ -955,14 +949,7 @@ const description = 'Crontinel tells you when a background job finished without 
           <span class="sep">·</span>
           <a href="https://status.crontinel.com">status.crontinel.com</a>
         </div>
-        <div class="footer-social">
-          <a href="https://github.com/crontinel" aria-label="GitHub" class="soc">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
-          </a>
-          <a href="https://x.com/CrontinelApp" aria-label="X / Twitter" class="soc">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-          </a>
-        </div>
+        <div class="footer-badges"><DirectoryBadges /></div>
       </div>
 
       <div class="footer-cols">
@@ -1004,24 +991,19 @@ const description = 'Crontinel tells you when a background job finished without 
             <li><a href="/legal/privacy/">Privacy</a></li>
             <li><a href="/legal/terms/">Terms</a></li>
           </ul>
+          <div class="footer-social">
+            <a href="https://github.com/crontinel" aria-label="GitHub" class="soc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12a11.5 11.5 0 007.86 10.92c.57.1.78-.25.78-.55v-1.94c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.74.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.71 0-1.26.45-2.29 1.19-3.1-.12-.3-.52-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 015.78 0c2.21-1.5 3.18-1.18 3.18-1.18.63 1.6.24 2.78.12 3.08.74.81 1.19 1.84 1.19 3.1 0 4.44-2.7 5.42-5.27 5.7.41.36.78 1.07.78 2.16v3.2c0 .3.2.66.79.55A11.5 11.5 0 0023.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+            <a href="https://x.com/CrontinelApp" aria-label="X / Twitter" class="soc">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="footer-rows">
-      <div>
-        <h5>Ask AI about Crontinel</h5>
-        {askAi.map(l => <a href={l.href} target="_blank" rel="noopener">{l.label}</a>)}
-      </div>
-      <div>
-        <h5>For agents</h5>
-        <a href="/llms.txt">llms.txt</a>
-        <a href="/agent/">Agent guide</a>
-        <a href="https://docs.crontinel.com/agent/guide/" target="_blank" rel="noopener">MCP docs</a>
-      </div>
-    </div>
-
-    <DirectoryBadges />
+    <AskAiRows />
 
     <div class="footer-wordmark" aria-hidden="true">crontinel</div>
 

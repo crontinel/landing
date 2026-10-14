@@ -1,0 +1,56 @@
+---
+const q = encodeURIComponent('What is Crontinel (crontinel.com), and how does it monitor background jobs, cron, and queues?');
+const ai = [
+  { href: `https://chatgpt.com/?q=${q}`, label: 'ChatGPT', color: '#10a37f', icon: '<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/><path d="M12 3v18M4.2 7.5l15.6 9M19.8 7.5l-15.6 9"/>' },
+  { href: `https://claude.ai/new?q=${q}`, label: 'Claude', color: '#d97757', icon: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/>' },
+  { href: `https://www.perplexity.ai/search?q=${q}`, label: 'Perplexity', color: '#22b8cf', icon: '<path d="M12 3v18M4.5 7.5l15 9M19.5 7.5l-15 9"/>' },
+  { href: `https://grok.com/?q=${q}`, label: 'Grok', color: '#e5e5e5', icon: '<circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/>' },
+];
+const agents = [
+  { href: '/llms.txt', label: 'llms.txt' },
+  { href: '/agent/', label: 'Agent guide' },
+  { href: 'https://docs.crontinel.com/agent/guide/', label: 'MCP docs', external: true },
+];
+---
+
+<div class="ask-ai">
+  <div class="ask-ai-col">
+    <p class="ask-ai-title">Ask AI about Crontinel</p>
+    <div class="ask-ai-pills">
+      {ai.map(a => (
+        <a href={a.href} target="_blank" rel="noopener" class="ask-ai-pill">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={a.color} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={a.icon} />
+          {a.label}
+        </a>
+      ))}
+    </div>
+  </div>
+  <div class="ask-ai-col ask-ai-agents">
+    <p class="ask-ai-title">For agents</p>
+    <p class="ask-ai-links">
+      {agents.map((a, i) => (
+        <>
+          {i > 0 && <span aria-hidden="true"> · </span>}
+          <a href={a.href} {...(a.external ? { target: '_blank', rel: 'noopener' } : {})}>{a.label}</a>
+        </>
+      ))}
+    </p>
+  </div>
+</div>
+
+<style>
+  .ask-ai { display: grid; grid-template-columns: 1fr 1fr; border-top: 1px dashed var(--border, #1c1c1c); border-bottom: 1px dashed var(--border, #1c1c1c); margin: 8px 0 28px; }
+  .ask-ai-col { padding: 26px 0; }
+  .ask-ai-agents { padding-left: 32px; border-left: 1px dashed var(--border, #1c1c1c); }
+  .ask-ai-title { margin: 0 0 16px; font-family: var(--font-mono, monospace); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-3, #737373); }
+  .ask-ai-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ask-ai-pill { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border: 1px solid var(--border, #262626); border-radius: 999px; background: var(--bg-card, #0a0a0a); color: var(--text, #e5e5e5); font-size: 14px; transition: border-color 0.15s, transform 0.15s; }
+  .ask-ai-pill:hover { border-color: #4ade80; transform: translateY(-1px); }
+  .ask-ai-links { margin: 0; font-size: 14px; color: var(--text-3, #737373); }
+  .ask-ai-links a { color: var(--text-2, #a3a3a3); transition: color 0.15s; }
+  .ask-ai-links a:hover { color: var(--text, #fff); }
+  @media (max-width: 720px) {
+    .ask-ai { grid-template-columns: 1fr; }
+    .ask-ai-agents { padding-left: 0; border-left: 0; border-top: 1px dashed var(--border, #1c1c1c); }
+  }
+</style>
