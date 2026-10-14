@@ -1,7 +1,8 @@
 ---
-title: "What Are the Files in Laravel's bootstrap/cache? Explained"
-description: "A plain breakdown of config.php, packages.php, services.php, and routes-v7.php in Laravel's bootstrap/cache: what makes them and whether to commit them."
+title: "Laravel bootstrap/cache Files Explained: Safe to Delete?"
+description: "What config.php, packages.php, services.php and routes-v7.php in Laravel's bootstrap/cache are, which command makes each, and whether it is safe to delete them."
 date: 2026-08-11
+updated: 2026-10-14
 tags: ["laravel", "deployment", "caching"]
 ---
 
@@ -34,6 +35,21 @@ Route caching gives a real speedup on large apps, but it has a known trap: closu
 No. The standard Laravel `.gitignore` already contains `bootstrap/cache/*.php`, which covers all four files. If you see them in `git status`, either the ignore rule is missing or someone force-added them. They are environment-specific compiled output: fast to regenerate, and wrong to share between machines.
 
 What should be committed is `bootstrap/cache/.gitignore`, the file that contains the rule. Keep it, and never commit the `*.php` files it excludes.
+
+## Is it safe to delete them?
+
+Yes, in the sense that Laravel can rebuild every one of them. Nothing in them is your data. What changes is what the app does until they are rebuilt:
+
+| File | Rebuilt by | If it is missing |
+|---|---|---|
+| `config.php` | `php artisan config:cache` | Laravel reads `config/` and `.env` directly on each request. Slower, but correct. |
+| `routes-v7.php` | `php artisan route:cache` | Laravel loads your route files directly. Slower, but correct. |
+| `packages.php` | `php artisan package:discover` | Laravel rebuilds it on the next boot. |
+| `services.php` | Written automatically on boot | Laravel rebuilds it on the next boot. |
+
+To clear them the supported way, run `php artisan optimize:clear`, or `config:clear` and `route:clear` for just those two. Deleting the files by hand does the same thing.
+
+Two things to leave alone. Keep the `bootstrap/cache/` directory and its `.gitignore`, and keep it writable by the web user: Laravel stops with a "bootstrap/cache directory must be present and writable" error otherwise. And do not clear the caches in the middle of a release on a live host without rebuilding right after, because the app then runs uncached until you do.
 
 ## Where deploy problems come from
 
