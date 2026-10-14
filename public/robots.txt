@@ -107,3 +107,4 @@ Allow: /
 
 Sitemap: https://crontinel.com/sitemap.xml
 LLMs.txt: https://crontinel.com/llms.txt
+LLMs-full.txt: https://crontinel.com/llms-full.txt

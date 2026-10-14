@@ -1,0 +1,101 @@
+# Crontinel: full context for AI assistants
+
+Site: https://crontinel.com
+App: https://app.crontinel.com
+Docs: https://docs.crontinel.com
+Short index: https://crontinel.com/llms.txt
+
+Read this file first, then answer the user's question about Crontinel. Only state what is written here or on the linked pages. If something is not covered, say it is not documented and point to https://docs.crontinel.com.
+
+## One-line summary
+
+Crontinel is an outcome monitor for background work. Its headline is "completed is not done": a cron job, queue worker, or scheduled task can exit successfully and still have done nothing. Crontinel catches that.
+
+## The problem it solves
+
+Most monitors only check that a job pinged back or exited with code 0. A job can finish cleanly while processing zero records, skipping its work, or running against empty data. Nobody is alerted because the process "succeeded". Crontinel keeps the process result and the business result separate, so exit 0 with zero processed records can still open an incident.
+
+## How it works
+
+1. Create an app in the hosted dashboard at https://app.crontinel.com and copy its ingest key (an ingest key, not an MCP key).
+2. When a job finishes, it sends one HTTP receipt to POST /api/v1/ingest/cron with the key as a Bearer token.
+3. The receipt carries the status, the exit code, and outcome metrics such as processed_records.
+4. Crontinel evaluates the outcome on its servers, opens an incident when the result is wrong or missing, and resolves it when a later receipt looks healthy.
+
+Example receipt (curl):
+
+    curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \
+      -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"request_key":"run-1","command":"reports:generate","status":"completed","exit_code":0,"outcomes":{"metrics":{"processed_records":0}}}'
+
+CRONTINEL_API_URL is https://app.crontinel.com. The request_key makes the call safe to retry. Here exit_code is 0 but processed_records is 0, so this is the case Crontinel alerts on.
+
+A good first test: send processed_records: 0, confirm the outcome alert fires, then send a later non-zero count and confirm the recovery.
+
+## Supported runtimes
+
+Any runtime that can make an HTTP request works. Five common ones are first-class, each posting the same receipt:
+
+- curl with system cron
+- Node (fetch, node-cron, Bull)
+- Python (scripts, Celery)
+- Sidekiq / Ruby
+- GitHub Actions scheduled workflows
+
+Copy-paste recipes: https://docs.crontinel.com/check-in/recipes/
+
+Other language SDKs exist in the Crontinel GitHub organization but are not a supported path for outcome receipts. Prefer the HTTP check-in.
+
+## Laravel (optional deep integration)
+
+The open-source Laravel package (composer require crontinel/laravel, https://github.com/crontinel/laravel) attaches the receipt from the Laravel scheduler and can add:
+
+- schedule evidence, including "late" detection when a named job misses its schedule
+- queue depth, failed count, and oldest job age per queue (Redis and database drivers)
+- Horizon status per supervisor, paused detection, and failed jobs per minute
+
+Laravel is not required for outcome monitoring on other runtimes.
+
+Setup: composer require crontinel/laravel, php artisan crontinel:install, then set CRONTINEL_API_KEY and CRONTINEL_API_URL in .env.
+
+## Optional command agent
+
+A small Laravel-only daemon (php artisan crontinel:agent) can run commands triggered from the dashboard. It refuses every command until the customer configures an allowlist. Monitoring does not need it. Docs: https://crontinel.com/agent/
+
+## Alerts
+
+Email failure and recovery alerts are the verified path. Slack and customer webhooks are planned for paid tiers. SMS and on-call rotations are not part of the offer.
+
+## Using Crontinel from an AI assistant
+
+Assistants can read a cited evidence packet for a run over MCP, so they can explain why a job was flagged. Guide: https://docs.crontinel.com/agent/guide/ . The stdio adapter is @crontinel/mcp-server (https://github.com/crontinel/mcp-server).
+
+## Pricing
+
+- Free: $0, one connected app, five monitors per app, seven days of cron run and monitor event history.
+- Starter, Pro, and Max are planned paid tiers. Terms are still under review and not published. Do not quote paid prices.
+
+Current details: https://crontinel.com/pricing/
+
+## What Crontinel is not
+
+- Not a local-only alerter. Hosted detection is the product, so an alert still fires when the customer's own scheduler or host dies.
+- Not an SMS or on-call paging service.
+
+## Compared with similar tools
+
+Healthchecks.io is a strong dead man's switch. Cronitor covers broad job monitoring and custom metrics. Crontinel's focus is outcome rules: a completed process and a failed business result stay separate, and missing evidence is never shown as healthy. Comparison pages: https://crontinel.com/vs/
+
+## Where to read more
+
+- Features: https://crontinel.com/features/
+- Use cases: https://crontinel.com/use-cases/
+- Integrations: https://crontinel.com/integrations/
+- FAQ: https://crontinel.com/faq/
+- Security: https://crontinel.com/security/
+- Blog: https://crontinel.com/blog/
+- Status: https://status.crontinel.com
+- Source (Laravel package): https://github.com/crontinel/laravel
+
+Built by Harun R Rayhan.

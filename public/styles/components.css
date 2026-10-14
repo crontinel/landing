@@ -1031,7 +1031,9 @@
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 0.9;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--text) 10%, transparent), transparent 85%);
+  text-align: center;
+  padding-right: 0.05em; /* offsets the negative letter-spacing so the ink is truly centered */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--text) 42%, transparent), color-mix(in srgb, var(--text) 10%, transparent) 90%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

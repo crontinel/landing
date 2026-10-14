@@ -62,6 +62,7 @@ const core = [
   ['About', `${site}/about/`, 'The product and the team'],
   ['Products', `${site}/products/`, 'Products in the Crontinel catalog'],
   ['Agent', `${site}/agent/`, 'Using Crontinel from an AI agent'],
+  ['Full context', `${site}/llms-full.txt`, 'Detailed plain-text context for AI assistants'],
   ['Changelog', `${site}/changelog/`, 'Product changes'],
   ['Security', `${site}/security/`, 'Security practices and data handling'],
   ['Privacy', `${site}/legal/privacy/`, 'Privacy policy'],
