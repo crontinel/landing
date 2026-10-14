@@ -1,5 +1,6 @@
 ---
 import DirectoryBadges from './DirectoryBadges.astro';
+import AskAiRows from './AskAiRows.astro';
 
 const year = new Date().getFullYear();
 
@@ -33,90 +34,55 @@ const footerLinks = {
     { href: '/legal/cookies/', label: 'Cookie Policy' },
   ],
 };
-
-const question = encodeURIComponent(
-  'What is Crontinel (crontinel.com), and how does it monitor background jobs, cron, and queues?'
-);
-const askAi = [
-  { href: `https://chatgpt.com/?q=${question}`, label: 'ChatGPT' },
-  { href: `https://claude.ai/new?q=${question}`, label: 'Claude' },
-  { href: `https://www.perplexity.ai/search?q=${question}`, label: 'Perplexity' },
-  { href: `https://grok.com/?q=${question}`, label: 'Grok' },
-];
-const forAgents = [
-  { href: '/llms.txt', label: 'llms.txt' },
-  { href: '/agent/', label: 'Agent guide' },
-  { href: 'https://docs.crontinel.com/agent/guide/', label: 'MCP docs', external: true },
-];
-const rows = [
-  { title: 'Ask AI about Crontinel', links: askAi },
-  { title: 'For agents', links: forAgents },
-];
 ---
 
 <footer style="border-top: 1px solid #1c1c1c;">
   <div class="max-w-5xl mx-auto px-4 sm:px-6 py-14">
-    <!-- Brand -->
-    <div class="mb-8 max-w-xl">
-      <a href="/" class="flex items-center gap-2 font-semibold text-white text-sm mb-3">
-        <img src="/logo.png" alt="Crontinel" width="22" height="22" class="shrink-0" />
-        Crontinel
-      </a>
-      <p class="text-xs leading-relaxed" style="color:#525252;">
-        Outcome monitoring for background jobs. Works with curl, Node, Python, Sidekiq, and GitHub Actions. The Laravel package is optional.
-      </p>
-      <p class="text-xs mt-2" style="color:#525252;">
-        Built by <a href="https://github.com/HarunRRayhan" class="hover:text-[#a3a3a3] transition-colors" style="color:#a3a3a3;">Harun R Rayhan</a>
-      </p>
-    </div>
-
-    <DirectoryBadges />
-
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-      <!-- Link columns -->
-      {Object.entries(footerLinks).map(([group, links]) => (
-        <div>
-          <h3 class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:#525252;">{group}</h3>
-          <ul class="space-y-2">
-            {links.map(link => (
-              <li>
-                <a
-                  href={link.href}
-                  class="text-sm transition-colors"
-                  style="color:#a3a3a3;"
-                  {...(link.external ? { target: '_blank', rel: 'noopener' } : {})}
-                  onmouseover="this.style.color='#fff'"
-                  onmouseout="this.style.color='#a3a3a3'"
-                >
-                  {link.label}
-                </a>
-              </li>
-            ))}
-          </ul>
+    <div class="grid md:grid-cols-[1fr_2fr] gap-10 mb-12">
+      <!-- Brand -->
+      <div>
+        <a href="/" class="flex items-center gap-2 font-semibold text-white text-sm mb-3">
+          <img src="/logo.png" alt="Crontinel" width="22" height="22" class="shrink-0" />
+          Crontinel
+        </a>
+        <p class="text-xs leading-relaxed" style="color:#525252;">
+          Outcome monitoring for background jobs. Works with curl, Node, Python, Sidekiq, and GitHub Actions. The Laravel package is optional.
+        </p>
+        <p class="text-xs mt-2" style="color:#525252;">
+          Built by <a href="https://github.com/HarunRRayhan" class="hover:text-[#a3a3a3] transition-colors" style="color:#a3a3a3;">Harun R Rayhan</a>
+        </p>
+        <div class="mt-6 max-w-[360px]" style="-webkit-mask-image:linear-gradient(to right,transparent,#000 24px,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,transparent,#000 24px,#000 calc(100% - 24px),transparent);">
+          <DirectoryBadges />
         </div>
-      ))}
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <!-- Link columns -->
+        {Object.entries(footerLinks).map(([group, links]) => (
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-widest mb-3" style="color:#525252;">{group}</h3>
+            <ul class="space-y-2">
+              {links.map(link => (
+                <li>
+                  <a
+                    href={link.href}
+                    class="text-sm transition-colors"
+                    style="color:#a3a3a3;"
+                    {...(link.external ? { target: '_blank', rel: 'noopener' } : {})}
+                    onmouseover="this.style.color='#fff'"
+                    onmouseout="this.style.color='#a3a3a3'"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
     </div>
 
-    <!-- Ask AI / For agents -->
-    <div class="space-y-3 mb-10 pt-8" style="border-top: 1px solid #1c1c1c;">
-      {rows.map(row => (
-        <div class="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <h3 class="text-xs font-semibold uppercase tracking-widest w-full sm:w-56 shrink-0" style="color:#525252;">{row.title}</h3>
-          {row.links.map(link => (
-            <a
-              href={link.href}
-              class="text-sm transition-colors"
-              style="color:#a3a3a3;"
-              {...(link.external || link.href.startsWith('https://') ? { target: '_blank', rel: 'noopener' } : {})}
-              onmouseover="this.style.color='#fff'"
-              onmouseout="this.style.color='#a3a3a3'"
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-      ))}
-    </div>
+    <AskAiRows />
 
     <!-- Bottom bar -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6"
