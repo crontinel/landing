@@ -5,6 +5,14 @@ import RuntimeStrip from '../components/RuntimeStrip.astro';
 
 export const prerender = true;
 
+const askQuestion = encodeURIComponent('What is Crontinel (crontinel.com), and how does it monitor background jobs, cron, and queues?');
+const askAi = [
+  { href: `https://chatgpt.com/?q=${askQuestion}`, label: 'ChatGPT' },
+  { href: `https://claude.ai/new?q=${askQuestion}`, label: 'Claude' },
+  { href: `https://www.perplexity.ai/search?q=${askQuestion}`, label: 'Perplexity' },
+  { href: `https://grok.com/?q=${askQuestion}`, label: 'Grok' },
+];
+
 const receiptSnippets = {
   curl: `curl -X POST "$CRONTINEL_API_URL/api/v1/ingest/cron" \\
   -H "Authorization: Bearer $CRONTINEL_INGEST_KEY" \\
@@ -997,6 +1005,19 @@ const description = 'Crontinel tells you when a background job finished without 
             <li><a href="/legal/terms/">Terms</a></li>
           </ul>
         </div>
+      </div>
+    </div>
+
+    <div class="footer-rows">
+      <div>
+        <h5>Ask AI about Crontinel</h5>
+        {askAi.map(l => <a href={l.href} target="_blank" rel="noopener">{l.label}</a>)}
+      </div>
+      <div>
+        <h5>For agents</h5>
+        <a href="/llms.txt">llms.txt</a>
+        <a href="/agent/">Agent guide</a>
+        <a href="https://docs.crontinel.com/agent/guide/" target="_blank" rel="noopener">MCP docs</a>
       </div>
     </div>
 
