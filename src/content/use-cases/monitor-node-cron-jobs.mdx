@@ -1,6 +1,6 @@
 ---
 title: "Monitor node-cron Jobs That Run and Produce Nothing"
-description: "node-cron runs inside your process, so a crash stops every job quietly. Wrap each job to post an HTTP receipt with a record count, and register the schedule to catch runs that never fire."
+description: "node-cron runs in your process, so a crash silently stops every job. Post an HTTP receipt with a record count per run and register the schedule to catch misses."
 date: 2026-10-10
 ---
 
