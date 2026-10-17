@@ -28,6 +28,7 @@ jobs:
         env:
           PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.PUBLIC_GA_MEASUREMENT_ID }}
           PUBLIC_BING_VERIFICATION_CODE: ${{ secrets.PUBLIC_BING_VERIFICATION_CODE }}
+          PUBLIC_TURNSTILE_SITE_KEY: ${{ secrets.PUBLIC_TURNSTILE_SITE_KEY }}
       - name: Ensure .assetsignore excludes _worker.js
         run: |
           echo "_worker.js" > dist/.assetsignore
@@ -40,9 +41,12 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4.56.0'
           command: deploy
+          secrets: |
+            TURNSTILE_SECRET_KEY
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RESEND_AUDIENCE_ID: ${{ secrets.RESEND_AUDIENCE_ID }}
+          TURNSTILE_SECRET_KEY: ${{ secrets.TURNSTILE_SECRET_KEY }}
 
       - name: Tell Bing about changed URLs
         run: node scripts/ping-indexnow.mjs --host crontinel.com --sitemap https://crontinel.com/sitemap.xml --key-file public/b7e2c4a91f6d4c0e8a3b5d7f9c1e2a40.txt

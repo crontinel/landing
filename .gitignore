@@ -32,3 +32,4 @@ gsc-queue.json
 # Cloudflare
 .wrangler/
 worker-configuration.d.ts
+.dev.vars
