@@ -1,0 +1,110 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+export const prerender = true;
+
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY;
+---
+
+<Base
+  title="Contact Crontinel"
+  description="Get in touch with Crontinel for support, billing, privacy requests, or security reports."
+>
+  <Nav />
+
+  <main class="max-w-2xl mx-auto px-4 sm:px-6 py-16" id="main-content">
+    <h1 class="text-3xl font-bold text-white mb-4">Contact</h1>
+    <p class="text-gray-400 text-sm leading-relaxed mb-10">
+      Questions about Crontinel, billing, privacy requests, or a security issue? Email us and we'll reply.
+      We keep our addresses behind a quick check so spam bots can't collect them.
+    </p>
+
+    <div id="contact-box" class="border border-gray-800 rounded-xl p-6 bg-gray-900/40">
+      <div id="contact-reveal-wrap">
+      <button
+        id="contact-reveal"
+        type="button"
+        class="inline-flex items-center gap-2 bg-green-500 hover:bg-green-400 text-gray-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors"
+      >
+        Get contact email
+      </button>
+      </div>
+
+      <div id="contact-check" class="hidden">
+        <p class="text-sm text-gray-400 mb-3">Confirm you're human to see our email addresses.</p>
+        <div id="contact-turnstile"></div>
+      </div>
+
+      <p id="contact-error" class="hidden mt-3 text-sm text-red-400" role="alert"></p>
+
+      <dl id="contact-emails" class="hidden space-y-4 text-sm">
+        <div>
+          <dt class="text-white font-semibold">Support, billing, and privacy</dt>
+          <dd><a data-contact="support" class="text-green-400 hover:text-green-300"></a></dd>
+        </div>
+        <div>
+          <dt class="text-white font-semibold">Security reports</dt>
+          <dd>
+            <a data-contact="security" class="text-green-400 hover:text-green-300"></a>
+            <p class="text-gray-500 mt-1">See our <a href="/security/" class="underline hover:text-gray-300">responsible disclosure policy</a> first.</p>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<script is:inline define:vars={{ siteKey }}>
+  (() => {
+    const $ = (id) => document.getElementById(id);
+    const showError = (message) => {
+      $('contact-error').textContent = message;
+      $('contact-error').classList.remove('hidden');
+    };
+
+    const reveal = async (token) => {
+      try {
+        const res = await fetch('/api/contact-email/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+
+        document.querySelectorAll('[data-contact]').forEach((a) => {
+          const email = data.contacts[a.dataset.contact];
+          a.href = `mailto:${email}`;
+          a.textContent = email;
+        });
+        $('contact-check').classList.add('hidden');
+        $('contact-emails').classList.remove('hidden');
+      } catch (e) {
+        showError(e.message || 'Something went wrong. Please try again.');
+        window.turnstile?.reset('#contact-turnstile');
+      }
+    };
+
+    $('contact-reveal').addEventListener('click', () => {
+      $('contact-reveal-wrap').classList.add('hidden');
+      $('contact-check').classList.remove('hidden');
+
+      if (!siteKey) return showError('Contact details are temporarily unavailable.');
+
+      window.onContactTurnstileLoad = () => window.turnstile.render('#contact-turnstile', {
+        sitekey: siteKey,
+        theme: 'dark',
+        callback: reveal,
+        'error-callback': () => showError('Security check could not load. Please refresh and try again.'),
+      });
+      const script = document.createElement('script');
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onContactTurnstileLoad&render=explicit';
+      script.async = true;
+      document.head.appendChild(script);
+    });
+  })();
+</script>
