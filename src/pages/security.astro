@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 
-const updated = '2026-09-29';
+const updated = '2026-10-17';
 ---
 
 <Base
@@ -60,7 +60,8 @@ const updated = '2026-09-29';
         <h2 class="text-white font-semibold text-base mb-2">Authentication</h2>
         <ul class="list-disc pl-5 space-y-1">
           <li><strong class="text-gray-300">API keys:</strong> Keys can be scoped to an app and revoked. Treat a copied key as a credential until it is revoked.</li>
-          <li><strong class="text-gray-300">Dashboard 2FA:</strong> Two-factor authentication via TOTP is available for all dashboard accounts. We strongly recommend enabling it.</li>
+          <li><strong class="text-gray-300">Passwordless sign-in:</strong> Dashboard sign-in does not use passwords. Sign in with a passkey (fingerprint, face, or device PIN), Google, or GitHub. A one-time email code is the backup and expires after 10 minutes. Email sign-in and sign-up are protected by Cloudflare Turnstile.</li>
+          <li><strong class="text-gray-300">Dashboard 2FA:</strong> Two-factor authentication via TOTP is available for all dashboard accounts and applies to email, Google, and GitHub sign-in. Passkeys already verify you on your device, so they skip it.</li>
         </ul>
       </section>
 
