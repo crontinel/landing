@@ -132,13 +132,13 @@ With Crontinel, you know about a `db:wipe` execution within seconds, before the 
 
 ## FAQ
 
-**Can I recover from db:wipe without a backup?**  
+### Can I recover from db:wipe without a backup?
 If you have no backup, you need to re-run `php artisan migrate` to restore the schema, then manually re-import any data. The `db:seed` command only restores sample data. Real user data is gone unless backed up.
 
-**Does db:wipe work differently on PostgreSQL?**  
+### Does db:wipe work differently on PostgreSQL?
 Yes. PostgreSQL also drops sequences and custom types when `--drop-types` is passed. The wipe is more thorough and recovery is more complex because custom types may be referenced by tables you did not intend to drop.
 
-**How do I prevent db:wipe from being run in production altogether?**  
+### How do I prevent db:wipe from being run in production altogether?
 Remove it from the production-server `artisan` binary path entirely. Rename `artisan` to `artisan.bin` and replace it with a wrapper that blocks `db:wipe` and `db:wipe --force` outright. This is the only guarantee.
 
 ## Related reading

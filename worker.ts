@@ -1,6 +1,7 @@
 import astroWorker from './dist/_worker.js/index.js';
 import { enforceCrawlLimit } from './src/lib/enforce-crawl-limit.mjs';
 import { edgeRedirectResponse } from './src/lib/edge-redirects.mjs';
+import { markdownPath, wantsMarkdown } from './src/lib/markdown-page.mjs';
 
 const localHosts = new Set(['localhost', '127.0.0.1', '::1']);
 
@@ -33,6 +34,17 @@ export default {
     const limited = await enforceCrawlLimit(request, env);
     if (limited) {
       return limited;
+    }
+
+    const mdPath = wantsMarkdown(request.headers.get('Accept')) && markdownPath(url.pathname);
+    if (mdPath) {
+      const md = await env.ASSETS.fetch(new URL(mdPath, url));
+      if (md.ok) {
+        const headers = new Headers(md.headers);
+        headers.set('Content-Type', 'text/markdown; charset=utf-8');
+        headers.set('Vary', 'Accept');
+        return new Response(md.body, { status: 200, headers });
+      }
     }
 
     return astroWorker.fetch(request, env, ctx);

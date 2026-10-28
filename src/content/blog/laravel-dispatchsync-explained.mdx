@@ -1,0 +1,111 @@
+---
+title: "Laravel dispatchSync(): How It Works and When It Fails"
+description: "What Laravel's dispatchSync() and dispatch_sync() do, why dispatchNow() is gone, and why sync job failures never reach the failed_jobs table."
+date: 2026-10-28
+tags: ["laravel", "queues", "jobs"]
+keywords: ["laravel dispatchsync", "dispatch_sync laravel", "laravel dispatchnow vs dispatchsync", "laravel dispatch sync not working"]
+---
+
+`dispatchSync()` runs a queued job right now, inside the current PHP process, instead of pushing it onto a queue for a worker. It is the replacement for `dispatchNow()`, which Laravel deprecated in version 8 and removed in version 9. The job's `handle()` method runs before the call returns, and any exception it throws comes straight back to the caller.
+
+> **Quick summary:** `ProcessOrder::dispatchSync($order)` and `dispatch_sync(new ProcessOrder($order))` both run the job immediately on the `sync` connection, whatever `QUEUE_CONNECTION` says. You get one attempt, no delay, no worker timeout, and no row in `failed_jobs` when it throws. If that job matters, something other than the queue has to tell you it failed.
+
+## The three ways to run a job now
+
+```php
+// Static method on any job that uses the Dispatchable trait
+ProcessOrder::dispatchSync($order);
+
+// Global helper
+dispatch_sync(new ProcessOrder($order));
+
+// Bus facade
+Bus::dispatchSync(new ProcessOrder($order));
+```
+
+All three do the same thing. If the job implements `ShouldQueue`, Laravel sends it through the `sync` queue connection, so job middleware runs, queue events such as `JobProcessing` and `JobFailed` fire, and the job's `failed()` method is called on an exception. If the job does not implement `ShouldQueue`, Laravel calls its `handle()` method directly.
+
+## dispatchNow vs dispatchSync
+
+There is no behavioral difference to choose between. `dispatchNow()` and the `dispatch_now()` helper were renamed to `dispatchSync()` and `dispatch_sync()` in Laravel 8, kept as deprecated aliases, and removed in Laravel 9. If an older codebase throws `Call to undefined method ...::dispatchNow()` after an upgrade, the fix is a rename:
+
+```php
+// Before (Laravel 8 and earlier)
+ProcessOrder::dispatchNow($order);
+
+// After (Laravel 9 and later)
+ProcessOrder::dispatchSync($order);
+```
+
+## dispatchSync vs dispatch with QUEUE_CONNECTION=sync
+
+`dispatch()` respects your queue configuration. With `QUEUE_CONNECTION=sync` in `.env`, as on many local setups, `dispatch()` also runs the job immediately. In production with Redis or the database driver, the same line queues the job for a worker.
+
+`dispatchSync()` ignores the configuration and always runs in-process. Use it when the caller needs the work finished before it continues, for example a console command that should only report success after the job ran, or a test that checks the side effects of a job.
+
+| | `dispatch()` | `dispatchSync()` | `dispatch()->afterResponse()` |
+|---|---|---|---|
+| Runs where | Worker process | Current process | Current process, after the HTTP response is sent |
+| Respects `QUEUE_CONNECTION` | Yes | No | No |
+| Retries (`$tries`, `backoff`) | Yes | No, one attempt | No, one attempt |
+| Delay | Yes | No | No |
+| Exception reaches the caller | No | Yes | No |
+| Row in `failed_jobs` on failure | Yes | No | No |
+| Visible in Horizon | Yes | No | No |
+
+## Why "dispatchSync is not working" usually means something else
+
+The job almost always runs. What breaks is an assumption carried over from queued jobs.
+
+### The exception was caught by the caller
+
+Because the exception propagates, a broad `try { ... } catch (\Throwable $e) {}` around the dispatch, or a controller that turns every exception into a friendly redirect, hides the failure completely. With a queued job the worker would have logged it. Here, nothing does unless you do.
+
+### Retries and backoff never happen
+
+`$tries`, `$backoff`, `retryUntil()` and `release()` are worker features. A sync job gets exactly one attempt. A job that relies on "it will retry in 30 seconds" for a flaky API call fails for good on the first error.
+
+### The job's timeout is not enforced
+
+The `$timeout` property is enforced by `queue:work`, which kills a job that runs too long. In-process, the limit is whatever PHP allows: `max_execution_time` in a web request, and usually none at all in a console command. A sync job that hangs on a network call holds the request or command with it.
+
+### Delays are ignored
+
+A job dispatched synchronously with a delay runs immediately. The sync connection has nowhere to park it.
+
+### The failure is missing from failed_jobs and Horizon
+
+Rows in `failed_jobs` are written by the `queue:work` command when a worker gives up on a job. A sync job never passes through a worker, so a failure there leaves no row, nothing for `queue:retry`, and nothing in Horizon's failed jobs list. The `failed()` method on the job and the `JobFailed` event still fire, so that is where to hook in if you need a record.
+
+## Watching jobs that run synchronously
+
+A sync job usually runs inside something you already care about: a scheduled command, a deploy step, or a nightly import. If it fails silently, the queue dashboards you use for everything else will look healthy.
+
+The direct fix is to report the outcome from the place that knows it. Crontinel takes an [HTTP check-in from any runtime](https://docs.crontinel.com/check-in/recipes/), so the command that calls `dispatchSync()` can send a receipt after the job returns and include what it did, such as the number of orders processed. If the receipt is missing, late, or reports zero work, you get an alert, which covers both the thrown exception and the job that "succeeded" without doing anything.
+
+## FAQ
+
+### What does dispatchSync do in Laravel?
+It runs a job immediately in the current process instead of pushing it onto a queue. The call returns after the job's `handle()` method finishes, and an exception thrown by the job is rethrown to the caller.
+
+### Is dispatchNow deprecated?
+Yes. `dispatchNow()` and `dispatch_now()` were deprecated in Laravel 8 and removed in Laravel 9. Use `dispatchSync()` and `dispatch_sync()` instead; they behave the same way.
+
+### What is the difference between dispatch and dispatchSync?
+`dispatch()` uses the queue connection from your configuration, so in production the job is handled later by a worker with retries. `dispatchSync()` always runs the job now, in the current process, with a single attempt.
+
+### Do failed dispatchSync jobs go to the failed_jobs table?
+No. The `failed_jobs` table is written by the queue worker. A job run with `dispatchSync()` calls its `failed()` method and fires the `JobFailed` event, but no row is stored and `queue:retry` cannot replay it.
+
+### Does dispatchSync retry a failed job?
+No. Retry settings such as `$tries` and `$backoff` are applied by the queue worker. A synchronous job gets one attempt.
+
+### When should I use dispatchSync?
+Use it when the caller needs the result before continuing: console commands, tests, and short jobs where an extra queue hop adds nothing. For slow or flaky work in a web request, queue the job instead, or use `dispatch()->afterResponse()` so the user is not kept waiting.
+
+---
+
+**Related reading:**
+- [Failed Jobs in Laravel: Beyond the failed_jobs Table](/blog/laravel-failed-jobs-monitoring/)
+- [Laravel Queue Monitoring: Catch Failures Before Users Do](/blog/laravel-queue-monitoring-catch-failures/)
+- [Monitoring Custom Artisan Commands in Production](/blog/monitoring-laravel-artisan-commands/)

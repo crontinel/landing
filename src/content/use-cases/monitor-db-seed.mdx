@@ -86,14 +86,14 @@ Deploy, let the next scheduled seed run complete, then verify the dashboard show
 
 ## FAQ
 
-**Why does db:seed work in my local environment but fail in production?**
+### Why does db:seed work in my local environment but fail in production?
 Because `APP_ENV` is set to `production` on your server. Laravel's production guard triggers the confirmation prompt. Use `--force` in all non-interactive environments.
 
-**Does db:seed --force skip any safety checks?**
+### Does db:seed --force skip any safety checks?
 It only skips the confirmation prompt. Model validation, database constraints, and foreign key checks still run. If a seeder violates a constraint, it will throw an exception.
 
-**Can I run db:seed without disrupting active users?**
+### Can I run db:seed without disrupting active users?
 Yes, but use `withoutOverlapping()` in the scheduler to prevent concurrent seed runs. For large seed operations, run them during low-traffic windows and keep the operation under 30 seconds if possible.
 
-**What happens if db:seed fails halfway through?**
+### What happens if db:seed fails halfway through?
 Rows inserted before the failure are committed. You get partial seed data. This is why checking your seed tables for expected row counts after each run is important.
