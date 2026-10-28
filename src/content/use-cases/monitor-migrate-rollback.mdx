@@ -124,10 +124,14 @@ With Crontinel, you know about a rollback within minutes of the next scheduled c
 
 ## FAQ
 
-**Can I see what `migrate:rollback` will do without running it?**  \nUse `--pretend`: `php artisan migrate:rollback --pretend` prints the SQL statements it would execute without actually running them. This works for individual `up()`/`down()` methods that use the Schema builder. It does not work for raw SQL queries inside migrations.
+### Can I see what `migrate:rollback` will do without running it?
+Use `--pretend`: `php artisan migrate:rollback --pretend` prints the SQL statements it would execute without actually running them. This works for individual `up()`/`down()` methods that use the Schema builder. It does not work for raw SQL queries inside migrations.
 
-**Does `migrate:rollback` drop data?**  \nIt runs whatever is in the `down()` method. If `down()` drops a column, the data in that column is lost. Always review `down()` methods before rolling back in production.
+### Does `migrate:rollback` drop data?
+It runs whatever is in the `down()` method. If `down()` drops a column, the data in that column is lost. Always review `down()` methods before rolling back in production.
 
-**How do I roll back only one migration instead of a batch?**  \nUse `--step=1` to roll back one migration at a time. Run it multiple times to roll back exactly the migrations you want. This gives you fine-grained control and avoids rolling back an entire batch.
+### How do I roll back only one migration instead of a batch?
+Use `--step=1` to roll back one migration at a time. Run it multiple times to roll back exactly the migrations you want. This gives you fine-grained control and avoids rolling back an entire batch.
 
-**What happens if I roll back a migration that was already rolled back manually?**  \nIf someone deleted the migration's row from the `migrations` table manually, `migrate:rollback` skips it. The batch tracking is based entirely on the `migrations` table, not on which tables or columns actually exist.
+### What happens if I roll back a migration that was already rolled back manually?
+If someone deleted the migration's row from the `migrations` table manually, `migrate:rollback` skips it. The batch tracking is based entirely on the `migrations` table, not on which tables or columns actually exist.

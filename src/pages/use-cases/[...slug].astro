@@ -7,6 +7,7 @@ import RelatedContent from '../../components/RelatedContent.astro';
 import HttpReceiptCta from '../../components/HttpReceiptCta.astro';
 import { buildRelatedLinks } from '../../lib/related-content';
 import { getCollection, render } from 'astro:content';
+import { faqSchema } from '../../lib/markdown-page.mjs';
 
 export const prerender = true;
 
@@ -19,6 +20,7 @@ export async function getStaticPaths() {
 }
 
 const { page } = Astro.props;
+const faq = faqSchema(page.body ?? '');
 const { Content } = await render(page);
 
 const [useCases, blogPosts, vsPages, integrations] = await Promise.all([
@@ -51,6 +53,8 @@ const breadcrumb = {
   description={page.data.description ?? page.data.title}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumb)} />
+  {faq && <script type="application/ld+json" slot="head" set:html={JSON.stringify(faq)} />}
+  <link rel="alternate" type="text/markdown" slot="head" href={`/use-cases/${page.id}.md`} />
   <Nav />
 
   <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">
