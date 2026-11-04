@@ -1280,7 +1280,6 @@
 
   /* Nav: hide link row, show hamburger, collapse into dropdown */
   .nav .inner { gap: 12px; }
-  .nav-github { display: none; }
   .nav-toggle { display: inline-flex; }
   .nav .links {
     display: flex;
