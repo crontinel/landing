@@ -4,10 +4,10 @@
 # src/lib/edge-redirects.mjs. Do not add a catch-all slash rule here: it
 # rewrites files such as /logo.png into a missing slash URL.
 
-/register          https://app.crontinel.com/register  301
-/register/         https://app.crontinel.com/register  301
-/signup            https://app.crontinel.com/register  301
-/signup/           https://app.crontinel.com/register  301
+/register          https://app.crontinel.com/login  301
+/register/         https://app.crontinel.com/login  301
+/signup            https://app.crontinel.com/login  301
+/signup/           https://app.crontinel.com/login  301
 /docs              https://docs.crontinel.com/introduction/  301
 /docs/             https://docs.crontinel.com/introduction/  301
 
