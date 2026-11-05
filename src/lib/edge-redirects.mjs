@@ -3,10 +3,10 @@
 // redirects stay in the Worker: Pages _redirects cannot express them safely.
 
 export const redirectRules = [
-  { path: '/register', location: 'https://app.crontinel.com/register', status: 301 },
-  { path: '/register/', location: 'https://app.crontinel.com/register', status: 301 },
-  { path: '/signup', location: 'https://app.crontinel.com/register', status: 301 },
-  { path: '/signup/', location: 'https://app.crontinel.com/register', status: 301 },
+  { path: '/register', location: 'https://app.crontinel.com/login', status: 301 },
+  { path: '/register/', location: 'https://app.crontinel.com/login', status: 301 },
+  { path: '/signup', location: 'https://app.crontinel.com/login', status: 301 },
+  { path: '/signup/', location: 'https://app.crontinel.com/login', status: 301 },
   { path: '/docs', location: 'https://docs.crontinel.com/introduction/', status: 301 },
   { path: '/docs/', location: 'https://docs.crontinel.com/introduction/', status: 301 },
   { path: '/vs/datadog', location: '/vs/crontinel-vs-datadog/', status: 301 },

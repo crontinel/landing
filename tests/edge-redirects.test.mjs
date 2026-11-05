@@ -30,7 +30,7 @@ test('signup and register leave the marketing host', () => {
   for (const path of ['/register', '/register/', '/signup', '/signup/']) {
     const decision = edgeRedirect(new URL(`https://crontinel.com${path}`));
     assert.equal(decision.status, 301);
-    assert.equal(decision.location, 'https://app.crontinel.com/register');
+    assert.equal(decision.location, 'https://app.crontinel.com/login');
   }
 });
 
