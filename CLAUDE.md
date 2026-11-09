@@ -5,13 +5,13 @@
 
 ## Scope of this repo
 
-Astro 6 hybrid site deployed to Cloudflare Pages at `crontinel.com`.
+Astro 6 hybrid site deployed to Cloudflare Workers at `crontinel.com`.
 Static by default. MDX content in `src/content/`.
 
 ## Stack
 
 - Astro 6 + Tailwind CSS + MDX
-- Cloudflare Pages (static output + CF adapter)
+- Cloudflare Workers (`worker.ts` in front of static assets, CF adapter)
 - No JS framework - Alpine via CDN only if needed
 - Google Analytics 4 via `PUBLIC_GA_MEASUREMENT_ID` env var (consent-gated)
 
@@ -30,7 +30,7 @@ Static by default. MDX content in `src/content/`.
 | `src/content/vs/` | Comparison pages (MDX) |
 | `src/content/use-cases/` | Use case pages (MDX) |
 | `src/content/integrations/` | Integration pages (MDX) |
-| `.github/workflows/deploy.yml` | Auto-deploy to CF Pages on push to main |
+| `.github/workflows/deploy.yml` | Auto-deploy to CF Workers on push to main |
 
 ## Dev conventions
 
