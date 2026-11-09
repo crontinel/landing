@@ -47,7 +47,7 @@ A `paused` or missing supervisor combined with a climbing queue depth is an imme
 
 ### Queue depth per queue
 
-Horizon tracks `queueNames` and their current depths. A queue that normally has 10-20 jobs and suddenly has 2,000 means workers aren't keeping up. This could be because:
+Horizon's workload view shows the current depth of each queue. A queue that normally has 10-20 jobs and suddenly has 2,000 means workers aren't keeping up. This could be because:
 
 - Workers died (OOM kill, segfault)
 - An external dependency is slow (database, Redis, HTTP calls)
@@ -57,11 +57,11 @@ Set a threshold based on your normal workload. When depth exceeds it, alert.
 
 ### Failed jobs per minute
 
-Horizon exposes `failed_per_minute` as a rolling rate. A sustained rate above 0 on a production queue is always worth investigating - even if it's low, it means something is consistently failing.
+Horizon records failed jobs in Redis with a timestamp, so you can count the failures in the last minute. A sustained rate above 0 on a production queue is always worth investigating - even if it's low, it means something is consistently failing.
 
 ### Paused supervisors
 
-If Horizon's `paused_at` is set and the pause wasn't intentional, this is an incident. Someone (or some code) called `php artisan horizon:pause` and didn't call `horizon:continue`. Jobs will queue up behind it.
+If Horizon's status is `paused` and the pause wasn't intentional, this is an incident. Someone (or some code) called `php artisan horizon:pause` and didn't call `horizon:continue`. Jobs will queue up behind it.
 
 ## Setting up Horizon monitoring with Crontinel
 
@@ -74,7 +74,7 @@ The Crontinel package reads Horizon's Redis data and reports:
 
 - Supervisor health per queue
 - Failed jobs per minute
-- Paused state and when it was paused
+- Paused state
 - Queue depths across all queues
 
 From the Crontinel dashboard, you can set alerts on all of these signals - so you get notified at 3am instead of finding out from a user report.
