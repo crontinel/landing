@@ -24,7 +24,7 @@ const visibleItems = items.filter(Boolean);
           href={item.href}
           class="block rounded-xl border border-slate-800 bg-slate-900/60 p-5 transition hover:border-green-500/40 hover:bg-slate-900"
         >
-          <div class="text-xs uppercase tracking-[0.2em] text-slate-500 mb-2">{item.collection.replace('-', ' ')}</div>
+          <div class="text-xs uppercase tracking-[0.2em] text-slate-400 mb-2">{item.collection.replace('-', ' ')}</div>
           <div class="text-lg font-semibold text-white mb-2 leading-snug">{item.title}</div>
           {item.description && <p class="text-sm text-slate-400 leading-relaxed">{item.description}</p>}
         </a>

@@ -190,3 +190,6 @@ body {
    Text selection
    ============================================ */
 ::selection { background: rgba(34, 197, 94, 0.25); color: #fff; }
+
+/* Shiki github-dark comments fail WCAG AA on the code background; the color is inline, so this needs !important. */
+.astro-code span[style*="#6A737D" i] { color: #9ca3af !important; }
