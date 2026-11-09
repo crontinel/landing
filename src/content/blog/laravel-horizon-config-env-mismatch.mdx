@@ -97,11 +97,9 @@ Horizon itself won't alert you when supervisors and queues are misaligned. You n
 This is where Crontinel helps. It monitors queue depth per named queue, supervisor health, and Horizon process counts — and alerts you when they drift from expected baselines.
 
 ```bash
-# Crontinel heartbeat — checks your Horizon worker is alive
-curl -fsS -m 10 --retry 3 \
-  -X POST https://app.crontinel.com/api/heartbeats \
-  -H "Authorization: Bearer $CRONTINEL_API_KEY" \
-  -d '{"service": "horizon-supervisor-1"}'
+# Run on a schedule: pings Crontinel only while Horizon reports running
+php artisan horizon:status | grep -q "is running" && \
+  curl -fsS -m 10 --retry 3 https://app.crontinel.com/ping/<token>
 ```
 
 ## Preventing Mismatches With a Deploy Checklist

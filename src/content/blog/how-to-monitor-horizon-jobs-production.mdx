@@ -34,16 +34,16 @@ You need monitoring layered on top of Horizon to catch these cases.
 
 ### Supervisor status
 
-Horizon's `/api/horizon/status` endpoint returns the status of all supervisors. The key field is `status` - it can be `active`, `paused`, or `inactive`. When all supervisors for a given queue are `inactive`, that queue is not being processed at all.
+Horizon records each supervisor in Redis with a `status` of `running` or `paused`, and a supervisor that stops reporting ages out of the active set. When no supervisor is left for a given queue, that queue is not being processed at all.
 
-If you're using Crontinel, it reads this automatically from your Horizon setup. You can also query it directly:
+If you're using Crontinel, the package reads this from Horizon's Redis connection. You can also check it on the server:
 
 ```bash
-curl -H "Authorization: Bearer YOUR_API_KEY" \
-  https://app.crontinel.com/api/horizon/status
+php artisan horizon:status
+php artisan horizon:supervisors
 ```
 
-A `paused` or `inactive` supervisor combined with a climbing queue depth is an immediate incident.
+A `paused` or missing supervisor combined with a climbing queue depth is an immediate incident.
 
 ### Queue depth per queue
 
@@ -70,7 +70,7 @@ composer require crontinel/laravel
 php artisan crontinel:install
 ```
 
-The Crontinel package reads Horizon's `/api/horizon/status` endpoint and reports:
+The Crontinel package reads Horizon's Redis data and reports:
 
 - Supervisor health per queue
 - Failed jobs per minute
@@ -114,11 +114,11 @@ ProcessReportJob::dispatch($report)
 
 ### Redis connection drops
 
-If Redis becomes unavailable, Horizon's `/api/horizon/status` will return an error or timeout. If Crontinel can't reach Horizon, it fires an alert: "Cannot reach Horizon status endpoint." This is a distinct failure mode from slow queues - it means the entire queue system is unreachable, not just backed up.
+If Redis becomes unavailable, Horizon stops working and its status can't be read. Crontinel treats that as Horizon not running and fires its "Horizon is unhealthy" alert. This is a distinct failure mode from slow queues - it means the entire queue system is unreachable, not just backed up.
 
 ### Deployment race condition
 
-During a deployment, old Horizon workers are killed and new ones start. If the old workers are killed before new ones are ready, there's a brief window where no workers are processing jobs. Horizon supervisors show `inactive` during this window. A well-configured deployment should use `horizon:pause` before deploying and `horizon:continue` after new workers are ready.
+During a deployment, old Horizon workers are killed and new ones start. If the old workers are killed before new ones are ready, there's a brief window where no workers are processing jobs. Horizon has no running supervisors during this window. A well-configured deployment should use `horizon:pause` before deploying and `horizon:continue` after new workers are ready.
 
 ## Alerting thresholds
 
@@ -127,10 +127,10 @@ Set these based on your baseline:
 | Signal | Alert threshold |
 |---|---|
 | Failed jobs/min | > 0 on any production queue |
-| Supervisor status | Any `inactive` or `paused` (unintentional) |
+| Supervisor status | Any missing or `paused` (unintentional) |
 | Queue depth | > 2x your p95 baseline |
 | Oldest job age | > 5 minutes on time-sensitive queues |
-| Horizon unreachable | Any timeout/error on `/api/horizon/status` |
+| Horizon unreachable | Any failed read of Horizon's Redis data |
 
 ## Dashboard vs monitoring
 
