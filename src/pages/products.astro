@@ -59,6 +59,12 @@ const categories = ['All products', 'Cloud & AI', 'Developer tools', 'Commerce',
   title="Our products | Crontinel"
   description="Explore CloudPloy, SkaleAgents, Toolblip, AmazingPlugins, Appnary, and harun.dev. More products and projects from the team behind Crontinel."
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Our products',
+    itemListElement: products.map((product, i) => ({ '@type': 'ListItem', position: i + 1, name: product.name, url: product.url })),
+  })} />
   <Nav />
   <main id="main-content" class="products-page">
     <header class="page-intro">
