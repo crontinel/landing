@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { faqSchema, markdownPath, renderMarkdownPage, wantsMarkdown } from '../src/lib/markdown-page.mjs';
+import { articleSchema, faqSchema, markdownPath, renderMarkdownPage, wantsMarkdown } from '../src/lib/markdown-page.mjs';
 
 test('faqSchema reads ### questions from the FAQ section only', () => {
   const body = '## Intro\n\n### Not a question\nskip\n\n## FAQ\n\n### Is it **free**?\nYes, see [pricing](/pricing/).\n\n### Empty?\n\n## Next\n\n### Outside\nno';
@@ -29,4 +29,13 @@ test('wantsMarkdown checks the Accept header', () => {
 test('renderMarkdownPage strips MDX imports', () => {
   const md = renderMarkdownPage({ collection: 'vs', slug: 'a', title: 'T', description: 'D', body: "import X from './x';\n\nHello" });
   assert.equal(md, '# T\n\n> D\n\nSource: https://crontinel.com/vs/a/\n\nHello\n');
+});
+
+test('articleSchema omits dateModified until a page is updated', () => {
+  const date = new Date('2026-01-02T00:00:00Z');
+  const schema = articleSchema({ data: { title: 'T', date } }, 'https://crontinel.com/vs/x/');
+  assert.equal(schema['@type'], 'Article');
+  assert.equal(schema.description, 'T');
+  assert.equal(schema.datePublished, date.toISOString());
+  assert.equal('dateModified' in schema, false);
 });

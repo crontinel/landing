@@ -24,6 +24,22 @@ export function renderMarkdownPage({ collection, slug, title, description, body 
 
 // FAQPage JSON-LD from a "## FAQ" (or "## Frequently asked questions") section
 // whose questions are "### " headings. Returns null when there is none.
+export function articleSchema(page, url) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: page.data.title,
+    description: page.data.description ?? page.data.title,
+    datePublished: page.data.date.toISOString(),
+    ...(page.data.updated ? { dateModified: page.data.updated.toISOString() } : {}),
+    image: "https://crontinel.com/og-default.png",
+    url,
+    mainEntityOfPage: url,
+    publisher: { "@type": "Organization", "@id": "https://crontinel.com/#organization", name: "Crontinel" },
+    author: { "@type": "Organization", name: "Crontinel" },
+  };
+}
+
 export function faqSchema(body) {
   const section = body.match(/^## (?:FAQ|Frequently asked questions)[^\n]*\n([\s\S]*?)(?=^## |(?![\s\S]))/im);
   if (!section) return null;

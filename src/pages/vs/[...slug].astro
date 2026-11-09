@@ -7,7 +7,7 @@ import RelatedContent from '../../components/RelatedContent.astro';
 import HttpReceiptCta from '../../components/HttpReceiptCta.astro';
 import { buildRelatedLinks } from '../../lib/related-content';
 import { getCollection, render } from 'astro:content';
-import { faqSchema } from '../../lib/markdown-page.mjs';
+import { articleSchema, faqSchema } from '../../lib/markdown-page.mjs';
 
 export const prerender = true;
 
@@ -57,6 +57,7 @@ const badgeText = page.data.competitor === 'Alternatives'
   description={page.data.description ?? page.data.title}
 >
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(breadcrumb)} />
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(articleSchema(page, `https://crontinel.com/vs/${page.id}/`))} />
   {faq && <script type="application/ld+json" slot="head" set:html={JSON.stringify(faq)} />}
   <link rel="alternate" type="text/markdown" slot="head" href={`/vs/${page.id}.md`} />
   <Nav />
