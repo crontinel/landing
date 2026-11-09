@@ -704,7 +704,7 @@ const description = 'Crontinel tells you when a background job finished without 
     </div>
     <div class="integrations">
       <div class="card int-group reveal">
-        <h4>Checked path</h4>
+        <h3>Checked path</h3>
         <div class="int-pills">
           <span class="int-pill">Email</span>
         </div>
@@ -822,13 +822,13 @@ const description = 'Crontinel tells you when a background job finished without 
       <p class="body">Same JSON from five runtimes. <code class="mono">CRONTINEL_INGEST_KEY</code> is the app ingest key. It is not an assistant key.</p>
     </div>
     <div class="reveal" id="receipt" data-home-receipt>
-      <div class="flex flex-wrap gap-1 mb-3" role="tablist" aria-label="Runtime examples">
+      <div class="flex flex-wrap gap-1 mb-3" role="group" aria-label="Runtime examples">
         {Object.entries({ curl: 'curl', node: 'Node', python: 'Python', sidekiq: 'Sidekiq', gha: 'GitHub Actions' }).map(([id, label], i) => (
           <button
             type="button"
             class:list={['home-runtime-tab mono text-xs px-3 py-1.5 rounded border transition-colors', i === 1 ? 'border-green-500/50 text-green-400' : 'border-white/10 text-slate-400']}
             data-home-runtime={id}
-            aria-selected={i === 1 ? 'true' : 'false'}
+            aria-pressed={i === 1 ? 'true' : 'false'}
           >{label}</button>
         ))}
       </div>
@@ -863,7 +863,7 @@ const description = 'Crontinel tells you when a background job finished without 
         if (label) label.textContent = labels[id] || '';
         root.querySelectorAll('[data-home-runtime]').forEach((b) => {
           const on = b === btn;
-          b.setAttribute('aria-selected', on ? 'true' : 'false');
+          b.setAttribute('aria-pressed', on ? 'true' : 'false');
           b.classList.toggle('border-green-500/50', on);
           b.classList.toggle('text-green-400', on);
           b.classList.toggle('border-white/10', !on);
@@ -950,7 +950,7 @@ const description = 'Crontinel tells you when a background job finished without 
 
       <div class="footer-cols">
         <div>
-          <h5>Connect</h5>
+          <h3>Connect</h3>
           <ul>
             <li><a href="#sec-install">HTTP receipt</a></li>
             <li><a href="https://github.com/crontinel/laravel">crontinel/laravel</a></li>
@@ -958,7 +958,7 @@ const description = 'Crontinel tells you when a background job finished without 
           </ul>
         </div>
         <div>
-          <h5>Product</h5>
+          <h3>Product</h3>
           <ul>
             <li><a href="#features">Features</a></li>
             <li><a href="#dashboard">Dashboard</a></li>
@@ -971,7 +971,7 @@ const description = 'Crontinel tells you when a background job finished without 
           </ul>
         </div>
         <div>
-          <h5>Resources</h5>
+          <h3>Resources</h3>
           <ul>
             <li><a href="https://docs.crontinel.com/introduction/" target="_blank" rel="noopener">Docs</a></li>
             <li><a href="https://github.com/crontinel" target="_blank" rel="noopener">We love open source</a></li>
@@ -980,7 +980,7 @@ const description = 'Crontinel tells you when a background job finished without 
           </ul>
         </div>
         <div>
-          <h5>Company</h5>
+          <h3>Company</h3>
           <ul>
             <li><a href="/products/">Our products</a></li>
             <li><a href="/blog/">Blog</a></li>
