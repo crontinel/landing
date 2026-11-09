@@ -58,7 +58,7 @@ export function buildRelatedLinks(
   current: RelatedEntry,
   currentCollection: RelatedGroup['collection'],
   groups: RelatedGroup[],
-  limit = 4,
+  limit = 6,
 ): RelatedLink[] {
   const currentTokens = tokenize(current.data.title, current.data.description, current.data.tags?.join(' '), current.id);
 
@@ -88,8 +88,15 @@ export function buildRelatedLinks(
     if (!existing || item.score > existing.score) unique.set(item.href, item);
   }
 
-  return [...unique.values()]
+  const ranked = [...unique.values()]
     .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
-    .slice(0, limit)
-    .map(({ score, ...item }) => item);
+    .slice(0, limit);
+
+  // Scoring alone leaves some pages unlinked, so always include the next page in the collection.
+  const peers = groups.find((group) => group.collection === currentCollection)?.entries.map((entry) => entry.id).sort() ?? [];
+  const nextId = peers[(peers.indexOf(current.id) + 1) % peers.length];
+  const next = unique.get(`${PATH_PREFIX[currentCollection]}/${nextId}/`);
+  if (next && limit > 0 && !ranked.includes(next)) ranked[ranked.length - 1] = next;
+
+  return ranked.map(({ score, ...item }) => item);
 }
