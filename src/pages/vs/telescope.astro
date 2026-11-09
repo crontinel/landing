@@ -3,12 +3,18 @@ import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import HttpReceiptCta from '../../components/HttpReceiptCta.astro';
+import { articleSchema } from '../../lib/markdown-page.mjs';
+
+const title = 'Crontinel vs Laravel Telescope: Different Jobs';
+const description = "Telescope is an indispensable debug tool. Crontinel is a monitoring and alerting tool. They're not competing, but one of them won't page you at 2am.";
+const article = articleSchema({ data: { title, description, date: new Date('2026-04-06') } }, 'https://crontinel.com/vs/telescope/');
 ---
 
 <Base
-  title="Crontinel vs Laravel Telescope: Different Jobs"
-  description="Telescope is an indispensable debug tool. Crontinel is a monitoring and alerting tool. They're not competing, but one of them won't page you at 2am."
+  title={title}
+  description={description}
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(article)} />
   <script type="application/ld+json" slot="head">
 {
   "@context": "https://schema.org",
