@@ -116,6 +116,7 @@ const ext = (l) => (l.external ? { target: '_blank', rel: 'noopener' } : {});
   #hamburger-icon.hidden, #close-icon.hidden { display: none; }
   .nav-panel { display: none; }
   .nav-dd:hover .nav-panel, .nav-dd:focus-within .nav-panel { display: block; }
+  .nav-dd[data-closed] .nav-panel { display: none; }
 </style>
 
 <script>
@@ -130,5 +131,19 @@ const ext = (l) => (l.external ? { target: '_blank', rel: 'noopener' } : {});
     hamburger?.classList.toggle('hidden', !isOpen);
     close?.classList.toggle('hidden', isOpen);
     btn.setAttribute('aria-expanded', String(!isOpen));
+  });
+
+  // Escape closes an open dropdown; it reopens on the next hover or focus.
+  const dds = document.querySelectorAll('.nav-dd');
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const active = document.activeElement;
+    dds.forEach((dd) => dd.setAttribute('data-closed', ''));
+    if (active instanceof HTMLElement && active.closest('.nav-dd')) active.blur();
+  });
+  dds.forEach((dd) => {
+    const reopen = () => dd.removeAttribute('data-closed');
+    dd.addEventListener('mouseleave', reopen);
+    dd.addEventListener('focusin', reopen);
   });
 </script>
