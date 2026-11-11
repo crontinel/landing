@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
 import DirectoryBadges from '../components/DirectoryBadges.astro';
 import AskAiRows from '../components/AskAiRows.astro';
 import RuntimeStrip from '../components/RuntimeStrip.astro';
@@ -152,7 +153,8 @@ const description = 'Crontinel tells you when a background job finished without 
     }
 
     /* Prevent horizontal bleed at small widths */
-    html, body { max-width: 100%; overflow-x: hidden; }
+    /* clip, not hidden: hidden turns body into a scroll container and breaks the sticky nav */
+    html, body { max-width: 100%; overflow-x: clip; }
 
     /* ── MOBILE FIXES ─────────────────────────────────────────────────
        The design CSS references .db-table in responsive rules, but our
@@ -266,28 +268,7 @@ const description = 'Crontinel tells you when a background job finished without 
 
 
 <!-- ============================== NAV ============================== -->
-<nav class="nav" id="nav">
-  <div class="container inner">
-    <a href="#top" class="brand">
-      <img class="mark" src="/logo.png" alt="Crontinel" aria-hidden="true"/>
-      <span>crontinel</span>
-    </a>
-    <div class="links" id="nav-links">
-      <a href="#features">Features</a>
-      <a href="#how">How it works</a>
-      <a href="#dashboard">Dashboard</a>
-      <a href="/vs/">Compare</a>
-      <a href="#pricing">Pricing</a>
-      <a href="https://docs.crontinel.com/introduction/" target="_blank" rel="noopener">Docs</a>
-    </div>
-    <div class="right">
-      <a class="btn btn-primary btn-sm" href="https://app.crontinel.com/login">Start free <span class="arrow-i">&#8599;</span></a>
-      <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="nav-links">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </div>
-</nav>
+<Nav />
 
 <!-- ============================== ANNOUNCEMENT BAR ============================== -->
 <div id="thenping-notice" style="background:#111111;border-bottom:1px solid rgba(74,222,128,0.15);padding:10px 16px;text-align:center;font-size:13px;color:#94a3b8;">

@@ -1,20 +1,27 @@
 ---
-const navLinks = [
-  { href: '/features/', label: 'Features' },
+const navItems = [
+  { label: 'Product', items: [
+    { href: '/features/', label: 'Features' },
+    { href: '/integrations/', label: 'Integrations' },
+    { href: '/agent/', label: 'Agent' },
+  ] },
+  { label: 'Solutions', items: [
+    { href: '/use-cases/', label: 'Use cases' },
+    { href: '/vs/', label: 'Compare' },
+  ] },
   { href: '/pricing/', label: 'Pricing' },
-  { href: '/vs/', label: 'Compare' },
-  { href: '/use-cases/', label: 'Use cases' },
-  { href: '/integrations/', label: 'Integrations' },
-  { href: '/agent/', label: 'Agent' },
-  { href: '/blog/', label: 'Blog' },
-  { href: '/about/', label: 'About' },
-  { href: 'https://docs.crontinel.com/check-in/recipes/', label: 'Recipes', external: true },
-  { href: 'https://docs.crontinel.com/introduction/', label: 'Docs', external: true },
+  { label: 'Resources', items: [
+    { href: 'https://docs.crontinel.com/introduction/', label: 'Docs', external: true },
+    { href: 'https://docs.crontinel.com/check-in/recipes/', label: 'Recipes', external: true },
+    { href: '/blog/', label: 'Blog' },
+    { href: '/about/', label: 'About' },
+  ] },
 ];
+const ext = (l) => (l.external ? { target: '_blank', rel: 'noopener' } : {});
 ---
 
 <header id="site-nav" class="sticky top-0 z-40 transition-all duration-300"
-        style="border-bottom: 1px solid transparent;">
+        style="background: rgba(0,0,0,0.8); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid #1c1c1c;">
   <nav aria-label="Main navigation" class="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14">
     <!-- Logo -->
     <a href="/" class="flex items-center gap-2 font-semibold text-white text-sm">
@@ -24,17 +31,22 @@ const navLinks = [
 
     <!-- Desktop nav -->
     <div class="hidden md:flex items-center gap-6">
-      {navLinks.map((link) => (
-        <a
-          href={link.href}
-          class="text-sm transition-colors"
-          style="color:#a3a3a3;"
-          {...(link.external ? { target: '_blank', rel: 'noopener' } : {})}
-          onmouseover="this.style.color='#fff'"
-          onmouseout="this.style.color='#a3a3a3'"
-        >
-          {link.label}
-        </a>
+      {navItems.map((item) => item.items ? (
+        <div class="nav-dd relative">
+          <button type="button" class="nav-link flex items-center gap-1" aria-haspopup="true">
+            {item.label}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+          </button>
+          <div class="nav-panel absolute left-0 top-full pt-3">
+            <div class="rounded-lg py-1.5 min-w-44" style="background:#0a0a0a; border:1px solid #1c1c1c;">
+              {item.items.map((l) => (
+                <a href={l.href} class="nav-link block text-sm px-4 py-2" {...ext(l)}>{l.label}</a>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <a href={item.href} class="nav-link text-sm" {...ext(item)}>{item.label}</a>
       ))}
     </div>
 
@@ -77,17 +89,15 @@ const navLinks = [
     class="hidden md:hidden border-t px-4 py-4 space-y-1"
     style="background:#000; border-color:#1c1c1c;"
   >
-    {navLinks.map((link) => (
-      <a
-        href={link.href}
-        class="block text-sm py-2.5 transition-colors"
-        style="color:#a3a3a3;"
-        {...(link.external ? { target: '_blank', rel: 'noopener' } : {})}
-        onmouseover="this.style.color='#fff'"
-        onmouseout="this.style.color='#a3a3a3'"
-      >
-        {link.label}
-      </a>
+    {navItems.map((item) => item.items ? (
+      <>
+      <p class="text-xs uppercase tracking-wider pt-3 pb-1" style="color:#525252;">{item.label}</p>
+      {item.items.map((l) => (
+        <a href={l.href} class="nav-link block text-sm py-2.5 pl-3" {...ext(l)}>{l.label}</a>
+      ))}
+      </>
+    ) : (
+      <a href={item.href} class="nav-link block text-sm py-2.5" {...ext(item)}>{item.label}</a>
     ))}
     <div class="flex items-center gap-3 pt-3" style="border-top: 1px solid #1c1c1c;">
       <a href="https://app.crontinel.com/login"
@@ -98,6 +108,15 @@ const navLinks = [
     </div>
   </div>
 </header>
+
+<style>
+  .nav-link { color: #a3a3a3; font-size: 0.875rem; transition: color 0.15s; }
+  .nav-link:hover, .nav-link:focus-visible { color: #fff; }
+  /* the landing page's global `svg { display: block }` would otherwise beat Tailwind's .hidden */
+  #hamburger-icon.hidden, #close-icon.hidden { display: none; }
+  .nav-panel { display: none; }
+  .nav-dd:hover .nav-panel, .nav-dd:focus-within .nav-panel { display: block; }
+</style>
 
 <script>
   const btn = document.getElementById('mobile-menu-btn');

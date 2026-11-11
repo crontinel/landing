@@ -118,6 +118,7 @@
   // ---------- Nav shadow on scroll ----------
   const nav = document.getElementById('nav');
   const updateNav = () => {
+    if (!nav) return;
     if (window.scrollY > 24) nav.classList.add('scrolled');
     else nav.classList.remove('scrolled');
   };
