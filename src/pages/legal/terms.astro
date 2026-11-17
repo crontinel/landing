@@ -8,7 +8,7 @@ const updated = '2026-11-17';
 
 <Base
   title="Terms of Service | Crontinel"
-  description="Crontinel Terms of Service. By using crontinel.com and app.crontinel.com you agree to these terms, which cover use of the service."
+  description="Crontinel Terms of Service for crontinel.com and app.crontinel.com: your account, the free trial and billing, acceptable use, liability and governing law."
 >
   <script type="application/ld+json" slot="head">
   {
@@ -30,70 +30,80 @@ const updated = '2026-11-17';
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">1. Acceptance</h2>
-        <p>By using Crontinel (crontinel.com and app.crontinel.com) you agree to these terms. If you don't agree, do not use the service.</p>
-      </section>
+        <p>By creating an account or using Crontinel (crontinel.com and app.crontinel.com), you agree to these Terms of Service. If you are using Crontinel on behalf of an organisation, you represent that you have authority to bind that organisation to these terms.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">2. The service</h2>
-        <p>Crontinel is an outcome monitoring service for background jobs. We provide an HTTP ingest API for check-ins from common runtimes, alerting via a SaaS platform, and an optional open-source Laravel package for schedule attach, queue depth, and Horizon health.</p>
-      </section>
+        <h2 class="text-white font-semibold text-base mb-2">2. The Service</h2>
+        <p>Crontinel provides outcome monitoring for background jobs via a hosted dashboard, an HTTP ingest API for common runtimes, alerting, and an optional MIT-licensed Laravel package for schedule attach, queue depth, and Horizon health.</p>
+        <p class="mt-2">We reserve the right to modify or discontinue features with reasonable notice. We will attempt to notify you by email for significant changes.</p>
+        </section>
 
       <section>
         <h2 class="text-white font-semibold text-base mb-2">3. Your account</h2>
         <ul class="list-disc pl-5 space-y-1">
-          <li>You are responsible for maintaining your account credentials</li>
-          <li>You must provide accurate information at registration</li>
-          <li>You may not share accounts or use one account to represent multiple unrelated organizations</li>
+            <li>You are responsible for keeping your credentials secure.</li>
+            <li>You must be at least 16 years old to use Crontinel.</li>
+            <li>One person or legal entity may maintain multiple accounts, but accounts may not be shared between unaffiliated parties.</li>
+            <li>You are responsible for all activity under your account.</li>
         </ul>
-      </section>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">4. Billing</h2>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>New organizations start on the Free plan. No payment method is needed</li>
-          <li>Each organization can try Pro free for 14 days once. Starting the trial requires a payment method. When the trial ends, Pro is billed monthly unless you cancel before the end date, which is shown in Billing</li>
-          <li>If you cancel, the organization returns to Free. Run history beyond Free's 7 days is kept for 30 more days, then removed</li>
-          <li>Paid subscriptions are billed monthly or annually in advance</li>
-          <li>The Free plan requires no payment method</li>
-          <li>Downgrades take effect at the end of the current billing period</li>
-          <li>No refunds except where required by law</li>
-        </ul>
-      </section>
-
-      <section>
-        <h2 class="text-white font-semibold text-base mb-2">5. Acceptable use</h2>
-        <p>You may not use Crontinel to:</p>
+        <h2 class="text-white font-semibold text-base mb-2">4. Acceptable use</h2>
+        <p>You agree not to:</p>
         <ul class="list-disc pl-5 space-y-1 mt-2">
-          <li>Monitor applications you do not own or have permission to monitor</li>
-          <li>Attempt to circumvent rate limits or abuse the API</li>
-          <li>Violate any applicable law or regulation</li>
+            <li>Use the service to monitor applications you do not own or have explicit permission to monitor.</li>
+            <li>Attempt to reverse-engineer, scrape, or abuse the API beyond normal use.</li>
+            <li>Use the service for any unlawful purpose.</li>
+            <li>Resell or sublicense the service without written permission.</li>
         </ul>
-      </section>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">6. Service availability</h2>
-        <p>We aim for high availability but do not guarantee uptime. Crontinel is not liable for missed alerts or monitoring gaps caused by service downtime.</p>
-      </section>
+        <h2 class="text-white font-semibold text-base mb-2">5. Free trial and billing</h2>
+        <p>New organizations start on the Free plan. No payment method is needed.</p>
+        <p class="mt-2">Each organization can try Pro free for 14 days once. Starting the trial requires a payment method. When the trial ends, Pro is billed monthly unless you cancel before the end date, which is shown in Billing. If you cancel, the organization returns to Free; run history beyond Free's 7 days is kept for 30 more days, then removed.</p>
+        <p class="mt-2">Paid subscriptions are billed monthly or annually in advance. All prices are in USD. Refunds are issued at our discretion for unused periods.</p>
+        <p class="mt-2">If your payment fails, we will attempt to charge again. After repeated failures we will notify you and may suspend paid features.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">7. Limitation of liability</h2>
-        <p>Crontinel is provided "as is." To the maximum extent permitted by law, we are not liable for indirect, incidental, or consequential damages arising from use of the service.</p>
-      </section>
+        <h2 class="text-white font-semibold text-base mb-2">6. Plan limits</h2>
+        <p>Each plan has limits on the number of apps, monitors, organization members, and data retention. These limits are shown on the <a href="/pricing/" class="text-gray-300 hover:text-white">pricing page</a>. Exceeding limits will prompt an upgrade; we will not silently charge you for overages.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">8. Termination</h2>
-        <p>You may cancel your account at any time from your profile settings. We may terminate accounts that violate these terms.</p>
-      </section>
+        <h2 class="text-white font-semibold text-base mb-2">7. Data ownership</h2>
+        <p>You own your monitoring data. We do not claim any intellectual property rights over data you send to Crontinel. You can export available data or request account deletion. Some records remain after account closure, as explained in our <a href="/legal/privacy/" class="text-gray-300 hover:text-white">Privacy Policy</a>.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">9. Changes</h2>
-        <p>We may update these terms. Continued use after changes constitutes acceptance. We'll notify you by email for material changes.</p>
-      </section>
+        <h2 class="text-white font-semibold text-base mb-2">8. Uptime and liability</h2>
+        <p>We aim for high availability but do not guarantee 100% uptime. Crontinel is provided "as is" without warranty. To the maximum extent permitted by law, our liability is limited to the amount you paid us in the 12 months preceding the claim.</p>
+        <p class="mt-2">Crontinel is a monitoring tool - we are not liable for events that occur in your application that our service failed to detect due to outages or bugs.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">10. Contact</h2>
-        <p><a href="/contact/" class="text-gray-300 hover:text-white">Contact us</a></p>
-      </section>
+        <h2 class="text-white font-semibold text-base mb-2">9. Termination</h2>
+        <p>You may cancel your account at any time from your profile settings. We may suspend or terminate your account for violations of these terms, with or without notice depending on severity.</p>
+        <p class="mt-2">After an organization closes, its configuration and invitations become eligible for cleanup after 30 days, once billing closure is verified. Audit, billing, other monitoring records, and backups may remain under separate retention rules. See our <a href="/legal/privacy/" class="text-gray-300 hover:text-white">Privacy Policy</a> for details.</p>
+        </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">10. Changes to these terms</h2>
+        <p>We will notify you by email at least 14 days before making material changes to these terms. Continued use of the service after that date constitutes acceptance.</p>
+        </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">11. Governing law</h2>
+        <p>These terms are governed by the laws of Bangladesh, without regard to conflict of law principles. Disputes shall be resolved in the courts of Dhaka, Bangladesh.</p>
+        </section>
+
+      <section>
+        <h2 class="text-white font-semibold text-base mb-2">12. Contact</h2>
+        <p>Questions about these terms: <a href="mailto:legal@crontinel.com" class="text-gray-300 hover:text-white">legal@crontinel.com</a></p>
+        </section>
 
     </div>
   </main>
