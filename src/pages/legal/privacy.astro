@@ -3,7 +3,7 @@ import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 
-const updated = '2026-11-16';
+const updated = '2026-11-17';
 ---
 
 <Base
@@ -30,84 +30,97 @@ const updated = '2026-11-16';
     <div class="space-y-8 text-gray-400 text-sm leading-relaxed">
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Who we are</h2>
-        <p>Crontinel is operated by Harun R Rayhan. The service is available at crontinel.com and app.crontinel.com. Contact: <a href="/contact/" class="text-gray-300 hover:text-white">crontinel.com/contact</a></p>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Who we are</h2>
+            <p>Crontinel (crontinel.com and app.crontinel.com) is an outcome monitoring service for background jobs, operated by Harun R Rayhan. Questions? Email <a href="mailto:support@crontinel.com" class="text-gray-300 hover:text-white">support@crontinel.com</a>.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">What we collect</h2>
-        <ul class="list-disc pl-5 space-y-1">
-          <li><strong class="text-gray-300">Account data:</strong> email address, name, and passkey public keys. Sign-in is passwordless; we no longer use passwords</li>
-          <li><strong class="text-gray-300">Monitoring data:</strong> cron runs, queue and Horizon status, monitor settings, and any command output your app sends to Crontinel</li>
-          <li><strong class="text-gray-300">Billing data:</strong> subscription status. Payment details are handled directly by Stripe; we never see your card number</li>
-          <li><strong class="text-gray-300">Service logs:</strong> request and diagnostic data, which can include IP addresses</li>
-          <li><strong class="text-gray-300">Hosted AI:</strong> if you turn on AI investigations, selected monitoring evidence is sent to Cloudflare Workers AI to generate an analysis</li>
-          <li><strong class="text-gray-300">Analytics:</strong> page views and clicks on crontinel.com, the docs and the app via Google Analytics 4, only if you consent via the cookie banner</li>
-        </ul>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">What we collect</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li><strong class="text-gray-300">Account data:</strong> Your name, email address, and passkey public keys - used for authentication. Sign-in is passwordless, and we never see your passkey itself.</li>
+                <li><strong class="text-gray-300">Organization and app data:</strong> App names, API keys, monitor configuration - the core product data.</li>
+                <li><strong class="text-gray-300">Monitoring data:</strong> Cron runs, queue and Horizon status, monitor settings, and any command output your app sends to Crontinel.</li>
+                <li><strong class="text-gray-300">Billing data:</strong> Payment method metadata (last 4 digits, card type) stored by Stripe. A card is collected only if you start the Pro trial or subscribe. We never store full card numbers.</li>
+                <li><strong class="text-gray-300">Service logs:</strong> Request and diagnostic data, which can include IP addresses.</li>
+                <li><strong class="text-gray-300">Hosted AI:</strong> If you turn on AI investigations, selected monitoring evidence is sent to Cloudflare Workers AI to generate an analysis.</li>
+                <li><strong class="text-gray-300">Analytics:</strong> Page views and clicks on crontinel.com, the docs and the app via Google Analytics 4. Only after you accept cookies.</li>
+            </ul>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">What we do not collect</h2>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>We do not use advertising cookies. Analytics cookies on crontinel.com, the docs and the app are set only after you accept them</li>
-          <li>We do not sell your data to any third party</li>
-          <li>We do not access the content of your queued jobs or cron command output unless you explicitly send it to us</li>
-        </ul>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">What we do not collect</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>We do not sell your data. Ever.</li>
+                <li>We do not place advertising or marketing cookies on app.crontinel.com.</li>
+                <li>We do not track you across other websites.</li>
+          <li>We do not access the content of your queued jobs or cron command output unless you explicitly send it to us.</li>
+            </ul>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Cookies</h2>
-        <p>We use two categories of cookies:</p>
-        <ul class="list-disc pl-5 space-y-1 mt-2">
-          <li><strong class="text-gray-300">Strictly necessary:</strong> session cookie, CSRF token. No consent required.</li>
-          <li><strong class="text-gray-300">Analytics:</strong> Google Analytics 4 on crontinel.com, the docs and the app. Only set after you click "Accept" on the cookie banner.</li>
-        </ul>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Why we collect it</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>To provide the monitoring service.</li>
+                <li>To send you alerts and transactional emails (registration, billing, alerts).</li>
+                <li>To process payments via Stripe.</li>
+                <li>To improve the product using aggregate, anonymised analytics.</li>
+            </ul>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Data retention</h2>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>Cron runs, monitor events, and resolved alerts are pruned under the applicable plan's 7, 30, 90, or 365-day history limit. Open alerts can remain while the issue is active.</li>
-          <li>When an organization closes, its configuration and invitations become eligible for cleanup after 30 days, once billing closure is verified. A hold can delay cleanup.</li>
-          <li>Audit and billing records, monitoring history, and database backups can remain after account closure. Their separate retention periods have not been finalized. Contact us about a specific deletion request.</li>
-        </ul>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Data storage and retention</h2>
+            <p>Crontinel uses Railway for the application and database, and Cloudflare for site delivery and optional hosted AI. These services can process data outside the EU/EEA. We do not offer an EU-only processing commitment.</p>
+            <p>Cron runs, monitor events, and resolved alerts are pruned under the applicable plan's 7, 30, 90, or 365-day history limit. Open alerts can remain while the issue is active. When an organization closes, its configuration and invitations become eligible for cleanup after 30 days, once billing closure is verified. A hold can delay cleanup. Audit and billing records, other monitoring history, and database backups can remain after account closure. Their separate retention periods have not been finalized.</p>
+            <p>You can request deletion from your <a href="https://app.crontinel.com/profile" class="text-gray-300 hover:text-white">profile settings</a> or by contacting us. Owner deletion closes the organization and its billing when billing can be reconciled; it does not immediately erase every retained record.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Your rights (GDPR)</h2>
-        <p>If you are in the EU/EEA, you have the right to:</p>
-        <ul class="list-disc pl-5 space-y-1 mt-2">
-          <li><strong class="text-gray-300">Access</strong> the data we hold about you</li>
-          <li><strong class="text-gray-300">Export</strong> your profile, organization, app, and monitor settings as JSON from your profile settings</li>
-          <li><strong class="text-gray-300">Request deletion</strong> through your profile settings or by contacting us. Owner deletion closes the organization and its billing when billing can be reconciled; it does not immediately erase all records.</li>
-          <li><strong class="text-gray-300">Object</strong> to processing: <a href="/contact/" class="text-gray-300 hover:text-white">contact us</a></li>
-        </ul>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Third-party services</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li><strong class="text-gray-300">Stripe</strong> - payment processing. Subject to <a href="https://stripe.com/privacy" class="text-gray-300 hover:text-white" target="_blank" rel="noopener">Stripe's privacy policy</a>.</li>
+                <li><strong class="text-gray-300">Resend</strong> - transactional email delivery.</li>
+                <li><strong class="text-gray-300">Cloudflare</strong> - CDN and DDoS protection, and the Turnstile bot check on sign-in and sign-up. Cloudflare sees your IP to route requests.</li>
+                <li><strong class="text-gray-300">Railway</strong> - application and database hosting.</li>
+                <li><strong class="text-gray-300">Cloudflare Workers AI</strong> - optional hosted investigations.</li>
+                <li><strong class="text-gray-300">Google Analytics</strong> - page views on crontinel.com, docs.crontinel.com and app.crontinel.com, only after you accept cookies.</li>
+                <li><strong class="text-gray-300">PostHog</strong> - product analytics and error reports on crontinel.com, only after you accept cookies.</li>
+                <li><strong class="text-gray-300">Zoho Mail</strong> - our support inbox, for emails you send us.</li>
+                <li><strong class="text-gray-300">Google and GitHub</strong> - only if you choose to sign in with them. We receive your name, email address and account ID.</li>
+                <li><strong class="text-gray-300">Google Fonts</strong> (crontinel.com), <strong class="text-gray-300">Bunny Fonts</strong> and <strong class="text-gray-300">jsDelivr</strong> (app) - font delivery. Your browser's IP address is visible to them.</li>
+            </ul>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Data location</h2>
-        <p>Crontinel uses Railway for the application and database, and Cloudflare for site delivery and optional hosted AI. These services can process data outside the EU/EEA. We do not offer an EU-only processing commitment.</p>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Your rights (GDPR)</h2>
+            <p>If you are in the EU, you have the right to:</p>
+            <ul class="list-disc pl-5 space-y-1 mt-2">
+                <li><strong class="text-gray-300">Access</strong> - contact us about the data we hold about you.</li>
+                <li><strong class="text-gray-300">Correction</strong> - update your name and email in your profile settings.</li>
+                <li><strong class="text-gray-300">Deletion</strong> - request account deletion, subject to retained records described above.</li>
+                <li><strong class="text-gray-300">Portability</strong> - download your profile, organization, app, and monitor settings as JSON from your profile page.</li>
+                <li><strong class="text-gray-300">Objection</strong> - email <a href="mailto:support@crontinel.com" class="text-gray-300 hover:text-white">support@crontinel.com</a>.</li>
+            </ul>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Third-party services</h2>
-        <ul class="list-disc pl-5 space-y-1">
-          <li><strong class="text-gray-300">Stripe</strong>, payment processing. Subject to Stripe's privacy policy.</li>
-          <li><strong class="text-gray-300">Resend</strong>, transactional email delivery.</li>
-          <li><strong class="text-gray-300">Railway</strong>, application and database hosting.</li>
-          <li><strong class="text-gray-300">Cloudflare</strong>, site delivery, the Turnstile bot check on sign-in and sign-up, and optional Workers AI investigations.</li>
-          <li><strong class="text-gray-300">Google Analytics</strong>, page views on crontinel.com, docs.crontinel.com and app.crontinel.com, only after you accept cookies.</li>
-          <li><strong class="text-gray-300">PostHog</strong>, product analytics and error reports on crontinel.com, only after you accept cookies.</li>
-          <li><strong class="text-gray-300">Zoho Mail</strong>, our support inbox, for emails you send us.</li>
-          <li><strong class="text-gray-300">Google and GitHub</strong>, only if you choose to sign in with them. We receive your name, email address and account ID.</li>
-          <li><strong class="text-gray-300">Google Fonts</strong> (crontinel.com), <strong class="text-gray-300">Bunny Fonts</strong> and <strong class="text-gray-300">jsDelivr</strong> (app), font delivery. Your browser's IP address is visible to them.</li>
-        </ul>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Cookies</h2>
+            <ul class="list-disc pl-5 space-y-1">
+              <li><strong class="text-gray-300">Strictly necessary:</strong> session cookie and CSRF token on app.crontinel.com. No consent required.</li>
+              <li><strong class="text-gray-300">Analytics:</strong> Google Analytics 4 on crontinel.com, the docs and the app, and PostHog on crontinel.com. Only set after you click "Accept" on the cookie banner.</li>
+              <li>No advertising cookies.</li>
+            </ul>
+            <p class="mt-2">Details and how to opt out: <a href="/legal/cookies/" class="text-gray-300 hover:text-white">cookie policy</a>.</p>
+        </section>
 
       <section>
-        <h2 class="text-white font-semibold text-base mb-2">Contact</h2>
-        <p>Questions? <a href="/contact/" class="text-gray-300 hover:text-white">Contact us</a>.</p>
-      </section>
+            <h2 class="text-white font-semibold text-base mb-2">Changes to this policy</h2>
+            <p>We will notify registered users by email if we make material changes to this policy. The "last updated" date at the top of this page will always reflect the most recent revision.</p>
+        </section>
+
+      <section>
+            <h2 class="text-white font-semibold text-base mb-2">Contact</h2>
+            <p>Questions about privacy: <a href="mailto:support@crontinel.com" class="text-gray-300 hover:text-white">support@crontinel.com</a></p>
+        </section>
 
     </div>
   </main>
