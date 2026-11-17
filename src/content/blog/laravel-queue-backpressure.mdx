@@ -2,6 +2,7 @@
 title: "Queue Backpressure in Laravel: When Depth Spikes"
 description: "Your queue depth is climbing, jobs time out, and retries make it worse. See how backpressure builds in Laravel queues, why it cascades, and how to respond."
 date: 2026-04-07
+updated: 2026-11-17
 tags: ["laravel", "queues", "performance"]
 ---
 
@@ -59,7 +60,8 @@ use Illuminate\Support\Facades\Redis;
 
 function oldestJobAge(string $queue = 'default'): ?float
 {
-    $raw = Redis::lindex("queues:{$queue}", -1);
+    // Laravel's Redis queue pushes with RPUSH and pops from the head, so index 0 is the oldest job
+    $raw = Redis::lindex("queues:{$queue}", 0);
     if (!$raw) return null;
 
     $payload = json_decode($raw, true);
@@ -70,17 +72,19 @@ function oldestJobAge(string $queue = 'default'): ?float
 }
 ```
 
-An oldest job age over 60 seconds on a queue that normally processes in under 5 seconds is an early warning.
+An oldest job age over 60 seconds on a queue that normally processes in under 5 seconds is an early warning. This reads only the waiting list: delayed and reserved jobs sit in separate sorted sets and are not counted.
 
-### 2. Throughput trend
+### 2. Wait time and throughput trend
 
-Compare the current 5-minute throughput against the 5-minute throughput from the same time yesterday. A significant drop means workers are struggling.
+Horizon can measure the wait for you. Set a threshold per queue in `config/horizon.php`, and Horizon fires a `Laravel\Horizon\Events\LongWaitDetected` event when the estimated wait goes past it:
 
 ```php
-// If using Horizon, check throughput via Redis
-$currentBucket = Redis::hget('horizon:completed-jobs', $currentTimeBucket);
-$yesterdayBucket = Redis::hget('horizon:completed-jobs', $yesterdayTimeBucket);
+'waits' => [
+    'redis:default' => 60, // seconds
+],
 ```
+
+Listen for that event to notify the team. For the trend, compare the dashboard's jobs-per-minute against the same hour yesterday, which needs `php artisan horizon:snapshot` scheduled every five minutes. A significant drop with a rising backlog means workers are struggling.
 
 ### 3. Failure rate
 
