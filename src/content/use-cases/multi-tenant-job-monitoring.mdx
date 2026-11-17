@@ -2,6 +2,7 @@
 title: "Multi-Tenant Laravel Job Monitoring in One Dashboard"
 description: "Monitor background jobs across many Laravel applications from one dashboard. Separate API keys, per-app thresholds, and team access for multi-app teams."
 date: 2026-04-07
+updated: 2026-11-17
 ---
 
 Teams running more than one Laravel application face a monitoring coordination problem. Each app has its own Horizon instance, its own scheduler, its own queues. Monitoring them requires either juggling multiple dashboards or accepting gaps in visibility.
@@ -19,7 +20,7 @@ CRONTINEL_APP_NAME="Production API"
 
 The package sends monitoring data (scheduler events, Horizon state, queue metrics) to the Crontinel backend. Each app's data is scoped to its API key and displayed separately in the dashboard.
 
-You can have as many apps as your plan allows. The Pro plan covers 5 apps. The Team plan is unlimited.
+How many apps you can connect depends on your plan. The Free plan includes one connected app. Paid plans are still being prepared, so check the [pricing page](/pricing/) for the current limits before planning for many apps.
 
 ## Use cases for multi-app monitoring
 
@@ -65,7 +66,7 @@ There is no global configuration that applies to all apps. Each app's `.env` con
 
 ## Team access
 
-On the Team plan, team members are invited to the shared dashboard and can see all connected apps. Access levels:
+Team access is tied to the plan, and the paid plans that include more members are not on sale yet. The intended access levels are:
 
 - **Admin**: full access, can add/remove apps, manage team members, change thresholds
 - **Read-only**: can view dashboards and run history, cannot change configuration
@@ -93,4 +94,4 @@ php artisan crontinel:install
 
 Add the app-specific API key to `.env`, configure alert channels and thresholds, and the app appears in the dashboard within the first polling cycle.
 
-Paid plans with more app and member capacity are being prepared. Check the current plan terms before planning client access.
+Check the current plan terms before planning client access.
