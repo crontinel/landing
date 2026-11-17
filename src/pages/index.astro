@@ -90,7 +90,9 @@ const description = 'Crontinel tells you when a background job finished without 
 <!-- Fonts (index page only) -->
 <link slot="head" rel="preconnect" href="https://fonts.googleapis.com" />
 <link slot="head" rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link slot="head" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<!-- Non-blocking: media=print until loaded, so the hero text paints with the fallback font first (display=swap) -->
+<link slot="head" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+<noscript slot="head"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" /></noscript>
 
 <!-- Design system tokens -->
 <link slot="head" rel="stylesheet" href="/styles/crontinel-tokens.css" />
