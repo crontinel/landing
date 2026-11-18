@@ -115,6 +115,8 @@ This shows the 20 slowest recent commands. For queue workloads, watch for `BLPOP
 | Latency spike every few hours | Key expiry triggering Horizon rebuild | Increase Horizon supervisor TTLs |
 | Jobs process but take 2-3x longer | Redis CPU saturation from non-queue traffic | Move cache traffic to a separate Redis instance |
 
+If depth keeps growing faster than workers can drain it, read [queue backpressure in Laravel](/blog/laravel-queue-backpressure/). If you already scrape Redis with Prometheus, [Prometheus metrics for Laravel](/use-cases/prometheus-laravel-integration/) shows which failures that setup misses.
+
 ## What Crontinel Watches
 
 Crontinel monitors queue depth trends, worker throughput, and Redis connection health in one dashboard. Instead of polling `redis-cli` or guessing from Horizon's sparse metrics, you get:
