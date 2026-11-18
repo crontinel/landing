@@ -99,6 +99,8 @@ Isolating tenant traffic in Horizon supervisors reduces the blast radius of per-
 
 With this setup, a failing integration doesn't consume workers from `notifications`. Crontinel monitors each supervisor and reports its state independently, so a supervisor shutdown on `integrations` alerts immediately without masking the healthy state of `supervisor-shared`.
 
+Running several separate Laravel apps rather than several tenants inside one app? See [monitoring multiple Laravel apps from one dashboard](/use-cases/multi-tenant-job-monitoring/).
+
 ## Setup
 
 ```bash

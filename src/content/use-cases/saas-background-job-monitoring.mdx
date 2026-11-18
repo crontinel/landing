@@ -55,6 +55,7 @@ Many SaaS applications serve multiple tenants from a single application instance
 Crontinel monitors at the application level, not the tenant level. If your billing job fails because of a problem affecting all tenants (Stripe API down, database timeout), Crontinel catches that. Per-tenant job failures that are isolated to one tenant need application-level observability.
 
 For multi-application SaaS (different apps per major customer or per region), connect each application to Crontinel separately. Each gets its own API key and appears as a distinct app in your dashboard.
+ [Multi-app monitoring](/use-cases/multi-tenant-job-monitoring/) covers the setup.
 
 ## On-call integration
 

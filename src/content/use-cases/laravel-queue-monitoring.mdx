@@ -63,6 +63,8 @@ Crontinel works with standard `php artisan queue:work` setups, not only with Hor
 
 Horizon-specific features (per-supervisor status, paused detection) require Horizon. Queue depth and failed job monitoring work with any queue setup.
 
+When depth climbs faster than workers can drain it, see [queue backpressure in Laravel](/blog/laravel-queue-backpressure/) for how it builds and how to respond.
+
 ## Responding to queue alerts
 
 When Crontinel fires a queue alert, the first step is identifying the cause:
