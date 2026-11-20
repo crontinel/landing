@@ -1,6 +1,7 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "crontinel-landing",
+	"account_id": "3e7c9226660efb6ff3531bd7ddcfaf5a",
 	"compatibility_date": "2025-10-08",
 	"compatibility_flags": ["nodejs_compat"],
 	"main": "./worker.ts",
