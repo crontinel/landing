@@ -170,5 +170,34 @@ const canonicalURL = new URL(canonicalPath, Astro.site).toString();
         });
       })();
     </script>
+    <script is:inline>
+      // Forward the first-touch source to app sign-up links. No cookie, no storage.
+      (function() {
+        var q = new URLSearchParams(location.search);
+        var ref = q.get('ref') || q.get('utm_source');
+        if (!ref && document.referrer) {
+          var h = '';
+          try { h = new URL(document.referrer).hostname.toLowerCase(); } catch (e) {}
+          if (h && h !== 'crontinel.com' && !/\.crontinel\.com$/.test(h)) {
+            ref = h === 'news.ycombinator.com' ? 'hn'
+              : /(^|\.)reddit\.com$/.test(h) ? 'reddit'
+              : /(^|\.)producthunt\.com$/.test(h) ? 'producthunt'
+              : /(^|\.)google\.[a-z.]+$/.test(h) ? 'google'
+              : (h === 't.co' || /(^|\.)x\.com$/.test(h) || /(^|\.)twitter\.com$/.test(h)) ? 'x'
+              : (h === 'lnkd.in' || /(^|\.)linkedin\.com$/.test(h)) ? 'linkedin'
+              : h;
+          }
+        }
+        if (!ref) return;
+        document.querySelectorAll('a[href*="app.crontinel.com"]').forEach(function(a) {
+          try {
+            var u = new URL(a.href);
+            if (u.hostname !== 'app.crontinel.com' || u.searchParams.has('ref')) return;
+            u.searchParams.set('ref', ref);
+            a.href = u.toString();
+          } catch (e) {}
+        });
+      })();
+    </script>
   </body>
 </html>
