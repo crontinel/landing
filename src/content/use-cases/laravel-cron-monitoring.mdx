@@ -18,6 +18,8 @@ Even if you capture output, you need something watching that output and alerting
 
 Laravel fires `ScheduledTaskFailed` when a command exits with a non-zero status. But you need a listener wired up to catch it, and that listener only fires for tasks that run and fail. It doesn't catch tasks that don't run at all.
 
+Running on Laravel Forge? [Monitoring Forge cron jobs](/use-cases/monitor-forge-cron-jobs/) covers the failures specific to Forge-managed schedules.
+
 ## What Crontinel monitors
 
 Crontinel hooks into the scheduler's lifecycle events to capture a run record for every command that executes:

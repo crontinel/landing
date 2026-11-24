@@ -41,6 +41,8 @@ php artisan schedule:install
 
 Zero-downtime deploy tools like Envoyer, Deployer, and Forge's zero-downtime deploy feature work by creating a new release directory and then swapping a `current` symlink to point at it. If your crontab entry uses the symlink path (`/var/www/html/current`), the `cd` resolves correctly after the swap. But if it uses a hardcoded release path, it points at stale code after the next deploy.
 
+On Forge specifically, the scheduler entry and daemons are managed for you, which changes where this fails; see [monitoring Laravel Forge cron jobs](/use-cases/monitor-forge-cron-jobs/).
+
 Check what your crontab actually references:
 
 ```bash
