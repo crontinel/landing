@@ -34,7 +34,7 @@ export async function GET() {
 
   const blogPosts = (await getCollection('blog')).filter((p) => !p.data.draft);
   const vsPosts   = await getCollection('vs');
-  const useCases  = await getCollection('use-cases');
+  const useCases  = (await getCollection('use-cases')).filter((p) => !p.data.noindex);
   const integrations = await getCollection('integrations');
 
   const dynamicPages = [
