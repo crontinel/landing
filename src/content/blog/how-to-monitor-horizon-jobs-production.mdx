@@ -120,6 +120,8 @@ If Redis becomes unavailable, Horizon stops working and its status can't be read
 
 During a deployment, old Horizon workers are killed and new ones start. If the old workers are killed before new ones are ready, there's a brief window where no workers are processing jobs. Horizon has no running supervisors during this window. A well-configured deployment should use `horizon:pause` before deploying and `horizon:continue` after new workers are ready.
 
+When you need to inspect Horizon by hand, [every Redis key Horizon stores and what it means](/blog/what-laravel-horizon-redis-keys-mean/) is the reference.
+
 ## Alerting thresholds
 
 Set these based on your baseline:

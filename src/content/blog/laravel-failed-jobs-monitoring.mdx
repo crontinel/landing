@@ -29,6 +29,8 @@ The `exception` column contains the full stack trace. The `payload` column conta
 
 What it does not contain: how many times the job was retried before failing, how long each attempt took, whether the failure rate on that queue is unusual, or whether anyone has acknowledged the failure.
 
+Jobs run with `dispatchSync()` never reach this table at all, as [how dispatchSync() works and when it fails](/blog/laravel-dispatchsync-explained/) shows.
+
 ## Failure rate matters more than failure count
 
 A `failed_jobs` table with 200 rows is meaningless without context. If those 200 failures accumulated over six months across millions of successful jobs, your system is healthy. If they all arrived in the last 30 minutes, something is very wrong.

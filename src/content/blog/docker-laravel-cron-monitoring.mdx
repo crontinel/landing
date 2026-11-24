@@ -221,6 +221,8 @@ crontinel monitor --name "inventory-sync" --every 15m
 
 External monitoring catches the failures that internal checks miss — when the container itself goes down, when Docker restarts it, or when the health check process is the thing that crashed.
 
+On Kubernetes instead of plain Docker? [Monitoring Laravel cron jobs on Kubernetes](/blog/monitoring-kubernetes-cron-jobs/) covers pod restarts, duplicate runs and dead pods.
+
 ## Common Docker-Specific Cron Pitfalls
 
 | Pitfall | Symptom | Fix |
