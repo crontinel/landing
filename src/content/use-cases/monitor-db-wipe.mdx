@@ -1,10 +1,12 @@
 ---
-title: "Detect When php artisan db:wipe Runs in Production"
-description: "php artisan db:wipe drops every table without running migrations back. Here's how to monitor for accidental db:wipe runs and recover before downtime."
+title: "Detect migrate:fresh and db:wipe Runs in Production"
+description: "migrate:fresh and db:wipe drop every table. Catch an accidental run in production with a command listener, an artisan wrapper and a process check."
 date: 2026-07-06
 ---
 
-Someone types `php artisan db:wipe --force` on the production server. Maybe they meant the staging box. Maybe a deploy script grabbed the wrong command. Within seconds, every table in your database is gone. The `migrations` table. User accounts. Billing records. All of it.
+Someone types `php artisan db:wipe --force` or `php artisan migrate:fresh --force` on the production server. Teams with shared deploy access, CI pipelines that pass `--force`, or reset scripts that call either command have lost production data this way.
+
+Take `db:wipe` first. Maybe they meant the staging box. Maybe a deploy script grabbed the wrong command. Within seconds, every table in your database is gone. The `migrations` table. User accounts. Billing records. All of it.
 
 The difference between `db:wipe` and `migrate:fresh` is easy to miss. Both drop tables. But `migrate:fresh` runs migrations back afterward, while `db:wipe` leaves you with an empty database and zero indication something went wrong. The command exits zero, the deploy script continues, and nobody notices until users start hitting connection errors.
 
@@ -35,6 +37,8 @@ And `migrate:fresh` at least triggers `MigrationsStarting` and `MigrationsEnded`
 
 The other thing is that some deployment scripts run `php artisan db:wipe` as a cleaning step before `migrate` and `db:seed`. If `db:wipe` succeeds but the seed step fails, your database is empty and the deployment is broken. The cleanup step becomes the root cause you never thought to check.
 
+`migrate:fresh` does the same drop, then runs every migration again. Its own step two is where it fails loudest: if a migration errors, you have no tables and an app returning 500 on every request. For both commands the monitoring question is the same. You are not watching duration or success. Their presence in production is the incident.
+
 ## Common Failure Modes
 
 The most common one is a developer with two terminal tabs. One pointed at staging, one at production. The `db:wipe --force` meant for staging runs on production instead. No guard, no rollback, no second chance.
@@ -54,10 +58,12 @@ The most reliable way to detect `db:wipe` is to intercept the command itself bef
 use Illuminate\Console\Events\ArtisanStarting;
 
 Event::listen(ArtisanStarting::class, function ($event) {
-    if ($event->artisan->getName() === 'db:wipe') {
+    $name = $event->artisan->getName();
+
+    if (in_array($name, ['db:wipe', 'migrate:fresh'], true)) {
         // Fire immediately, before any tables are dropped
         Http::timeout(3)->post(config('crontinel.alert_webhook'), [
-            'message' => 'db:wipe command detected on ' . gethostname(),
+            'message' => $name . ' command detected on ' . gethostname(),
             'severity' => 'critical',
             'time' => now()->toIso8601String(),
         ]);
@@ -82,14 +88,23 @@ If you prefer blocking the execution entirely, replace the artisan binary with a
 ```bash
 #!/bin/bash
 # artisan wrapper that intercepts dangerous commands
-if [[ "$*" == *"db:wipe"* ]] || [[ "$*" == *"db:wipe --force"* ]]; then
+if [[ "$*" == *"db:wipe"* ]] || [[ "$*" == *"migrate:fresh"* ]]; then
     echo "[ALERT] Blocked destructive command: php artisan $*"
     curl -fsS --retry 3 \
-      "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=db:wipe+blocked"
+      "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=destructive+command+blocked"
     exit 1
 fi
 exec "$(dirname "$0")/artisan.bin" "$@"
 ```
+
+A third layer catches runs that slip past both: watch for the process on the production host. Run this every minute, so a hit alerts within a minute of the command starting:
+
+```bash
+pgrep -f "artisan (migrate:fresh|db:wipe)" && curl -fsS --retry 3 \
+  "https://heartbeat.crontinel.com/ping/YOUR-PING-ID?state=down&msg=destructive+command+running"
+```
+
+Layer them: the wrapper blocks accidental interactive runs, the event listener catches programmatic calls from CI or deploy scripts, and the process check catches the rest. Treat any hit as a P0 incident.
 
 ## Detecting When db:wipe Has Already Run
 
@@ -119,16 +134,16 @@ Second, point the `Artisan::starting` event listener at a Crontinel webhook URL:
 
 ```php
 Artisan::starting(function ($command) {
-    if ($command->getName() === 'db:wipe') {
+    if (in_array($command->getName(), ['db:wipe', 'migrate:fresh'], true)) {
         Http::post('https://heartbeat.crontinel.com/ping/YOUR-PING-ID/alert', [
             'status' => 'down',
-            'msg' => 'db:wipe detected in production',
+            'msg' => $command->getName() . ' detected in production',
         ]);
     }
 });
 ```
 
-With Crontinel, you know about a `db:wipe` execution within seconds, before the recovery even starts. That window lets you restore from backup before users notice anything wrong.
+With Crontinel, you know about a `db:wipe` or `migrate:fresh` execution within seconds, before the recovery even starts. That window lets you restore from backup before users notice anything wrong.
 
 ## FAQ
 
@@ -140,6 +155,9 @@ Yes. PostgreSQL also drops sequences and custom types when `--drop-types` is pas
 
 ### How do I prevent db:wipe from being run in production altogether?
 Remove it from the production-server `artisan` binary path entirely. Rename `artisan` to `artisan.bin` and replace it with a wrapper that blocks `db:wipe` and `db:wipe --force` outright. This is the only guarantee.
+
+### Does migrate:fresh need different handling than db:wipe?
+No. Both drop every table, so use the same listener, wrapper and process check. The difference is the aftermath: `migrate:fresh` leaves a rebuilt but empty schema, `db:wipe` leaves nothing.
 
 ## Related reading
 

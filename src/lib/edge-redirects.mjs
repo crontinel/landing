@@ -35,6 +35,8 @@ export const redirectRules = [
   { path: '/use-cases/monitor-view-clear/', location: '/use-cases/monitor-view-cache/', status: 301 },
   { path: '/use-cases/monitor-route-cache', location: '/use-cases/monitor-route-clear/', status: 301 },
   { path: '/use-cases/monitor-route-cache/', location: '/use-cases/monitor-route-clear/', status: 301 },
+  { path: '/use-cases/monitor-migrate-fresh', location: '/use-cases/monitor-db-wipe/', status: 301 },
+  { path: '/use-cases/monitor-migrate-fresh/', location: '/use-cases/monitor-db-wipe/', status: 301 },
   { path: '/api/waitlist-count', status: 410 },
   { path: '/api/waitlist-count/', status: 410 },
 ];
