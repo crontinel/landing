@@ -56,6 +56,7 @@ const breadcrumb = {
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(articleSchema(page, `https://crontinel.com/use-cases/${page.id}/`))} />
   {faq && <script type="application/ld+json" slot="head" set:html={JSON.stringify(faq)} />}
   <link rel="alternate" type="text/markdown" slot="head" href={`/use-cases/${page.id}.md`} />
+  {page.data.noindex && <meta name="robots" content="noindex,follow" slot="head" />}
   <Nav />
 
   <main class="max-w-3xl mx-auto px-4 sm:px-6 py-16" id="main-content">

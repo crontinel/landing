@@ -28,6 +28,7 @@ const useCases = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string().optional(),
+    noindex: z.boolean().optional().default(false),
     date: z.coerce.date(),
     updated: z.coerce.date().optional(),
   }),
