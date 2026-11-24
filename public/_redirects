@@ -37,3 +37,5 @@
 /use-cases/monitor-view-clear/  /use-cases/monitor-view-cache/   301
 /use-cases/monitor-route-cache   /use-cases/monitor-route-clear/   301
 /use-cases/monitor-route-cache/  /use-cases/monitor-route-clear/   301
+/use-cases/monitor-migrate-fresh   /use-cases/monitor-db-wipe/   301
+/use-cases/monitor-migrate-fresh/  /use-cases/monitor-db-wipe/   301
