@@ -71,6 +71,8 @@ We call this the *silent blank* — your observability platform shows no data be
 
 External monitoring (a heartbeat, a cron monitoring check) is the only way to distinguish between "nothing unusual happened" and "nothing happened at all."
 
+If a Pulse worker stops after a deploy, the dashboard simply freezes; [monitoring pulse:restart](/use-cases/monitor-pulse-restart/) catches that case.
+
 ## What the Split Looks Like in Practice
 
 A production Laravel app should have:

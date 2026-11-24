@@ -51,6 +51,8 @@ Without this, `telescope:prune` only runs when you manually invoke it.
 
 **Telescope entries table grows faster than prune can handle.** On a high-traffic application generating 500,000 entries per day, the hourly prune deletes 1000 rows but generates 20,000 new ones. The table never shrinks. You need more frequent pruning (every 15 minutes) or a batch script that runs multiple times per hour.
 
+A related gap is entries missing after a run; [telescope:clear vs prune and missing entries](/use-cases/monitor-telescope-clear/) explains the difference.
+
 ## Building Visibility Into telescope:prune
 
 Count rows by age bracket to detect accumulation before it becomes critical:

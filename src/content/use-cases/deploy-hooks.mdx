@@ -70,6 +70,8 @@ This alerts only when depth exceeds 200 - above the normal post-deploy spike, in
 
 If you have a scheduled task that runs after every deployment (database seed refresh, search index rebuild, etc.), configure it to run at a known interval and set Crontinel's missed-run detection appropriately.
 
+Two deploy steps that fail quietly have their own pages: [storage:link](/use-cases/monitor-storage-link/) and [view:clear](/use-cases/monitor-view-clear/).
+
 ## Setting up deploy-time alerting
 
 For teams with CI/CD pipelines, temporarily raising alert thresholds during a deploy window prevents false alarms during the expected queue spike:
