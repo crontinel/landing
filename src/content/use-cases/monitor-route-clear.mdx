@@ -1,6 +1,6 @@
 ---
-title: "Monitoring route:clear in Laravel Production"
-description: "Watch Laravel's route:clear command in production so a cleared route cache does not leave old routes, missing endpoints, or a half-finished deployment."
+title: "Monitoring route:clear and route:cache in Laravel"
+description: "Monitor Laravel's route:clear and route:cache in production: a clear with no rebuild, a stale routes-v7.php, or a node that skipped the step."
 date: 2026-05-20
 ---
 
@@ -33,6 +33,10 @@ If `route:clear` succeeds but `route:cache` fails, your app may still work, but 
 
 **A bad deploy order clears routes too early.** If `route:clear` runs before the new release directory is fully linked, the app can briefly read routes from the wrong code version. This usually appears as missing routes immediately after deploy, then seems to fix itself, which makes it easy to dismiss.
 
+**The cache file exists but is not from this deploy.** After `route:cache`, checking only that `bootstrap/cache/routes-v7.php` exists is too weak: last week's deploy may have created it. Compare its modification time with the release time and alert when the file is older than the release that should have rebuilt it.
+
+**Named route conflicts get frozen into the cache.** Duplicate route names, stale controller references and old middleware assignments can hide until a user hits the path or the app calls `route()`. The cache file turns a routing mistake into a production snapshot.
+
 ## Building visibility into route:clear
 
 Treat route cache clearing as a deployment event worth verifying. The simplest check is to run `route:clear` and confirm the cache file is actually gone:
@@ -56,12 +60,35 @@ Schedule::call(function () {
 })->everyFiveMinutes()->name('route-cache-state-check');
 ```
 
-For teams that always rebuild routes after clearing them, run both steps together in the deploy script and let the smoke test below catch drift:
+For teams that always rebuild routes after clearing them, run both steps together in the deploy script, fail if the rebuilt file is missing or empty, and let the smoke test below catch drift:
 
 ```bash
 php artisan route:clear
 php artisan route:cache
+
+if [ ! -s bootstrap/cache/routes-v7.php ]; then
+  echo "route cache file missing or empty"
+  exit 1
+fi
 ```
+
+That catches the command failing on the node running the deploy. A node that never received the deploy needs an age check. A small private health endpoint does it:
+
+```php
+Route::get('/health/routes', function () {
+    $routeFile = base_path('bootstrap/cache/routes-v7.php');
+
+    if (! is_file($routeFile) || filesize($routeFile) === 0) {
+        return response()->json(['status' => 'error', 'reason' => 'route_cache_missing'], 503);
+    }
+
+    $age = time() - filemtime($routeFile);
+
+    return response()->json(['status' => $age > 3600 ? 'warning' : 'ok', 'route_cache_age' => $age], $age > 3600 ? 503 : 200);
+})->middleware('auth.basic');
+```
+
+Keep it private. It is a production safety check, not a public status page.
 
 ## Detecting when route:clear fails
 
@@ -84,4 +111,16 @@ You should also run a small route smoke test after the clear and rebuild sequenc
 
 Crontinel's package hooks into `ScheduledTaskStarting`, `ScheduledTaskFinished`, and `ScheduledTaskFailed` automatically once installed - no ping URL or config needed. Create a Cron monitor for the scheduled `route-cache-state-check` above, with an alert window that matches your deployment cadence.
 
-If you already monitor [`route:cache`](/use-cases/monitor-route-cache/), the two checks together show whether Laravel cleared the old route table and rebuilt the new one cleanly.
+Also schedule a freshness check for the rebuilt file, so a skipped `route:cache` shows up as a failed run:
+
+```php
+Schedule::call(function () {
+    $routeFile = base_path('bootstrap/cache/routes-v7.php');
+
+    if (! is_file($routeFile) || time() - filemtime($routeFile) > 7200) {
+        throw new RuntimeException('route cache missing or stale');
+    }
+})->everyFiveMinutes()->name('route-cache-freshness-check');
+```
+
+Together the two checks show whether Laravel cleared the old route table and rebuilt the new one cleanly. For a normal CI deploy, 15 to 30 minutes of staleness tolerance is usually enough. For rolling deploys, give each node time to finish before the freshness check flags it.

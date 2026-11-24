@@ -33,6 +33,8 @@ export const redirectRules = [
   { path: '/blog/migrate-from-thenping-me/', location: '/vs/crontinel-vs-thenping/', status: 301 },
   { path: '/use-cases/monitor-view-clear', location: '/use-cases/monitor-view-cache/', status: 301 },
   { path: '/use-cases/monitor-view-clear/', location: '/use-cases/monitor-view-cache/', status: 301 },
+  { path: '/use-cases/monitor-route-cache', location: '/use-cases/monitor-route-clear/', status: 301 },
+  { path: '/use-cases/monitor-route-cache/', location: '/use-cases/monitor-route-clear/', status: 301 },
   { path: '/api/waitlist-count', status: 410 },
   { path: '/api/waitlist-count/', status: 410 },
 ];
