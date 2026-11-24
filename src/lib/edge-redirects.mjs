@@ -31,6 +31,8 @@ export const redirectRules = [
   { path: '/blog/incident-alert-system-laravel/', location: '/use-cases/incident-alert-system/', status: 301 },
   { path: '/blog/migrate-from-thenping-me', location: '/vs/crontinel-vs-thenping/', status: 301 },
   { path: '/blog/migrate-from-thenping-me/', location: '/vs/crontinel-vs-thenping/', status: 301 },
+  { path: '/use-cases/monitor-view-clear', location: '/use-cases/monitor-view-cache/', status: 301 },
+  { path: '/use-cases/monitor-view-clear/', location: '/use-cases/monitor-view-cache/', status: 301 },
   { path: '/api/waitlist-count', status: 410 },
   { path: '/api/waitlist-count/', status: 410 },
 ];

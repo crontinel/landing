@@ -1,6 +1,6 @@
 ---
-title: "Monitoring view:cache in Laravel Production"
-description: "Monitor Laravel's view:cache command in production so stale compiled views, missing templates, and permission errors do not silently break your app."
+title: "Monitoring view:clear and view:cache in Laravel"
+description: "Monitor Laravel's view:clear and view:cache in production so stale compiled views, a clear with no rebuild, and permission errors do not silently slow your app."
 date: 2026-06-26
 canonical: "https://crontinel.com/use-cases/monitor-view-cache/"
 ---
@@ -48,6 +48,10 @@ This precompiles everything so no request ever triggers an on-demand compile. Bu
 
 **Timestamp edge cases in automated deployments.** Laravel checks `filemtime()` on source templates to decide whether to recompile. Automated git deployments that clone fresh repos can produce source files with timestamps *older* than the cached compiled views. When that happens, `view:cache` skips recompilation on templates it considers current, leaving old compiled versions in place. The GitHub issue (laravel/framework#53394) recommends running `view:clear` before `view:cache` to guarantee every template recompiles.
 
+**A clear with no rebuild.** `view:clear` deletes every compiled Blade template, exits zero, and asks for nothing. If a deploy script runs it and then fails before `view:cache`, or someone runs it by hand while debugging a template and forgets the rebuild, production compiles every view on its first request. The app never errors. It just gets 50 to 200 ms slower per page, so nobody looks.
+
+**A clear that deletes nothing.** If the deploy user differs from the web server user, `view:clear` can fail to remove files it cannot write to and still exit zero. The old compiled templates stay in place and keep serving.
+
 ## Building visibility into view:cache
 
 The safest deploy sequence for view caching is clear-before-cache:
@@ -73,6 +77,21 @@ curl -fsS \
 ```
 
 The `view:clear` before `view:cache` eliminates the timestamp edge case. Without it, compiled views can go stale without anyone noticing.
+
+To see each half of the pair, count compiled files before and after the clear and ping once per step:
+
+```bash
+PRE=$(find storage/framework/views/ -name '*.php' | wc -l)
+php artisan view:clear
+POST=$(find storage/framework/views/ -name '*.php' | wc -l)
+[ "$POST" -lt "$PRE" ] || { echo "view:clear removed nothing"; exit 1; }
+
+curl -fsS "https://heartbeat.crontinel.com/ping/view-clear?host=$(hostname)&removed=$((PRE - POST))"
+php artisan view:cache
+curl -fsS "https://heartbeat.crontinel.com/ping/view-cache?host=$(hostname)&compiled=$(find storage/framework/views/ -name '*.php' | wc -l)"
+```
+
+Send `removed` so you can tell the command found files to delete. `removed: 0` on a fresh server is normal. On a server that has been running for months it points to a permission problem on `storage/framework/views/`.
 
 Send `host` and `release` in the ping metadata so a missing server stands out immediately during a rolling deploy. If host A reports back but host B does not within the grace window, you know the second server never completed the cache step.
 
@@ -102,7 +121,7 @@ For queue workers and Horizon, remember that compiled views are per-process. A w
 
 ## Quick setup with Crontinel
 
-Create a Crontinel monitor named `deploy view:cache completed`. Ping it after `view:clear && view:cache` succeeds on each production server. Include `host` and `release` in the ping. Set the grace period to match your deploy window — if deploys typically take 5 minutes, a 7-minute grace period catches a missed cache step without false alerts during a slow deploy.
+Create two Crontinel monitors, `deploy view:clear completed` and `deploy view:cache completed`, with the same expected window. Ping the first after `view:clear` and the second after `view:cache` on each production server. A clear ping without a cache ping means that server is serving uncached templates until the next deploy. Include `host` and `release` in the ping. Set the grace period to match your deploy window — if deploys typically take 5 minutes, a 7-minute grace period catches a missed cache step without false alerts during a slow deploy.
 
 If you deploy on a schedule, set the expected times to match. For ad-hoc deploys, start the monitor at deploy time and require the ping from every server before the deploy is considered healthy.
 
